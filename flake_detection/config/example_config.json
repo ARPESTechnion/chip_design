@@ -1,0 +1,87 @@
+{
+  "_readme": [
+    "Example config for flake detection — fill in color ranges once you have images.",
+    "Load with: config = DetectionConfig.load('example_config.json')",
+    "Run pipeline: python -m flake_detection.run --input_folder /path/to/images --config example_config.json",
+    "",
+    "Recommended first-run workflow:",
+    "  1. Set your color range (hsv_range or rgb_range) and color_mode.",
+    "  2. Leave min_final_score at 0.0 to accept all candidates.",
+    "  3. Inspect results.json — look at laplacian_var, intensity_std, neighbor_coverage",
+    "     for visually good vs. bad flakes, then set the max_* thresholds to separate them.",
+    "  4. Raise min_final_score to filter, or use top_n to limit output count."
+  ],
+
+  "marker_removal_enabled": true,
+  "marker_rgb_range": {
+    "_comment": "RGB range of location markers (pink/magenta dots or crosshairs). Sample marker pixels with a colour picker and set a tight range around them.",
+    "r_min": 220, "r_max": 255,
+    "g_min": 160, "g_max": 220,
+    "b_min": 220, "b_max": 255
+  },
+
+  "substrate_hsv_range": {
+    "_comment": "The substrate background color. Everything outside this range is a flake candidate.",
+    "h_min": 105,
+    "h_max": 145,
+    "s_min": 40,
+    "s_max": 255,
+    "v_min": 20,
+    "v_max": 160
+  },
+
+  "min_color_fraction": 0.3,
+
+  "color_mode": "hsv",
+
+  "rgb_range": {
+    "_comment": "Active only when color_mode is rgb. Pick values with a pixel inspector on a representative image.",
+    "r_min": 0,
+    "r_max": 255,
+    "g_min": 0,
+    "g_max": 255,
+    "b_min": 0,
+    "b_max": 255
+  },
+
+  "hsv_range": {
+    "_comment": [
+      "Active when color_mode is hsv (recommended).",
+      "Hue [0-179]: 0=red 30=yellow 60=green 90=cyan 120=blue 150=magenta",
+      "Saturation [0-255]: 0=grey/white, 255=fully saturated",
+      "Value [0-255]: 0=black, 255=bright",
+      "NbSe2 on SiO2 example: h 190-230 maps to hue 95-115 in OpenCV (divide degrees by 2).",
+      "Set to full range first, then narrow after inspecting the color mask output."
+    ],
+    "h_min": 0,
+    "h_max": 179,
+    "s_min": 0,
+    "s_max": 255,
+    "v_min": 0,
+    "v_max": 255
+  },
+
+  "blur_kernel_size": 5,
+
+  "closing_kernel_size": 0,
+
+  "min_flake_area": 5000,
+  "max_flake_area": 1000000,
+
+  "contour_erosion_px": 3,
+
+  "max_laplacian_var": 500.0,
+  "max_intensity_std": 30.0,
+  "laplacian_weight": 0.5,
+  "std_weight": 0.5,
+
+  "neighborhood_factor": 3.0,
+  "max_neighbor_coverage": 0.10,
+
+  "color_fraction_weight": 0.4,
+  "texture_score_weight": 0.2,
+  "isolation_score_weight": 0.4,
+
+  "min_final_score": 0.0,
+  "top_n": null
+}
