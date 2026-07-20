@@ -2,6 +2,7 @@
 *.jpg
 *.jpeg
 *.cif
+*.docx
 
 .claude
 flakes
