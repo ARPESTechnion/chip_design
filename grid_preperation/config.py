@@ -116,30 +116,82 @@ class CifExportConfig:
     If |dy_px| / |dx_px| exceeds this ratio, alert — implies the wrong blobs
     were selected or the image has unexpected rotation for the base case."""
 
-    marker_refine_half_px: int = 25
+    square_marker_rgb: tuple = (255, 196, 255)
     """
-    After template matching + validation (which use the coarser, more
-    robust template-matched position), each marker position is refined to
-    the crosshair's actual solid core within a window of this half-size —
-    per image, not a single fixed template-wide correction. Falls back to
-    the unrefined position if no plausible core is found nearby (e.g. too
-    much nearby clutter) rather than guessing.
+    Target (R, G, B) of a grid-dot square's solid core color — measured
+    directly off a real marker (BI.png): the core reads almost exactly
+    (255, 196, 255) throughout.
+
+    Used (with the two margins below) instead of flake_detection's much
+    broader marker_rgb_range for square detection (see markers._find_squares).
+    That range is deliberately wide because flake_detection uses it to
+    REMOVE marker pixels (over-inclusion there is safe) — but the same wide
+    range also catches part of the pale cyan/blue transition halo that
+    surrounds each marker (where the bright marker color blends into the
+    blue substrate), unevenly across the square's edges, which skews the
+    detected centroid.
     """
 
-    marker_refine_canny_low: float = 15.0
-    marker_refine_canny_high: float = 50.0
-    """Canny thresholds for finding the core's edge within the refinement
-    window (see markers._refine_marker_center) — lower than the whole-image
-    polygon-extraction Canny thresholds since this is a small, low-contrast
-    region and needs to be more sensitive."""
+    square_color_margin: int = 35
+    """
+    Per-channel +/- tolerance around square_marker_rgb used for the COARSE
+    pass: isolating each candidate blob (square or letter) from its
+    neighbors via connected components. Measured empirically to be the
+    tightest value that doesn't start merging adjacent glyphs/squares into
+    one oversized blob (a real per-marker core color, especially the B
+    channel, legitimately varies by up to ~35 from the target across
+    different markers/images — going tighter than this here drops real
+    squares, not just halo). This pass is about isolating the right blob,
+    not precision; see square_core_margin for that.
+    """
 
-    marker_refine_min_area: int = 100
-    marker_refine_max_area: int = 1500
-    marker_refine_min_extent: float = 0.55
-    """Shape filter for the refined core contour: plausible area range (px)
-    and minimum fill ratio (area / bounding-box area). The core is a
-    rounded pentagon/house shape, not a perfect square, so this is
-    deliberately looser than a strict squareness check."""
+    square_core_margin: int = 15
+    """
+    Per-channel +/- tolerance around square_marker_rgb used for the FINE
+    pass: once a candidate blob is isolated (via square_color_margin) and
+    passes the area/aspect filters below, its centroid is recomputed from
+    only the pixels within its own bounding box that tightly match
+    square_marker_rgb — excluding the halo, which is what actually skews
+    the centroid, without the merge risk a tight global threshold would
+    have (that risk doesn't apply here since we're already confined to one
+    isolated blob's small bounding box). Falls back to the coarse-pass
+    centroid if no pixel in the box matches this tightly.
+    """
+
+    square_erode_kernel_px: int = 5
+    """
+    Erosion kernel (px) applied to the coarse square-color mask before
+    finding grid-dot squares (see markers._find_squares) — strips any
+    thin remaining halo/arm fragments so a clean, centered square blob
+    survives even where a crosshair overlays it.
+    """
+
+    square_min_area: int = 5
+    square_max_area: int = 400
+    """
+    Area range (px, measured in the ERODED mask, so smaller than a square's
+    true size) a connected component must fall in to count as a grid-dot
+    square. Excludes tiny noise specks (too small) and letter-label glyphs,
+    which mostly survive erosion but are much larger (too big).
+    """
+
+    square_min_aspect: float = 0.4
+    square_max_aspect: float = 2.5
+    """Bounding-box aspect ratio (w/h) range for a square candidate — loose,
+    but excludes clearly non-square letter-glyph fragments."""
+
+    marker_square_snap_max_distance_px: float = 20.0
+    """
+    Each coarse template-matched marker position is replaced by the centroid
+    of its own grid-dot square (see markers._snap_to_square) — the square
+    centroid has no template-matching bias, unlike the crosshair match
+    itself (measured: a small but systematic bias that differs between the
+    left and right marker, which corrupts the whole image's rotation/scale
+    since both derive from the left->right marker vector — see markers.py
+    module docstring). If no square is found within this distance for either
+    marker, the image is alerted and skipped rather than placed with an
+    unverified (and potentially biased) coarse position — never guesses.
+    """
 
     # ------------------------------------------------------------------ #
     # Polygon export                                                       #

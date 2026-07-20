@@ -131,7 +131,18 @@ def _process_image(
     return result
 
 
-def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None = None) -> list[dict]:
+def run(
+    input_folder: Path,
+    config: CifExportConfig,
+    output_folder: Path | None = None,
+    image_paths: list[Path] | None = None,
+) -> list[dict]:
+    """
+    Args:
+        image_paths: explicit images to process, e.g. the subset already
+            selected by flake_detection (see all_code.py). Defaults to every
+            supported image directly under input_folder.
+    """
     output_folder = output_folder or (input_folder / 'cif_export_results')
     output_folder = Path(output_folder)
     cif_dir = output_folder / 'cif'
@@ -153,10 +164,11 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
         else:
             print(f"Reusing existing working template copy at {working_template_path}")
 
-    image_paths = sorted(
-        p for p in input_folder.iterdir()
-        if p.suffix.lower() in SUPPORTED_EXTENSIONS
-    )
+    if image_paths is None:
+        image_paths = sorted(
+            p for p in input_folder.iterdir()
+            if p.suffix.lower() in SUPPORTED_EXTENSIONS
+        )
     if not image_paths:
         print(f"No supported images found in {input_folder}")
         return []

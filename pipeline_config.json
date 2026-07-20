@@ -1,0 +1,13 @@
+{
+  "_readme": [
+    "Top-level config for the full pipeline: flake_detection then grid_preperation.",
+    "Run with: python all_code.py --input_folder /path/to/images",
+    "Or explicitly: python all_code.py --input_folder /path/to/images --config pipeline_config.json",
+    "",
+    "This file only points at the two stage configs below -- tune image scoring in",
+    "detection_config_path's file, and CIF export/placement in cif_export_config_path's file."
+  ],
+
+  "detection_config_path": "flake_detection/config/orange_flakes_tuned.json",
+  "cif_export_config_path": "grid_preperation/config/example_config.json"
+}
