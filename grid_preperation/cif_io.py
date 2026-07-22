@@ -61,38 +61,75 @@ def _rgb_to_cif_hex(rgb: tuple[int, int, int]) -> str:
     return f"0f{b:02x}{g:02x}{r:02x}"
 
 
+_HEADER_COLOR_RE = re.compile(r"^L\s+L(\d+);\s*\(CleWin:[^/\n]*/(0[fF][0-9a-fA-F]{6})", re.MULTILINE)
+
+
+def _parse_header_colors(text: str) -> dict[int, str]:
+    """layer_num -> hex color string (e.g. '0f7878a8'), parsed from
+    '(CleWin: ...)'-commented layer-name header lines only -- not bare
+    'L Lxxx;' body layer-selector lines, which carry no color info.
+    Tolerant of either this module's own comment format ('.../Flake/hex
+    hex') or BaseGrid.cif's pre-existing one ('.../L001/hex hex') -- both
+    just need a hex code right after the first '/'."""
+    return {int(m.group(1)): m.group(2) for m in _HEADER_COLOR_RE.finditer(text)}
+
+
+def existing_layer_numbers(text: str) -> set[int]:
+    """All layer numbers referenced anywhere in a CIF file (header color
+    declarations AND body 'L Lxxx;' layer-selectors alike) -- pass as
+    LayerPalette's reserved_layers to keep newly dynamically-allocated
+    layers from colliding with layer numbers a master template already uses
+    for its own, unrelated content."""
+    return {int(m.group(1)) for m in re.finditer(r"L\s+L(\d+);", text)}
+
+
 class LayerPalette:
     """
     Stateful layer registry shared across a whole run (all images), so the
     same real-world color always ends up on the same CIF layer number
     everywhere it's spliced into the target — not just within one image.
 
-    Starts from config.flake_layer_palette's fixed "Flake" layers (meant for
-    actual flake-colored content). A polygon whose own measured color is
-    close enough to one of those (within max_distance) reuses it. Anything
-    else (markers, debris, background material -- not flake-colored at all)
-    gets its own dynamically-allocated layer with its own representative
-    color, quantized (color_quantize_step) so near-duplicate colors reuse
-    the same dynamic layer instead of each spawning a new one.
+    Starts from config.flake_layer_palette (empty by default -- see
+    CifExportConfig.flake_layer_palette). A polygon's color is quantized
+    (palette_quantize_step) and looked up by EXACT match against already-
+    registered (quantized) colors; no distinct quantized color is ever
+    registered gets a fresh dynamically-allocated layer.
+
+    Deliberately NOT nearest-neighbor-within-a-radius matching (an earlier
+    version did this via a now-removed max_distance parameter): that let two
+    genuinely different classes end up on the same layer/color whenever they
+    happened to be within the radius of each other -- confirmed empirically,
+    e.g. a crosshair's real cluster color (RGB ~238,190,221) could get
+    silently forced onto an unrelated, already-registered dynamic layer's
+    color instead of getting its own. Exact quantized-value matching is
+    deterministic (doesn't depend on registration order) and only ever
+    merges colors that round to the literal same bucket -- different classes
+    with different real colors always get different layers.
+
+    reserved_layers: layer numbers to never dynamically allocate, because a
+    placement target (e.g. BaseGrid.cif) already uses them for its own,
+    unrelated content (see cif_io.existing_layer_numbers). Confirmed
+    empirically as a second, independent color bug: place_in_cif only
+    splices GEOMETRY into a target, not this module's own color-declaration
+    header, so if a dynamically-allocated layer number collides with a
+    number the target already declares, the spliced-in geometry silently
+    inherits the TARGET's unrelated pre-existing color (e.g. BaseGrid.cif's
+    own layer 108 is a bright green (96,224,96) used for unrelated existing
+    content -- any flake polygon that happened to land on layer 108 rendered
+    with that color instead of its own real cluster color).
     """
 
-    def __init__(self, base_palette: list[dict], max_distance: float = 60.0, quantize_step: int = 24):
+    def __init__(
+        self, base_palette: list[dict], quantize_step: int = 24,
+        reserved_layers: set[int] = frozenset(),
+    ):
         self._entries: dict[int, tuple[int, int, int]] = {
             entry["layer"]: tuple(entry["rgb"]) for entry in base_palette
         }
-        self._max_distance = max_distance
         self._quantize_step = quantize_step
-        self._next_layer = max(self._entries, default=100) + 1
+        self._next_layer = max([*self._entries.keys(), *reserved_layers, 100]) + 1
 
     def layer_for(self, rgb: tuple[int, int, int]) -> int:
-        best_layer, best_dist = None, None
-        for layer, entry_rgb in self._entries.items():
-            dist = sum((a - b) ** 2 for a, b in zip(entry_rgb, rgb)) ** 0.5
-            if best_dist is None or dist < best_dist:
-                best_layer, best_dist = layer, dist
-        if best_dist is not None and best_dist <= self._max_distance:
-            return best_layer
-
         step = self._quantize_step
         quantized = tuple(min(255, round(c / step) * step) for c in rgb)
         for layer, entry_rgb in self._entries.items():
@@ -108,17 +145,36 @@ class LayerPalette:
         return self._entries[layer_num]
 
 
+_BARE_PREDECLARE_MAX_LAYER = 100
+"""Matches GDS_Code.m's UI_Act5_export_cif (for i4 = 0:100 -> S.Txt.L0):
+bare, colorless 'L Lxxx;' declarations for layers 0-100, written before the
+real colored ones."""
+
+
 def write_cif(polygons: list[Polygon], path: str | Path, palette: LayerPalette) -> None:
     """
     Write exported polygons (flakes, markers, debris -- everything past
     extract_polygons' filters) to a standalone per-image CIF file.
 
-    Each polygon is assigned a layer via palette.layer_for(mean_rgb) — a
-    color similar to its own measured color, not one fixed monocolor layer.
+    Layer numbering/coloring matches GDS_Code.m's UI_Act5_export_cif (lines
+    623-632) exactly: a polygon whose color came from a real channels_model
+    cluster (poly.source_cluster is not None) goes on FIXED layer
+    100+source_cluster, colored with that cluster's own real measured color
+    (t.lay = 100+(S.LiSel(i4)); t.rgb = S.mp24(S.LiSel(i4),:) in the
+    original) -- not a dynamically-allocated/deduped layer. Only polygons
+    with no cluster overlap at all (source_cluster is None, a rare fallback
+    -- see polygons.py) go through palette.layer_for's dynamic allocation,
+    which is why LayerPalette still exists.
     """
+    layer_colors: dict[int, tuple[int, int, int]] = {}
     by_layer: dict[int, list[Polygon]] = {}
     for poly in polygons:
-        layer_num = palette.layer_for(poly.mean_rgb)
+        if poly.source_cluster is not None:
+            layer_num = 100 + poly.source_cluster
+            layer_colors[layer_num] = poly.mean_rgb
+        else:
+            layer_num = palette.layer_for(poly.mean_rgb)
+            layer_colors[layer_num] = palette.rgb_for(layer_num)
         by_layer.setdefault(layer_num, []).append(poly)
 
     lines = [
@@ -128,8 +184,10 @@ def write_cif(polygons: list[Polygon], path: str | Path, palette: LayerPalette) 
         "\n",
         "(Layer names);\n",
     ]
-    for layer_num in sorted(by_layer):
-        hexcode = _rgb_to_cif_hex(palette.rgb_for(layer_num))
+    for i in range(_BARE_PREDECLARE_MAX_LAYER + 1):
+        lines.append(f"L L{i:03d};\n")
+    for layer_num in sorted(layer_colors):
+        hexcode = _rgb_to_cif_hex(layer_colors[layer_num])
         lines.append(f"L L{layer_num:03d}; (CleWin: {layer_num:03d} Flake/{hexcode} {hexcode});\n")
 
     lines += [
@@ -234,4 +292,31 @@ def place_in_cif(
     new_content = "\n".join(new_lines) + "\n"
 
     spliced = target_text[:df_pos] + new_content + target_text[df_pos:]
+
+    # Geometry above is now spliced in, but place_in_cif only ever touches
+    # the BODY -- the exported CIF's own layer-color header declarations
+    # never otherwise reach the target. Without this, any spliced-in layer
+    # number the target doesn't already declare a color for renders with
+    # whatever default a CAD viewer falls back to for an undeclared layer
+    # (confirmed empirically: this, combined with the layer-number-collision
+    # fix in LayerPalette.reserved_layers, is what caused flakes to render
+    # in colors unrelated to their real cluster color).
+    export_colors = _parse_header_colors(exported_cif_path.read_text())
+    target_colors = _parse_header_colors(target_text)
+    missing = {num: hexcode for num, hexcode in export_colors.items() if num not in target_colors}
+    if missing:
+        insertion = "".join(
+            f"L L{num:03d}; (CleWin: {num:03d} Flake/{hexcode} {hexcode});\n"
+            for num, hexcode in sorted(missing.items())
+        )
+        header_matches = list(_HEADER_COLOR_RE.finditer(spliced))
+        if header_matches:
+            insert_at = spliced.index('\n', header_matches[-1].start()) + 1
+        else:
+            marker_pos = spliced.find("(Layer names);")
+            if marker_pos == -1:
+                raise ValueError(f"target CIF {target_cif_path} has no '(Layer names);' section")
+            insert_at = spliced.index('\n', marker_pos) + 1
+        spliced = spliced[:insert_at] + insertion + spliced[insert_at:]
+
     target_cif_path.write_text(spliced)
