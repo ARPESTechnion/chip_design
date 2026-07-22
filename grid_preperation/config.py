@@ -47,6 +47,44 @@ class CifExportConfig:
     on what counts as "flake color" or "marker"."""
 
     # ------------------------------------------------------------------ #
+    # Channel selection (channels_model) -- reconstructs a posterized       #
+    # image from the trained model's cluster selection, BEFORE marker      #
+    # detection / calibration / polygon extraction all run against it      #
+    # instead of the raw original.                                         #
+    # ------------------------------------------------------------------ #
+
+    channels_model_onnx_path: str = "channels_model/outputs/channels_model.onnx"
+    """Trained channels_model export (see channels_model/export.py). Must
+    exist before running the pipeline -- checked once up front in run(),
+    rather than failing confusingly per-image."""
+
+    channels_model_threshold: float = 0.5
+    """Sigmoid decision threshold for "is this cluster real content" --
+    matches channels_model.metrics.PRED_THRESHOLD, the same threshold used
+    at training/eval time, for consistency."""
+
+    channels_n_clusters: int = 8
+    channels_cluster_median_win: int = 5
+    """Must match whatever channels_model_onnx_path was actually trained
+    with (see channels_model/outputs/effective_config.json) -- these values
+    determine which color clusters get computed and fed to the model, so a
+    mismatch here silently feeds the model channels it was never trained on.
+    Defaults match the current trained model (n_clusters=8, median_win=5)."""
+
+    channels_cache_dir: str = "grid_preperation/data/channels_cache"
+    """Disk cache for computed color-cluster channels (see
+    channels_model.matlab_clustering.create_channels_cached). Deliberately
+    NOT channels_model's own training cache dir: confirmed empirically that
+    grid_preperation's image folder(s) (e.g. flakes/all) and
+    channels_model/data/images can contain UNRELATED images sharing the
+    same stem at different resolutions (e.g. both have an AU.png) -- reusing
+    the training cache_dir guarantees cache misses (and wasted probe reads)
+    for every such collision. create_channels_cached validates cache hits
+    against the real image's shape and recomputes on a mismatch, so this is
+    a safety/performance choice, not a correctness requirement -- but a
+    dedicated cache_dir avoids the collision entirely."""
+
+    # ------------------------------------------------------------------ #
     # Calibration (marker geometry + pixel<->um transform)                #
     # ------------------------------------------------------------------ #
 
@@ -126,20 +164,30 @@ class CifExportConfig:
     much nearby clutter) rather than guessing.
     """
 
-    marker_refine_canny_low: float = 15.0
-    marker_refine_canny_high: float = 50.0
-    """Canny thresholds for finding the core's edge within the refinement
-    window (see markers._refine_marker_center) — lower than the whole-image
-    polygon-extraction Canny thresholds since this is a small, low-contrast
-    region and needs to be more sensitive."""
+    marker_refine_color_rgb: list = field(default_factory=lambda: [238, 190, 221])
+    marker_refine_color_tolerance: int = 10
+    """
+    Refinement now runs on the reconstructed image (see channel_selection.py
+    / markers._refine_marker_center), where the crosshair's solid core
+    renders as a flat, exact color -- it's just a channels_model color
+    cluster like any other, painted with that cluster's own real measured
+    color, not the noisy antialiased blend it was in the original photo
+    (which is what motivated the OLD Canny-edge-based refinement, now
+    replaced). Confirmed empirically stable at RGB(238,190,221) +-10 across
+    images. A marker position refines to the centroid of the best same-
+    colored square-ish blob found within the search window
+    (marker_refine_half_px); falls back to the unrefined position if none is
+    found (e.g. that marker's cluster wasn't selected by channels_model) —
+    never guesses.
+    """
 
     marker_refine_min_area: int = 100
     marker_refine_max_area: int = 1500
     marker_refine_min_extent: float = 0.55
     """Shape filter for the refined core contour: plausible area range (px)
-    and minimum fill ratio (area / bounding-box area). The core is a
-    rounded pentagon/house shape, not a perfect square, so this is
-    deliberately looser than a strict squareness check."""
+    and minimum fill ratio (area / bounding-box area). Loose floor, even
+    though the core should now render as a clean filled square (extent close
+    to 1.0) on the reconstructed image."""
 
     # ------------------------------------------------------------------ #
     # Polygon export                                                       #
@@ -205,33 +253,34 @@ class CifExportConfig:
     """CIF polygon vertex cap — matches P.Max_Vertex_N in GDS_Code.m. Any
     contour with more vertices is recursively split."""
 
-    flake_layer_palette: list = field(default_factory=lambda: [
-        {"layer": 101, "rgb": [109, 59, 24]},
-        {"layer": 102, "rgb": [138, 27, 34]},
-        {"layer": 103, "rgb": [147, 68, 64]},
-        {"layer": 104, "rgb": [202, 99, 101]},
-        {"layer": 105, "rgb": [253, 132, 127]},
-        {"layer": 106, "rgb": [235, 180, 131]},
-    ])
+    flake_layer_palette: list = field(default_factory=list)
     """
-    CIF layer number -> representative RGB color. A polygon whose own
-    measured color is close enough (palette_max_distance) to one of these
-    reuses that layer; anything else (markers, debris — not flake-colored at
-    all) gets its own dynamically-allocated layer with its own color instead
-    of being forced onto a mismatched "Flake" layer (see cif_io.LayerPalette,
-    shared across the whole run so the same real-world color always lands on
-    the same layer everywhere). Defaults to the 6 "Flake" layers (101-106)
-    already pre-declared with these exact colors in
-    grid_preperation/BaseGrid.cif's own layer-names header (a dark-to-light
-    gradient, evidently meant to represent flake thickness) — override this
-    if you point --template at a different master CIF with a different
-    palette.
-    """
+    CIF layer number -> representative RGB color, used to SEED
+    cif_io.LayerPalette. A polygon's color is quantized (palette_quantize_step)
+    and reuses an existing entry only on an EXACT match; otherwise it gets
+    its own dynamically-allocated layer with its own color (see
+    cif_io.LayerPalette, shared across the whole run so the same real-world
+    color always lands on the same layer everywhere, and different classes
+    never collide onto the same layer just for being nearby in RGB space --
+    an earlier nearest-neighbor-radius version of this did exactly that and
+    was removed).
 
-    palette_max_distance: float = 60.0
-    """Max Euclidean RGB distance for a polygon to reuse an existing palette
-    layer (base or already-dynamically-allocated) rather than getting a new
-    dynamic layer of its own."""
+    Empty by default -- deliberately NOT the 6 "Flake" layers (101-106,
+    dark-to-light gradient) pre-declared in grid_preperation/BaseGrid.cif's
+    own layer-names header. Those were a fixed legacy thickness-gradient
+    scheme from before polygons were colored by their real channels_model
+    cluster color (see polygons.py's module docstring); confirmed empirically
+    that they actively cause wrong colors now -- e.g. a real cluster color of
+    RGB(160,111,124) landed within the old max_distance=60 of that palette's
+    layer 104 RGB(202,99,101) and got silently forced onto the wrong color.
+    Since every polygon's color now comes from an actual measured cluster
+    (not an approximate flake-thickness guess), no fixed seed palette is
+    needed or wanted -- every distinct real cluster color earns its own
+    layer, quantized (palette_quantize_step) only for genuine near-duplicates
+    across images, never snapped onto an unrelated color. Only set this if
+    you specifically want new colors to defer to some other pre-existing
+    palette (e.g. a different --template with its own layer scheme).
+    """
 
     palette_quantize_step: int = 24
     """Dynamically-allocated layer colors are rounded to the nearest

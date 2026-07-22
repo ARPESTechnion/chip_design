@@ -29,11 +29,11 @@ from pathlib import Path
 
 try:
     from .config import CifExportConfig
-    from . import calibration, cif_io, markers, polygons
+    from . import calibration, channel_selection, cif_io, markers, polygons
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from grid_preperation.config import CifExportConfig
-    from grid_preperation import calibration, cif_io, markers, polygons
+    from grid_preperation import calibration, channel_selection, cif_io, markers, polygons
 
 import cv2
 
@@ -83,6 +83,7 @@ def _process_image(
     cif_dir: Path,
     working_template_path: Path | None,
     palette: cif_io.LayerPalette,
+    reconstructed_dir: Path,
 ) -> dict:
     """Run the full pipeline on one image. Returns a result dict for the
     summary JSON — never raises; alert conditions are reported, not thrown."""
@@ -91,7 +92,14 @@ def _process_image(
         return {'image': img_path.name, 'status': 'alert', 'reason': 'could not read image'}
 
     try:
-        marker_pair = markers.find_top_markers(image_bgr, config, detection)
+        chan_sel = channel_selection.select_and_reconstruct(
+            image_bgr, img_path, config, debug_dir=reconstructed_dir,
+        )
+    except Exception as e:  # noqa: BLE001 - MATLAB/ONNX/clustering failure is an alert, not a crash
+        return {'image': img_path.name, 'status': 'alert', 'reason': f'channel selection: {e}'}
+
+    try:
+        marker_pair = markers.find_top_markers(chan_sel.reconstructed_bgr, config, detection)
     except markers.MarkerDetectionError as e:
         return {'image': img_path.name, 'status': 'alert', 'reason': f'marker detection: {e}'}
 
@@ -100,7 +108,9 @@ def _process_image(
     except calibration.CalibrationError as e:
         return {'image': img_path.name, 'status': 'alert', 'reason': f'calibration: {e}'}
 
-    polys = polygons.extract_polygons(image_bgr, cal, config, detection)
+    polys = polygons.extract_polygons(
+        chan_sel.reconstructed_bgr, cal, config, detection, chan_sel.channels, chan_sel.palette,
+    )
     cif_path = cif_dir / f"{img_path.stem}.cif"
     cif_io.write_cif(polys, cif_path, palette)
 
@@ -110,6 +120,9 @@ def _process_image(
         'grid_id': cal.left_id,
         'num_polygons': len(polys),
         'polygon_scores': [round(p.final_score, 4) for p in polys],
+        'polygon_clusters': [p.source_cluster for p in polys],
+        'selected_channels': chan_sel.selected_channels,
+        'channel_probs': [round(float(p), 4) for p in chan_sel.probs],
         'cif_path': str(cif_path),
         'placed': False,
     }
@@ -132,15 +145,24 @@ def _process_image(
 
 
 def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None = None) -> list[dict]:
+    onnx_path = Path(config.channels_model_onnx_path)
+    if not onnx_path.exists():
+        raise FileNotFoundError(
+            f"channels_model_onnx_path does not exist: {onnx_path} "
+            f"(train + export channels_model first, see channels_model/train.py)"
+        )
+
     output_folder = output_folder or (input_folder / 'cif_export_results')
     output_folder = Path(output_folder)
     cif_dir = output_folder / 'cif'
     cif_dir.mkdir(parents=True, exist_ok=True)
+    reconstructed_dir = output_folder / 'reconstructed'
 
     detection = config.load_detection_config()
-    palette = cif_io.LayerPalette(
-        config.flake_layer_palette, config.palette_max_distance, config.palette_quantize_step
-    )
+    reserved_layers: set[int] = set(range(101, 101 + config.channels_n_clusters))
+    if config.template_cif_path is not None:
+        reserved_layers |= cif_io.existing_layer_numbers(Path(config.template_cif_path).read_text())
+    palette = cif_io.LayerPalette(config.flake_layer_palette, config.palette_quantize_step, reserved_layers)
 
     working_template_path = None
     if config.template_cif_path is not None:
@@ -164,7 +186,9 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
     print(f"Processing {len(image_paths)} images...")
     results = []
     for img_path in image_paths:
-        result = _process_image(img_path, config, detection, cif_dir, working_template_path, palette)
+        result = _process_image(
+            img_path, config, detection, cif_dir, working_template_path, palette, reconstructed_dir,
+        )
         results.append(result)
         if result['status'] == 'ok':
             placed_note = f", placed at {result['grid_id']}" if result['placed'] else ""

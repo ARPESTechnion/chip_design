@@ -3,6 +3,10 @@
 *.jpeg
 *.cif
 *.docx
+*.csv
 
 .claude
 flakes
+data
+outputs
+channels_model/channels_cache
