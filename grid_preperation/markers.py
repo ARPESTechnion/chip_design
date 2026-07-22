@@ -135,44 +135,30 @@ def _find_candidates(
     return kept
 
 
-def _build_marker_color_mask(image_bgr: np.ndarray, detection: DetectionConfig) -> np.ndarray:
-    """Pink marker-dot OR all-channel-bright pixels (letters, plain grid
-    dots) — solid, unlike the crosshair reticle itself."""
-    m = detection.marker_rgb_range
-    pink = cv2.inRange(
-        image_bgr,
-        np.array([m.b_min, m.g_min, m.r_min], dtype=np.uint8),
-        np.array([m.b_max, m.g_max, m.r_max], dtype=np.uint8),
-    )
-    t = detection.marker_bright_threshold
-    bright = cv2.inRange(
-        image_bgr,
-        np.array([t, t, t], dtype=np.uint8),
-        np.array([255, 255, 255], dtype=np.uint8),
-    )
-    return cv2.bitwise_or(pink, bright)
-
-
 def _refine_marker_center(
     image_bgr: np.ndarray,
     x: float,
     y: float,
-    detection: DetectionConfig,
     config: CifExportConfig,
 ) -> tuple[float, float]:
     """
     Refine a template-matched marker position to the crosshair's actual
-    solid core, precisely, per image (rather than relying on a single fixed
-    template-wide correction): isolate the crosshair (substrate-exclusion
-    mask, minus solid letters/dots -- the same reticle-isolation trick used
-    to build the template in the first place), edge-enhance within that
-    region (Canny -- picks up the core's boundary cleanly, unlike a plain
-    color threshold which doesn't reliably capture the reticle's faint,
-    alpha-blended color), close small gaps, and take the centroid of the
-    resulting compact core contour nearest the input position.
+    solid-color square core, precisely, per image (rather than relying on a
+    single fixed template-wide correction): threshold directly for
+    config.marker_refine_color_rgb (+-marker_refine_color_tolerance) within
+    a small window and take the centroid of the best matching blob.
 
-    Falls back to the unrefined (x, y) if no plausible core contour is
-    found (e.g. too much nearby clutter) -- never guesses.
+    Direct color thresholding, not edge detection: this runs on the
+    reconstructed image (see channel_selection.py), where the crosshair core
+    is just a channels_model color cluster painted with its own flat, real
+    measured color -- no antialiasing/blending to fight, unlike the original
+    photo this step was designed against before the pipeline switched to
+    detecting markers on the reconstructed image (that used Canny edge
+    detection instead; replaced since it's unnecessary now).
+
+    Falls back to the unrefined (x, y) if no plausible blob is found nearby
+    (e.g. that marker's cluster wasn't selected by channels_model) -- never
+    guesses.
     """
     cx, cy = int(x), int(y)
     half = config.marker_refine_half_px
@@ -181,21 +167,13 @@ def _refine_marker_center(
     x0, x1 = max(0, cx - half), min(w, cx + half)
     window_bgr = image_bgr[y0:y1, x0:x1]
 
-    non_substrate = _non_substrate_mask(window_bgr, detection)
-    letters_dots = _build_marker_color_mask(window_bgr, detection)
-    letters_dots_dilated = cv2.dilate(letters_dots, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
-    crosshair_region = cv2.bitwise_and(non_substrate, cv2.bitwise_not(letters_dots_dilated))
-    crosshair_region = cv2.dilate(crosshair_region, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)))
+    r, g, b = config.marker_refine_color_rgb
+    tol = config.marker_refine_color_tolerance
+    lower = np.array([max(0, b - tol), max(0, g - tol), max(0, r - tol)], dtype=np.uint8)
+    upper = np.array([min(255, b + tol), min(255, g + tol), min(255, r + tol)], dtype=np.uint8)
+    color_mask = cv2.inRange(window_bgr, lower, upper)
 
-    gray = cv2.cvtColor(window_bgr, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (3, 3), 0)
-    edges = cv2.Canny(blurred, config.marker_refine_canny_low, config.marker_refine_canny_high)
-    edges = cv2.bitwise_and(edges, crosshair_region)
-    closed = cv2.morphologyEx(
-        edges, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)), iterations=3
-    )
-
-    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(color_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     best = None
     for c in contours:
         area = cv2.contourArea(c)
@@ -276,7 +254,7 @@ def find_top_markers(
     # matched positions. Refine to the crosshair's actual core for the final
     # positions actually used for calibration -- falls back to the
     # unrefined position per-marker if no clean core is found nearby.
-    left_px = _refine_marker_center(image_bgr, *left_px, detection, config)
-    right_px = _refine_marker_center(image_bgr, *right_px, detection, config)
+    left_px = _refine_marker_center(image_bgr, *left_px, config)
+    right_px = _refine_marker_center(image_bgr, *right_px, config)
 
     return MarkerPair(left_px=left_px, right_px=right_px)
