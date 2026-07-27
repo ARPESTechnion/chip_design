@@ -1,0 +1,10 @@
+opencv-python==5.0.0.93
+numpy==2.5.1
+matlabengine==26.1
+
+# The ML / channels_model stack (torch, onnxruntime, etc.) is kept in its own
+# file since it pins CUDA-specific wheels -- install it too:
+#   pip install -r requirements.txt -r channels_model/requirements.txt
+# It's needed even if you only run grid_preperation (not just channels_model
+# training): grid_preperation/channel_selection.py calls the trained ONNX
+# model via onnxruntime + torch. See README.md.
