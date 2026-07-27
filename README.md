@@ -9,13 +9,14 @@ The pipeline has three parts, each independently runnable:
 
 1. **`flake_detection`** — scans a folder of raw chip images and scores/flags
    the ones with candidate flakes worth reviewing.
-2. **`channels_model`** — a small trained model that imitates the manual
-   "which color layers are real content" decision `GDS_Code.m`'s operator
-   used to make by hand. Used internally by `grid_preperation`.
-3. **`grid_preperation`** — for each flagged image: reconstructs a cleaned-up
-   image using `channels_model`, finds the two calibration crosshair
-   markers, calibrates pixel↔micron, extracts polygons, and writes/places
-   CIF files.
+2. **`grid_preperation`** — for each flagged image: reconstructs a cleaned-up
+   image (via `channels_model`, see below), finds the two calibration
+   crosshair markers, calibrates pixel↔micron, extracts polygons, and
+   writes/places CIF files.
+3. **`channels_model`** — a small trained model, used internally by
+   `grid_preperation`, that imitates the manual "which color layers are real
+   content" decision `GDS_Code.m`'s operator used to make by hand. You don't
+   normally interact with it directly — see the bottom of this README.
 
 `all_code.py` runs all of this end to end. Each stage can also be run on its
 own (e.g. to re-export CIFs without re-running detection).
@@ -32,51 +33,100 @@ pip install -r requirements.txt -r channels_model/requirements.txt
 wheels — edit its `--extra-index-url` line first if you're not on CUDA 12.4,
 or just accept CPU-only wheels.
 
-### MATLAB (required for `channels_model` / `grid_preperation`)
+**MATLAB**: `grid_preperation` calls MATLAB's real `rgb2ind` (via the
+`matlabengine` package) to compute color clusters — a from-scratch Python
+reimplementation wasn't reliable enough. You need a local MATLAB install
+with the **Image Processing Toolbox**. Results are disk-cached per image, so
+MATLAB is only actually invoked the first time a given image is processed.
 
-Color-cluster computation (`channels_model.matlab_clustering`) calls
-MATLAB's real `rgb2ind` via the MATLAB Engine API (`matlabengine`, already
-in `requirements.txt`) — a from-scratch Python reimplementation wasn't
-reliable enough. You need:
-
-- A local MATLAB install with the **Image Processing Toolbox**, matching a
-  release the installed `matlabengine` version supports.
-- Results are disk-cached per image (`grid_preperation/data/channels_cache/`,
-  `channels_model/data/channels_cache/`) — MATLAB is only actually invoked
-  on a cache miss (a new image never processed before).
-
-### Download the trained `channels_model`
-
-The trained model isn't in git (binary files under `channels_model/outputs/`
-and `channels_model/data/` are gitignored). Download it here:
-
+**Trained model**: download it from
 **https://drive.google.com/drive/folders/1UgtzAjijtjCXCGo_lJOhxZYN9KE9eSsn?usp=drive_link**
+and place the files at `channels_model/outputs/` (you should end up with
+`channels_model/outputs/channels_model.onnx`). It's not in git — see
+`.gitignore`.
 
-Place the downloaded files at `channels_model/outputs/` (i.e. you should end
-up with `channels_model/outputs/channels_model.onnx`, matching the default
-`channels_model_onnx_path` in `grid_preperation`'s config). `grid_preperation`
-checks this path exists up front and fails clearly if it doesn't.
+**Master template CIF**: `grid_preperation/BaseGrid.cif` is also not
+tracked in git. Make sure you have your own copy at that path (or point
+`template_cif_path` at wherever yours lives — see Configuration below)
+before running placement.
 
-### Master template CIF
+## Configuration
 
-`grid_preperation/BaseGrid.cif` (the master chip template polygons get
-placed into) is **also not tracked in git** (matches the `*.cif` gitignore
-rule). Make sure you have your own copy of the master template at that path
-— or point `--template` / `template_cif_path` in `grid_preperation`'s config
-at wherever yours actually lives — before running placement.
+Every stage has its own JSON config (a serialized dataclass — see the
+`_comment*` keys in each file for inline docs) — this section covers the
+parameters you'll actually need to touch, not every field.
+
+### `config/pipeline_config.json` (top level)
+
+Only holds **paths to each stage's config**, plus where to find your
+images — it doesn't itself contain any detection/export tuning:
+
+```json
+{
+  "flake_detection_config_path": "flake_detection/config/orange_flakes_tuned.json",
+  "grid_preperation_config_path": "grid_preperation/config/example_config.json",
+  "input_folder": "flakes/all"
+}
+```
+
+### `flake_detection`'s config (e.g. `flake_detection/config/orange_flakes_tuned.json`)
+
+- **`substrate_hsv_range`** — the bare-chip background color (HSV). Everything
+  *outside* this range is treated as potential flake material. Tune this
+  first if detection is missing real flakes or flagging substrate as one.
+- **`color_mode`** (`'hsv'` or `'rgb'`) + **`hsv_range`**/**`rgb_range`** — the
+  target flake color used for scoring (not for the substrate mask above).
+- **`min_color_fraction`** — hard cutoff: a candidate region is discarded
+  outright if less than this fraction of its pixels match the target color.
+- **`min_flake_area`** / **`max_flake_area`** — pixel-area bounds for a
+  candidate to be considered at all (filters out dust and grid markers).
+- **`min_final_score`** — minimum combined color/texture/isolation score
+  [0-1] for a flake to appear in results. Start at `0.0`, inspect
+  `results.json`'s score distribution, then raise to cut false positives.
+- **`top_n`** — if set, only the top N images by best flake score are kept.
+
+### `grid_preperation`'s config (e.g. `grid_preperation/config/example_config.json`)
+
+**`template_cif_path`** — the master chip CIF that exported polygons get
+placed into. **This is the one most people need to change first**: point it
+at your own master template (e.g. a copy of `BaseGrid.cif`), or set it to
+`null` to only ever write standalone per-image CIFs and skip placement
+entirely (same effect as `--no-placement` on the CLI). The original file at
+this path is never modified — a working copy is made once in the output
+folder and every run's placements are spliced into that copy.
+
+- **`detection_config_path`** — which `flake_detection` config to reuse for
+  color ranges and marker detection, so the two stages never disagree about
+  what counts as "flake color". Keep this in sync with whatever config you
+  actually ran `flake_detection` with.
+- **`grid_pitch_um`**, **`placement_x_offset_um`**, **`placement_y_offset_um`**
+  — the real-world spacing between adjacent grid markers (e.g. AA to AB) and
+  where grid column/row 'A' sits on your master template. These must match
+  your actual chip layout, not a printed scale-bar overlay on the images —
+  wrong values here silently misplace every flake.
+- **`crosshair_match_threshold`** — how confidently a shape must match the
+  crosshair template to count as a marker. Lower it if real markers are
+  being missed; raise it if noise is being picked up as a marker.
+- **`channels_model_onnx_path`**, **`channels_n_clusters`**,
+  **`channels_cluster_median_win`** — which trained model to use and what it
+  was trained with. The cluster/median-window values must match how that
+  specific `.onnx` file was actually trained (see its `effective_config.json`)
+  or you'll silently feed it the wrong kind of input.
+- **`gds_min_area`** — minimum contour area (px) to export as a polygon at
+  all; raise if tiny specks are showing up in the CIF.
+- **`min_flake_score`** — like `flake_detection`'s `min_final_score`, but
+  applied per-region within an already-selected image, not per-image.
+  Defaults to `0.0` (export everything past `gds_min_area`).
+- **`max_vertex_n`** — CIF polygon vertex cap; larger contours are split
+  automatically. Don't raise this casually — it exists because very-high-
+  vertex-count polygons can break downstream CAD tooling.
+- **`output_dir`** — defaults to `<input_folder>/cif_export_results/` if unset.
+
+After changing any of these, check `<output>/cif_export_results.json` — every
+image is reported `ok` or `alert` with a concrete reason, so you can see
+exactly what a parameter change affected.
 
 ## Running the full pipeline
-
-```
-python all_code.py --input_folder flakes/all
-```
-
-`--input_folder` overrides `input_folder` in `config/pipeline_config.json`
-if set there — you can omit the flag entirely once that's configured.
-`config/pipeline_config.json` only holds *paths* to each stage's own config
-file (plus `input_folder`); tune actual detection/export behavior in
-`flake_detection/config/orange_flakes_tuned.json` and
-`grid_preperation/config/example_config.json` themselves.
 
 ```
 python all_code.py                                   # input_folder from config/pipeline_config.json
@@ -106,8 +156,7 @@ python -m flake_detection.run --input_folder flakes/all --save-config my_run_con
 
 Writes `<output>/annotated/` (images with detection overlays) and
 `<output>/results.json` (per-image, per-flake scores) — output defaults to
-`<input_folder>/flake_detection_results/`. Use `results.json` to tune
-`min_final_score`, `min_area`/`max_area`, color ranges, etc. in the config.
+`<input_folder>/flake_detection_results/`.
 
 ## Running `grid_preperation` alone
 
@@ -117,52 +166,40 @@ output, or any folder you've curated by hand):
 ```
 python -m grid_preperation.run --input_folder flakes/all
 python -m grid_preperation.run --input_folder flakes/all --no-placement
+python -m grid_preperation.run --input_folder flakes/all --config grid_preperation/config/example_config.json
 python -m grid_preperation.run --input_folder flakes/all --template grid_preperation/BaseGrid.cif
 ```
 
 Per image, this: runs `channels_model` to reconstruct a posterized image →
 finds the 2 crosshair markers → calibrates pixel↔µm → extracts polygons
 (each colored/layered by its own real source cluster color) → writes a
-per-image CIF → splices it into a working copy of the master template (never
-modifies the original template in place). Check `<output>/cif_export_results.json`
-for per-image status — anything that couldn't be confidently placed is
-reported as `alert` with a reason, never silently guessed.
+per-image CIF → splices it into the working template copy. Check
+`<output>/cif_export_results.json` for per-image status — anything that
+couldn't be confidently placed is reported as `alert` with a reason, never
+silently guessed.
 
 Debug output worth checking when tuning: `<output>/reconstructed/` (the
-posterized image each image got reduced to before marker/polygon detection
-— useful for seeing what `channels_model` actually selected).
+posterized image each source image got reduced to before marker/polygon
+detection — shows what `channels_model` actually selected).
 
-## Using `channels_model`
+## `channels_model`
 
-### Just using the pretrained model (most common case)
-
-Nothing to run directly — once you've downloaded it (see Setup above),
-`grid_preperation` calls it automatically via
-`grid_preperation/channel_selection.py`.
-
-### Retraining
-
-Needs labeled data: `channels_model/data/images/<name>.png` +
-`channels_model/data/labels/<name>.txt` (newline-separated channel numbers
-1-8 that are "real content" for that image — see
-`channels_model.dataset.parse_label_file`).
+You normally don't run this directly — `grid_preperation` calls the
+pretrained model automatically once it's downloaded (see Setup). Retraining
+needs labeled data (`channels_model/data/images/<name>.png` +
+`channels_model/data/labels/<name>.txt`, newline-separated channel numbers
+1-8 that are "real content" for that image):
 
 ```
 python -m channels_model.train --config channels_model/config/default_config.json
-python -m channels_model.train --images-dir path/to/images --labels-dir path/to/labels
 ```
 
-Runs k-fold cross-validation (reporting per-class accuracy, confusion
-matrices, and "super accuracy" — all 8 channels correct — each epoch),
-derives an epoch budget from the CV run, refits on all the data, and
-exports `channels_model.onnx` + `effective_config.json` + `cv_results.json`
-to `channels_model/outputs/` — the same layout the Drive download provides.
-
-Never edit `channels_model/config/default_config.json` (or any other saved
-config JSON in this repo) by re-running `Config().save(...)` after changing
-the dataclass — that blindly overwrites the whole file and destroys any
-hand-tuned values (`epochs`, `lr`, etc.). Merge new/changed fields in by
-hand instead.
+This runs k-fold cross-validation, refits on all the data, and exports
+`channels_model.onnx` + `effective_config.json` to `channels_model/outputs/`
+— the same layout the Drive download provides. Never regenerate
+`channels_model/config/default_config.json` by re-running `Config().save(...)`
+after changing the dataclass — merge new fields in by hand instead, or you'll
+overwrite hand-tuned values.
 
 ## Repo layout
 
@@ -171,13 +208,13 @@ all_code.py                    full-pipeline CLI
 config/pipeline_config.json    paths to each stage's own config + input_folder
 flake_detection/                image -> candidate-flake scoring
   run.py  config.py  detector.py  config/*.json
-channels_model/                  color-cluster "which channels are real content" model
-  train.py  model.py  dataset.py  matlab_clustering.py  export.py  config.py
-  outputs/  (gitignored -- download from Drive, see Setup)
-  data/     (gitignored -- your own training images/labels + disk cache)
 grid_preperation/                image -> CIF polygons -> placed in master template
   run.py  config.py  channel_selection.py  markers.py  calibration.py  polygons.py  cif_io.py
   BaseGrid.cif  (gitignored -- supply your own, see Setup)
   crosshair_template.png
   data/channels_cache/           (gitignored -- disk cache, rebuilt on demand)
+channels_model/                  color-cluster "which channels are real content" model
+  train.py  model.py  dataset.py  matlab_clustering.py  export.py  config.py
+  outputs/  (gitignored -- download from Drive, see Setup)
+  data/     (gitignored -- your own training images/labels + disk cache)
 ```
