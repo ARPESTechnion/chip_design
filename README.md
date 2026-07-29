@@ -158,6 +158,24 @@ Writes `<output>/annotated/` (images with detection overlays) and
 `<output>/results.json` (per-image, per-flake scores) — output defaults to
 `<input_folder>/flake_detection_results/`.
 
+Every candidate contour in an annotated image is drawn in the color of the
+**first stage it failed**, so you can tell at a glance where the pipeline
+stopped on it (see `flake_detection/detector.py`'s `_STAGE_COLORS`):
+
+| Color | Stage failed | Label shown |
+|---|---|---|
+| 🔴 Red | Area filter (`min_flake_area`/`max_flake_area`) | `a:<area>` |
+| 🟠 Orange | Color fraction too low (`min_color_fraction`) | `cf:<value>` |
+| 🟡 Yellow | Texture — weakest sub-score | `t:<texture_score> cf:<cf>` |
+| 🟣 Purple | Isolation — weakest sub-score | `i:<isolation_score> cf:<cf>` |
+| 🟢 Green (thicker outline) | Passed everything | `<final_score> cf:<cf>` |
+| 🟣 Magenta rectangle | Dark-spot alert (unrelated to the above filter chain) | `dark <brightness>` |
+
+A contour reaching texture/isolation scoring already cleared the area and
+color filters, so yellow/purple mean "close, but not good enough" rather
+than "wrong color entirely" (that's orange). Tune whichever config
+threshold matches the color you're seeing too much of.
+
 ## Running `grid_preperation` alone
 
 Expects a folder of already-selected images (e.g. `flake_detection`'s
