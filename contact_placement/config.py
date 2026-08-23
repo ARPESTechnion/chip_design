@@ -216,14 +216,31 @@ class RingConfig:
     voltage_stackout: float = 2.0
     voltage_stackout_connecting_side: float = 5.0
     """How far each voltage contact sticks out past the blocking rectangle's
-    own edge -- 2 normally, 5 on the side it connects outward to the
-    external contacts from. "The voltage contacts should stack out 2 from
-    the blocking rectangle and at 5 on the side where they are connected to
-    the external contacts." """
+    own WIDTH edge (the long edge, running along the length axis -- "vertically
+    to its length") -- 2 on the non-connecting side, 5 on the side it connects
+    outward to the external contacts from. "The voltage contacts should stack
+    out 2 from the blocking rectangle vertically to its length and at 5 on the
+    side where they are connected to the external contacts." """
 
     current_min_stackout: float = 6.0
-    """"The current should stack out at least 6 from the blocking
-    rectangle." """
+    """Unlike voltage (which exits sideways along the WIDTH axis, see
+    voltage_stackout), each current contact exits along the LENGTH axis --
+    straight out past the blocking rectangle's own length-axis end, in the
+    same sign direction (north/south) it's already stacked in, rather than
+    bending toward exit_sign. This is how far past that end it extends on
+    its own connecting side. "The current should stack out at least 6 from
+    the blocking rectangle, on the side where they are connected to the
+    external contacts. This side is along the rectangle's length." Confirmed
+    directly by the user after an earlier version exited current sideways
+    like voltage: "the current external connection should connect to the
+    internal along the flake's length axis, and should stick out more from
+    this direction." The current contact's own cross-sectional width
+    (perpendicular to this travel direction) is the blocking rectangle's own
+    width plus 1 -- "the width of the current contacts should be the same
+    as the blocking rectangle's width" then "lets change the width to be 1
+    larger then the blocking rectangle" (an earlier version reused
+    current_min_length_in_blocking_rect's own value here instead, flagged as
+    too small)."""
 
     external_pad_width: float = 300.0
     external_pad_height: float = 100.0

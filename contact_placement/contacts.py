@@ -106,6 +106,7 @@ def place_external_contacts(
     min_parallel_voltage_pad_spacing: float,
     occupied: BaseGeometry,
     chip_bounds: ChipBounds | None = None,
+    shared_direction: Point | None = None,
 ) -> list[PlacedContact] | None:
     """
     Place one external pad + one routed arm per connection, within a
@@ -121,6 +122,22 @@ def place_external_contacts(
     the caller's `occupied` and whatever this call has placed so far (so
     pads/arms within this same contact system don't overlap each other
     either), but that placed-so-far geometry is only ever local to this call.
+
+    `shared_direction`, if given, overrides the default by-direction
+    grouping (`_group_by_direction`) with ONE group covering every
+    connection, all pads sharing this single orientation -- for Ring, whose
+    current connections now exit along a different local axis than voltage
+    (see ring.py) but whose pads should still come out "all parallel to
+    each other like there were before" (user's own words). Each connection's
+    own escape/tangential-shift math is untouched (still driven by its own
+    real `position`, projected onto this shared d/t frame) -- only which
+    direction defines the group's pad orientation changes; a connection
+    whose own native direction differs from `shared_direction` simply bends
+    onto the shared lane sooner (its own escape segment is no longer purely
+    radial in its own native direction) -- "the external connection should
+    bend after connecting to fit the demands" is exactly this trade-off,
+    confirmed acceptable by the user rather than keeping per-direction
+    groups (which produced non-parallel pads, flagged as wrong).
     """
     placed: list[PlacedContact] = []
     blocked = occupied
@@ -137,8 +154,9 @@ def place_external_contacts(
               # that sets this max would get a zero-length first segment (its own
               # position already sits exactly at the un-buffered escape radius)
 
-    for group in _group_by_direction(connections):
-        d = _unit(group[0].direction)
+    groups = [connections] if shared_direction is not None else _group_by_direction(connections)
+    for group in groups:
+        d = _unit(shared_direction) if shared_direction is not None else _unit(group[0].direction)
         t = _perp(d)
         n = len(group)
 
@@ -232,13 +250,41 @@ def place_external_contacts(
             # other's own inner contacts near the flake).
             own_tangential = own_tangentials[idx]
             r = conn_escape_radius[idx]
+            arm_start_width = current_arm_start_width if conn.kind == 'current' else voltage_arm_start_width
+            transit_width = min(conn.width, arm_start_width)
+
+            # If this connection's own native direction isn't (anti)parallel
+            # to the shared `d` (e.g. Ring's current, which exits along the
+            # length axis while the shared pad direction is the width axis
+            # -- see ring.py/shared_direction), jumping straight from
+            # conn.position to a `d`-direction escape_point cuts sideways
+            # right at the contact's own tip -- which sits INSIDE that
+            # contact's own body along `d` (its own width straddles d=0),
+            # so that first segment necessarily clips back through its own
+            # already-placed geometry (confirmed empirically: current's own
+            # wide, blocking.width-wide body was exactly what a naive
+            # single-jump escape collided with). Fix: first continue
+            # straight out along the connection's OWN direction (clearing
+            # its own body) before bending onto the shared d/t frame.
+            conn_d = _unit(conn.direction)
+            aligned = abs(conn_d[0] * d[0] + conn_d[1] * d[1]) > 0.999
+            path = [conn.position]
+            widths = [conn.width]
+            if not aligned:
+                native_point = (
+                    conn.position[0] + conn_d[0] * escape_radius,
+                    conn.position[1] + conn_d[1] * escape_radius,
+                )
+                own_tangential = (native_point[0] - center[0]) * t[0] + (native_point[1] - center[1]) * t[1]
+                path.append(native_point)
+                widths.append(transit_width)
+
             escape_point = (
                 center[0] + d[0] * r + t[0] * own_tangential,
                 center[1] + d[1] * r + t[1] * own_tangential,
             )
             lane_point = (center[0] + d[0] * r + t[0] * offset, center[1] + d[1] * r + t[1] * offset)
             pad_near_edge = (pad_center[0] - d[0] * pad_length / 2, pad_center[1] - d[1] * pad_length / 2)
-            arm_start_width = current_arm_start_width if conn.kind == 'current' else voltage_arm_start_width
 
             # Taper over a SHORT zone right next to the pad, not the whole
             # (possibly long) lane-approach segment -- confirmed empirically
@@ -257,12 +303,9 @@ def place_external_contacts(
             # escape point, matching whichever end is already the smaller of
             # the two -- a no-op when conn.width <= arm_start_width (the
             # common case).
-            transit_width = min(conn.width, arm_start_width)
-            arm = tapered_path(
-                [conn.position, escape_point, lane_point, pre_taper_point, pad_near_edge],
-                width_start=conn.width, width_end=arm_start_width,
-                widths=[conn.width, transit_width, transit_width, transit_width, arm_start_width],
-            )
+            path += [escape_point, lane_point, pre_taper_point, pad_near_edge]
+            widths += [transit_width, transit_width, transit_width, arm_start_width]
+            arm = tapered_path(path, width_start=conn.width, width_end=arm_start_width, widths=widths)
             if collides(arm, blocked) or not within_bounds(arm, chip_bounds):
                 return None
 
