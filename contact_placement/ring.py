@@ -302,7 +302,20 @@ def _try_ring(
         voltage_arm_start_width=config.voltage_arm_start_width,
         min_pad_spacing=config.min_pad_spacing,
         min_parallel_voltage_pad_spacing=config.min_parallel_voltage_pad_spacing,
-        occupied=unary_union([occupied] + internal_abs),
+        # Deliberately NOT including this flake's own internal_abs here
+        # (unlike Hall, which does) -- with all 4 of Ring's own contacts
+        # clustered tightly around the same small cut mask, a genuinely
+        # straight connection from any one of them to its own pad almost
+        # always grazes a SIBLING contact's own body right at the start
+        # (confirmed: every direct attempt collided, ~0.4-11 sq-um overlap,
+        # entirely against sibling internal contacts, not anything else).
+        # Matches the same precedent already used for the cut mask itself
+        # (never included here either): different CIF layers, fine to
+        # overlap in a real fabrication stack. User: "try to connect the
+        # rectangles to the inner contacts in the straightest way possible"
+        # + a reference image showing exactly one straight trapezoid, no
+        # bend -- this is what actually unblocks that.
+        occupied=occupied,
         chip_bounds=chip_bounds,
         # All 4 pads share ONE orientation (voltage's own, matching the
         # pre-length-axis-change layout) even though current's own inner
@@ -310,6 +323,11 @@ def _try_ring(
         # contacts blocks should be all parallel to each other like there
         # were before."
         shared_direction=blocking.direction_to_absolute(exit_sign, 0.0),
+        # Ring's updated spec explicitly forbids right angles (not just
+        # "must bend at least once", already true of the underlying
+        # escape/shift/approach routing): "Arms should not contain right
+        # angles... the main issue is the right angles (90 degree angles)."
+        avoid_right_angles=True,
     )
     if external is None:
         return None

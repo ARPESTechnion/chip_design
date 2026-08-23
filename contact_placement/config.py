@@ -255,8 +255,12 @@ class RingConfig:
     """Same spacing rules as Hall; Ring's work area is genuinely 900x900
     (only Hall's is the confirmed-1000 exception -- see HallConfig.work_area)."""
 
-    current_arm_start_width: float = 16.0
-    voltage_arm_start_width: float = 12.0
+    current_arm_start_width: float = 20.0
+    voltage_arm_start_width: float = 16.0
+    """Width of each external-pad-connecting arm at its pad end; the other
+    end matches whichever inner contact it connects to. "Current arms start
+    width 20, voltage arms start width 16." (Updated spec value -- was
+    16/12.)"""
 
     arrow_base: float = 40.0
     arrow_height: float = 20.0
