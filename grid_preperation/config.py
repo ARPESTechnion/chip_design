@@ -46,6 +46,18 @@ class CifExportConfig:
     marker pink/bright-threshold ranges, so detection and export never disagree
     on what counts as "flake color" or "marker"."""
 
+    flake_detection_output_dir: Optional[str] = None
+    """A flake_detection run's own --output folder (contains contours/,
+    written by flake_detection.detector.write_contours_json). If set, each
+    image's own flake_detection contours + real scores are read from
+    <this>/contours/<image_stem>.json and transformed through THIS image's
+    own calibration into <output>/flakes/<image_stem>.json -- the input
+    contact_placement uses to know which regions are real, flake_detection-
+    selected flakes (with their real score) rather than re-deriving/matching
+    a second, independent segmentation. If None, or no matching contours
+    file exists for an image, that image's flakes/<stem>.json is just an
+    empty list -- never a guess."""
+
     # ------------------------------------------------------------------ #
     # Channel selection (channels_model) -- reconstructs a posterized       #
     # image from the trained model's cluster selection, BEFORE marker      #

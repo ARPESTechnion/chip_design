@@ -23,6 +23,7 @@ master template when you're satisfied with it.
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -84,6 +85,7 @@ def _process_image(
     working_template_path: Path | None,
     palette: cif_io.LayerPalette,
     reconstructed_dir: Path,
+    flakes_dir: Path,
 ) -> dict:
     """Run the full pipeline on one image. Returns a result dict for the
     summary JSON — never raises; alert conditions are reported, not thrown."""
@@ -113,6 +115,28 @@ def _process_image(
     )
     cif_path = cif_dir / f"{img_path.stem}.cif"
     cif_io.write_cif(polys, cif_path, palette)
+
+    # For contact_placement: re-use flake_detection's OWN contour + score
+    # directly (rather than re-deriving/matching a second, independent
+    # segmentation) -- both images share the same pixel dimensions (channel
+    # selection never resizes), so flake_detection's pixel-space contour_px
+    # transforms straight through this image's own calibration.
+    flakes_dir.mkdir(parents=True, exist_ok=True)
+    flake_records = []
+    if config.flake_detection_output_dir is not None:
+        contours_path = Path(config.flake_detection_output_dir) / 'contours' / f"{img_path.stem}.json"
+        if contours_path.exists():
+            with open(contours_path) as f:
+                fd_flakes = json.load(f)
+            for fl in fd_flakes:
+                vertices_um = [cal.pixel_to_um(float(px), float(py)) for px, py in fl['contour_px']]
+                flake_records.append({
+                    'vertices_um': vertices_um,
+                    'final_score': fl['final_score'],
+                    'bbox_px': fl['bbox'],
+                })
+    with open(flakes_dir / f"{img_path.stem}.json", 'w') as f:
+        json.dump(flake_records, f, indent=2)
 
     result = {
         'image': img_path.name,
@@ -157,6 +181,7 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
     cif_dir = output_folder / 'cif'
     cif_dir.mkdir(parents=True, exist_ok=True)
     reconstructed_dir = output_folder / 'reconstructed'
+    flakes_dir = output_folder / 'flakes'
 
     detection = config.load_detection_config()
     reserved_layers: set[int] = set(range(101, 101 + config.channels_n_clusters))
@@ -188,6 +213,7 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
     for img_path in image_paths:
         result = _process_image(
             img_path, config, detection, cif_dir, working_template_path, palette, reconstructed_dir,
+            flakes_dir,
         )
         results.append(result)
         if result['status'] == 'ok':
@@ -196,7 +222,6 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
         else:
             print(f"  {img_path.name}: ALERT - {result['reason']}")
 
-    import json
     with open(output_folder / 'cif_export_results.json', 'w') as f:
         json.dump(results, f, indent=2)
 

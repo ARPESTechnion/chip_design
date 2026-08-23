@@ -10,3 +10,4 @@ flakes
 data
 outputs
 channels_model/channels_cache
+contact_placement/materials

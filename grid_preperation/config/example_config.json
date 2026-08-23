@@ -23,6 +23,9 @@
   "_comment_detection_config_path": "DetectionConfig JSON reused for flake color range and marker pink/bright ranges — keep this in sync with whatever flake_detection used to find these images.",
   "detection_config_path": "flake_detection/config/orange_flakes_tuned.json",
 
+  "_comment_flake_detection_output_dir": "A flake_detection run's own --output folder (contains contours/). If set, each image's flakes/<stem>.json in THIS run's output gets flake_detection's real per-flake contour+score, transformed through this image's own calibration -- what contact_placement consumes. Leave null to skip (flakes/<stem>.json will just be empty).",
+  "flake_detection_output_dir": "flakes/all/flake_detection_results",
+
   "_comment_channel_selection": "Runs the trained channels_model first: reconstructs a posterized image (unselected clusters -> a flat substrate-colored fill, selected clusters -> their real measured color) and feeds THAT into marker detection/calibration/polygon extraction instead of the raw original. channels_n_clusters/channels_cluster_median_win must match how channels_model_onnx_path was actually trained (see channels_model/outputs/effective_config.json). channels_cache_dir is deliberately its own folder, NOT channels_model's training cache -- filename collisions between the two image sets (same stem, different image) were confirmed empirically.",
   "channels_model_onnx_path": "channels_model/outputs/channels_model.onnx",
   "channels_model_threshold": 0.5,
