@@ -41,12 +41,16 @@ bottom along the length axis), from the center outward:
 `distance_between_arms` sets how close the arm/finger assembly's own
 innermost edge sits to the center (independent of inner_ring/outer_ring).
 
-One thing the spec genuinely doesn't pin down numerically (flagged, not
-silently guessed as fact -- revisit if a real reference CIF/measurement
-contradicts this): which single local direction all 4 external connections
-exit toward ("the side where they are connected to the external contacts"
--- singular "side"). Matches ring_example_far.png (all 4 pads stacked on
-one side of the flake): tried as +X first, then -X if +X fails.
+Voltage exits along the WIDTH axis (sideways, toward exit_sign -- +X tried
+first, then -X); current exits along the LENGTH axis instead (straight out
+past the blocking rectangle's own length-axis end, in whichever sign
+direction -- north/south -- it's already stacked in), confirmed directly by
+the user after an earlier version had current exit sideways like voltage
+too: "the current external connection should connect to the internal along
+the flake's length axis, and should stick out more from this direction."
+So current's 2 connections end up in 2 OPPOSITE directions (not grouped
+together by contacts.py's own by-direction grouping), while voltage's 2
+stay grouped together on whichever exit_sign side succeeds.
 
 Pure function, side-effect-free: takes `occupied`, returns new geometry or
 None on failure -- never mutates `occupied` itself.
@@ -228,11 +232,13 @@ def _try_ring(
     # _ring_cut_mask) and must stick out config.arm_protrusion_beyond_blocking
     # past the blocking rectangle's own width edge (user: "the arms should
     # stick out 3 um beyond the blocking rectangle"). The internal contacts
-    # below still exit along the WIDTH axis too via v_x_far/v_x_near --
-    # NOT yet reconciled into one connected shape (contacts.py's own
-    # sideways-exit positioning is still the pre-existing, deferred logic,
-    # per the user's explicit "we'll deal with the contacts" after the cut
-    # mask itself was settled).
+    # below also exit along the WIDTH axis (v_x_far/v_x_near, c_x_far/c_x_near)
+    # -- same axis as the cut mask's own arms, confirmed by direct inspection
+    # of the constructed polygons' own edge lengths/directions (the long,
+    # ~width-sized edge of each contact runs along blocking.direction_to_absolute(1,0),
+    # the short, v_len/c_len-sized edge along direction_to_absolute(0,1)) --
+    # so despite looking mismatched at a glance in a rotated render, both
+    # pieces are already on the same local axis.
     far_reach = blocking.width / 2 + config.arm_protrusion_beyond_blocking
     cut_mask = _ring_cut_mask(
         blocking, inner_ring, outer_ring, config.distance_between_arms,
@@ -245,12 +251,9 @@ def _try_ring(
         v_y0 = sign * (mask_half + v_dist)
         v_y1 = v_y0 + sign * v_len
         c_y0 = v_y1 + sign * c_dist
-        c_y1 = c_y0 + sign * c_len
 
         v_x_far = exit_sign * (blocking.width / 2 + config.voltage_stackout_connecting_side)
         v_x_near = -exit_sign * (blocking.width / 2 + config.voltage_stackout)
-        c_x_far = exit_sign * (blocking.width / 2 + config.current_min_stackout)
-        c_x_near = -exit_sign * (blocking.width / 2 + config.current_min_stackout)
 
         v_ylo, v_yhi = sorted((v_y0, v_y1))
         internal_local.append([(v_x_near, v_ylo), (v_x_far, v_ylo), (v_x_far, v_yhi), (v_x_near, v_yhi)])
@@ -261,12 +264,28 @@ def _try_ring(
             kind='voltage',
         ))
 
+        # Current, unlike voltage, exits along the LENGTH axis (user: "the
+        # current external connection should connect to the internal along
+        # the flake's length axis") -- it continues straight out past the
+        # blocking rectangle's own length-axis end (half_l) by
+        # current_min_stackout, in the SAME sign direction it's already
+        # stacked in, rather than bending sideways toward exit_sign like
+        # voltage does. Its cross-sectional width (perpendicular to this
+        # travel direction) is the blocking rectangle's own width plus 1 --
+        # user: "the width of the current contacts should be the same as
+        # the blocking rectangle's width" then "lets change the width to be
+        # 1 larger then the blocking rectangle" (was c_len, then plain
+        # blocking.width, both flagged as too small).
+        c_y1 = sign * (half_l + config.current_min_stackout)
+        current_width = blocking.width + 1.0
+        c_half_width = current_width / 2
+
         c_ylo, c_yhi = sorted((c_y0, c_y1))
-        internal_local.append([(c_x_near, c_ylo), (c_x_far, c_ylo), (c_x_far, c_yhi), (c_x_near, c_yhi)])
+        internal_local.append([(-c_half_width, c_ylo), (c_half_width, c_ylo), (c_half_width, c_yhi), (-c_half_width, c_yhi)])
         connections.append(ContactConnection(
-            position=blocking.to_absolute(c_x_far, (c_y0 + c_y1) / 2),
-            direction=blocking.direction_to_absolute(exit_sign, 0.0),
-            width=abs(c_y1 - c_y0),
+            position=blocking.to_absolute(0.0, c_y1),
+            direction=blocking.direction_to_absolute(0.0, sign),
+            width=current_width,
             kind='current',
         ))
 
@@ -285,6 +304,12 @@ def _try_ring(
         min_parallel_voltage_pad_spacing=config.min_parallel_voltage_pad_spacing,
         occupied=unary_union([occupied] + internal_abs),
         chip_bounds=chip_bounds,
+        # All 4 pads share ONE orientation (voltage's own, matching the
+        # pre-length-axis-change layout) even though current's own inner
+        # contact now exits along a different axis -- user: "the external
+        # contacts blocks should be all parallel to each other like there
+        # were before."
+        shared_direction=blocking.direction_to_absolute(exit_sign, 0.0),
     )
     if external is None:
         return None
