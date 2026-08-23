@@ -27,7 +27,7 @@ from shapely.geometry import Polygon as ShapelyPolygon
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
-from .geometry import ChipBounds, Point, collides, tapered_path, within_bounds
+from .geometry import ChipBounds, Point, chamfer_right_angles, collides, edge_to_edge_taper, tapered_path, within_bounds
 
 
 @dataclass
@@ -107,6 +107,7 @@ def place_external_contacts(
     occupied: BaseGeometry,
     chip_bounds: ChipBounds | None = None,
     shared_direction: Point | None = None,
+    avoid_right_angles: bool = False,
 ) -> list[PlacedContact] | None:
     """
     Place one external pad + one routed arm per connection, within a
@@ -138,6 +139,13 @@ def place_external_contacts(
     bend after connecting to fit the demands" is exactly this trade-off,
     confirmed acceptable by the user rather than keeping per-direction
     groups (which produced non-parallel pads, flagged as wrong).
+
+    `avoid_right_angles`, if True, chamfers every ~90-degree bend in each
+    arm's own path (see geometry.chamfer_right_angles) before tapering --
+    Ring's own updated spec explicitly forbids right angles specifically
+    (not just "must bend at least once", which the escape/shift/approach
+    routing already satisfied). Off by default -- Hall's own spec section
+    still uses the older "must not be a straight line" wording, unchanged.
     """
     placed: list[PlacedContact] = []
     blocked = occupied
@@ -219,17 +227,38 @@ def place_external_contacts(
         # [radial_dist - pad_length/2, radial_dist + pad_length/2] can clip a
         # neighboring, already-placed pad even though it's nowhere near that
         # pad's own tangential lane.
+        #
+        # This staggering only makes sense WITHIN a pool of connections that
+        # share the SAME travel axis (native direction (anti)parallel to
+        # `d`) -- their own_tangential values are directly comparable
+        # measures of how peripheral each one's OWN position already is on
+        # this axis. Mixing in cross-axis connections (Ring's current, which
+        # exits along `t` instead -- see ring.py) breaks this: their
+        # own_tangential is inflated by how far their OWN body already
+        # extends along `t` (nothing to do with needing a bigger escape
+        # radius here), so ranking them together pushed aligned connections'
+        # radii out to nearly the pad's own radius, producing a visible
+        # overshoot-then-backtrack zigzag (flagged directly: "the contacts
+        # paths are broken in a weird way... connect the rectangles to the
+        # inner contacts in the straightest way possible"). Cross-axis
+        # connections already cleared their own territory via their native
+        # leg (see below) before ever reaching this shared frame, so they
+        # just get the single shared `escape_radius` directly -- no
+        # additional staggering needed.
+        aligned_flags = [abs(_unit(c.direction)[0] * d[0] + _unit(c.direction)[1] * d[1]) > 0.999 for c in group]
+        aligned_indices = [i for i in range(n) if aligned_flags[i]]
         own_tangentials = [
             (c.position[0] - center[0]) * t[0] + (c.position[1] - center[1]) * t[1] for c in group
         ]
-        shift_order = sorted(range(n), key=lambda i: -abs(own_tangentials[i]))
         pad_near_radius = radial_dist - pad_length / 2
-        radius_step = (pad_near_radius - escape_radius) / (n + 1)
-        if radius_step <= 0:
-            return None
-        conn_escape_radius = [0.0] * n
-        for rank, i in enumerate(shift_order):
-            conn_escape_radius[i] = escape_radius + (rank + 1) * radius_step
+        conn_escape_radius = [escape_radius] * n
+        if aligned_indices:
+            shift_order = sorted(aligned_indices, key=lambda i: -abs(own_tangentials[i]))
+            radius_step = (pad_near_radius - escape_radius) / (len(aligned_indices) + 1)
+            if radius_step <= 0:
+                return None
+            for rank, i in enumerate(shift_order):
+                conn_escape_radius[i] = escape_radius + (rank + 1) * radius_step
 
         for idx, (conn, offset) in enumerate(zip(group, offsets)):
             pad_center = (
@@ -243,71 +272,96 @@ def place_external_contacts(
             if collides(pad, blocked) or not within_bounds(pad, chip_bounds):
                 return None
 
-            # Escape straight out along `d`, preserving THIS connection's own
-            # tangential position (not converging every connection in the
-            # group onto one shared point on the group's center axis, which
-            # would send their escape segments crossing each other/each
-            # other's own inner contacts near the flake).
-            own_tangential = own_tangentials[idx]
-            r = conn_escape_radius[idx]
             arm_start_width = current_arm_start_width if conn.kind == 'current' else voltage_arm_start_width
-            transit_width = min(conn.width, arm_start_width)
-
-            # If this connection's own native direction isn't (anti)parallel
-            # to the shared `d` (e.g. Ring's current, which exits along the
-            # length axis while the shared pad direction is the width axis
-            # -- see ring.py/shared_direction), jumping straight from
-            # conn.position to a `d`-direction escape_point cuts sideways
-            # right at the contact's own tip -- which sits INSIDE that
-            # contact's own body along `d` (its own width straddles d=0),
-            # so that first segment necessarily clips back through its own
-            # already-placed geometry (confirmed empirically: current's own
-            # wide, blocking.width-wide body was exactly what a naive
-            # single-jump escape collided with). Fix: first continue
-            # straight out along the connection's OWN direction (clearing
-            # its own body) before bending onto the shared d/t frame.
-            conn_d = _unit(conn.direction)
-            aligned = abs(conn_d[0] * d[0] + conn_d[1] * d[1]) > 0.999
-            path = [conn.position]
-            widths = [conn.width]
-            if not aligned:
-                native_point = (
-                    conn.position[0] + conn_d[0] * escape_radius,
-                    conn.position[1] + conn_d[1] * escape_radius,
-                )
-                own_tangential = (native_point[0] - center[0]) * t[0] + (native_point[1] - center[1]) * t[1]
-                path.append(native_point)
-                widths.append(transit_width)
-
-            escape_point = (
-                center[0] + d[0] * r + t[0] * own_tangential,
-                center[1] + d[1] * r + t[1] * own_tangential,
-            )
-            lane_point = (center[0] + d[0] * r + t[0] * offset, center[1] + d[1] * r + t[1] * offset)
             pad_near_edge = (pad_center[0] - d[0] * pad_length / 2, pad_center[1] - d[1] * pad_length / 2)
 
-            # Taper over a SHORT zone right next to the pad, not the whole
-            # (possibly long) lane-approach segment -- confirmed empirically
-            # that tapering over the full lane segment still let the
-            # growing width bulge back into a neighboring arm's escape zone.
-            # A short, pad-adjacent taper zone stays clear of that region.
-            taper_length = min(pad_length * 0.1, (radial_dist - r) / 2)
-            pre_taper_point = (pad_near_edge[0] - d[0] * taper_length, pad_near_edge[1] - d[1] * taper_length)
+            # Try the straightest possible connection first: one direct
+            # taper straight from the inner contact to the pad's own near
+            # edge, no bends at all -- matches the user's own reference
+            # image (materials/debugging/how_it_should_look.png: a single
+            # clean trapezoid) after the escape/shift/approach system kept
+            # producing needlessly indirect routes even post-staggering-fix
+            # ("there is no difference"). Only fall back to a bent route
+            # when the straight line genuinely isn't clear.
+            #
+            # Uses edge_to_edge_taper, NOT a plain 2-point tapered_path: the
+            # straight line from conn.position to pad_near_edge is generally
+            # at neither the contact's own direction nor the pad's own
+            # direction, so a plain tapered_quad's single shared-perpendicular
+            # end caps would match NEITHER edge exactly, leaving a visible
+            # gap/misalignment -- flagged directly: "they are not fully
+            # connected to the internal contacts and the external rectangle.
+            # they should match exactly."
+            direct_arm = ShapelyPolygon(edge_to_edge_taper(
+                conn.position, conn.direction, conn.width,
+                pad_near_edge, d, arm_start_width,
+            ))
+            if not collides(direct_arm, blocked) and within_bounds(direct_arm, chip_bounds):
+                arm = direct_arm
+            else:
+                # Escape straight out along `d`, preserving THIS connection's
+                # own tangential position (not converging every connection in
+                # the group onto one shared point on the group's center axis,
+                # which would send their escape segments crossing each
+                # other/each other's own inner contacts near the flake).
+                own_tangential = own_tangentials[idx]
+                r = conn_escape_radius[idx]
+                transit_width = min(conn.width, arm_start_width)
 
-            # Symmetric taper at the SOURCE end too: if this connection's own
-            # inner-contact width is wider than the pad-end arm_start_width,
-            # carrying that full width all the way through the escape/shift/
-            # lane run can bulge into a neighboring connection's lane even
-            # though the two escape radii and centerlines never cross.
-            # Narrow to min(conn.width, arm_start_width) right after the
-            # escape point, matching whichever end is already the smaller of
-            # the two -- a no-op when conn.width <= arm_start_width (the
-            # common case).
-            path += [escape_point, lane_point, pre_taper_point, pad_near_edge]
-            widths += [transit_width, transit_width, transit_width, arm_start_width]
-            arm = tapered_path(path, width_start=conn.width, width_end=arm_start_width, widths=widths)
-            if collides(arm, blocked) or not within_bounds(arm, chip_bounds):
-                return None
+                # If this connection's own native direction isn't
+                # (anti)parallel to the shared `d` (e.g. Ring's current,
+                # which exits along the length axis while the shared pad
+                # direction is the width axis -- see ring.py/shared_direction),
+                # jumping straight from conn.position to a `d`-direction
+                # escape_point cuts sideways right at the contact's own tip
+                # -- which sits INSIDE that contact's own body along `d`
+                # (its own width straddles d=0), so that first segment
+                # necessarily clips back through its own already-placed
+                # geometry. Fix: first continue straight out along the
+                # connection's OWN direction (clearing its own body) before
+                # bending onto the shared d/t frame.
+                conn_d = _unit(conn.direction)
+                aligned = abs(conn_d[0] * d[0] + conn_d[1] * d[1]) > 0.999
+                path = [conn.position]
+                widths = [conn.width]
+                if not aligned:
+                    native_point = (
+                        conn.position[0] + conn_d[0] * escape_radius,
+                        conn.position[1] + conn_d[1] * escape_radius,
+                    )
+                    own_tangential = (native_point[0] - center[0]) * t[0] + (native_point[1] - center[1]) * t[1]
+                    path.append(native_point)
+                    widths.append(transit_width)
+
+                escape_point = (
+                    center[0] + d[0] * r + t[0] * own_tangential,
+                    center[1] + d[1] * r + t[1] * own_tangential,
+                )
+                lane_point = (center[0] + d[0] * r + t[0] * offset, center[1] + d[1] * r + t[1] * offset)
+
+                # Taper over a SHORT zone right next to the pad, not the
+                # whole (possibly long) lane-approach segment -- confirmed
+                # empirically that tapering over the full lane segment still
+                # let the growing width bulge into a neighboring arm's
+                # escape zone. A short, pad-adjacent taper zone stays clear.
+                taper_length = min(pad_length * 0.1, (radial_dist - r) / 2)
+                pre_taper_point = (pad_near_edge[0] - d[0] * taper_length, pad_near_edge[1] - d[1] * taper_length)
+
+                # Symmetric taper at the SOURCE end too: if this connection's
+                # own inner-contact width is wider than the pad-end
+                # arm_start_width, carrying that full width all the way
+                # through the escape/shift/lane run can bulge into a
+                # neighboring connection's lane even though the two escape
+                # radii and centerlines never cross. Narrow to
+                # min(conn.width, arm_start_width) right after the escape
+                # point -- a no-op when conn.width <= arm_start_width.
+                path += [escape_point, lane_point, pre_taper_point, pad_near_edge]
+                widths += [transit_width, transit_width, transit_width, arm_start_width]
+                if avoid_right_angles:
+                    path, widths = chamfer_right_angles(path, widths)
+                arm = tapered_path(path, width_start=conn.width, width_end=arm_start_width, widths=widths)
+                if collides(arm, blocked) or not within_bounds(arm, chip_bounds):
+                    return None
 
             placed.append(PlacedContact(kind=conn.kind, pad=pad, arm=arm))
             blocked = unary_union([blocked, pad, arm]) if not blocked.is_empty else unary_union([pad, arm])
