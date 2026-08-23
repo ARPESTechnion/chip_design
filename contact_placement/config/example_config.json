@@ -1,0 +1,83 @@
+{
+  "_readme": [
+    "Example config for the electrical-contact / cutting-mask placement stage.",
+    "Load with: config = ContactPlacementConfig.load('example_config.json')",
+    "Runs AFTER grid_preperation -- point grid_preperation_output_dir at a real",
+    "grid_preperation --output folder (needs its flakes/ and cif/ subfolders,",
+    "plus the working template copy it produced).",
+    "All geometry numbers below are transcribed from contact_placement/materials/prompt.docx",
+    "-- see contact_placement/config.py's own field docstrings for the exact spec sentence",
+    "each one corresponds to. Units are real microns (um), same as everywhere else in this pipeline."
+  ],
+
+  "layer_cut": 41,
+  "layer_internal": 42,
+  "layer_external": 40,
+
+  "_comment_flake_filter": "min_flake_score is flake_detection's OWN final_score (not re-derived -- grid_preperation just transforms flake_detection's real contour+score through its own calibration, see CifExportConfig.flake_detection_output_dir). No separate marker filter needed -- flake_detection already excludes marker/grid-dot regions before scoring.",
+  "min_flake_score": 0.3,
+
+  "_comment_user_tunable": "These are the 'popping UI' parameters from the spec -- set here for headless/CLI runs, adjustable in the UI before committing to export.",
+  "num_halls_to_try": 10,
+  "min_flake_size_for_hall": 10.0,
+  "num_rings_to_try": 10,
+
+  "hall": {
+    "inner_rect_width_margin": 3.0,
+    "inner_rect_length_margin": 4.0,
+    "min_length_to_width_ratio": 2.0,
+    "contacts_area_margin": 20.0,
+    "current_taper_width": 15.0,
+    "contact_end_setback": 10.0,
+    "voltage_width": 1.0,
+    "voltage_offset_from_inner_rect": 0.5,
+    "voltage_center_taper_width": 3.0,
+    "voltage_side_taper_width": 5.0,
+    "voltage_arm_length": 0.8,
+    "external_pad_width": 300.0,
+    "external_pad_height": 100.0,
+    "num_current_pads": 2,
+    "num_voltage_pads": 6,
+    "min_pad_spacing": 50.0,
+    "min_parallel_voltage_pad_spacing": 150.0,
+    "work_area": 1000.0,
+    "current_arm_start_width": 35.0,
+    "voltage_arm_start_width": 20.0
+  },
+
+  "ring": {
+    "voltage_min_distance_from_mask": 0.7,
+    "current_min_distance_from_voltage": 1.4,
+    "current_min_length_in_blocking_rect": 1.5,
+    "voltage_min_width_in_blocking_rect": 0.7,
+    "current_grow_cap": 3.0,
+    "voltage_stackout": 2.0,
+    "voltage_stackout_connecting_side": 5.0,
+    "current_min_stackout": 6.0,
+    "external_pad_width": 300.0,
+    "external_pad_height": 100.0,
+    "num_current_pads": 2,
+    "num_voltage_pads": 2,
+    "min_pad_spacing": 50.0,
+    "min_parallel_voltage_pad_spacing": 150.0,
+    "work_area": 900.0,
+    "current_arm_start_width": 16.0,
+    "voltage_arm_start_width": 12.0,
+    "arrow_base": 40.0,
+    "arrow_height": 20.0,
+    "_comment_ring_measurements": "Per the spec's updated 'Ring:' measurements section. inner_ring/outer_ring are explicit min/max/step search ranges (config.frange); distance_between_arms/arm_width/finger_width are fixed constants, not searched.",
+    "inner_ring_min": 0.7,
+    "inner_ring_max": 1.0,
+    "inner_ring_step": 0.05,
+    "outer_ring_min": 0.25,
+    "outer_ring_max": 0.3,
+    "outer_ring_step": 0.025,
+    "distance_between_arms": 0.5,
+    "arm_width": 0.7,
+    "finger_width": 0.35,
+    "arm_protrusion_beyond_blocking": 3.0
+  },
+
+  "grid_preperation_output_dir": "flakes/all/cif_export_results",
+  "output_dir": null
+}

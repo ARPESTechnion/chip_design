@@ -129,6 +129,18 @@ def run_pipeline(
         export_config.template_cif_path = str(template_override)
     if no_placement:
         export_config.template_cif_path = None
+    # Always wired to THIS run's own flake_detection output, overriding
+    # whatever static value the grid_preperation config file happens to
+    # have -- contact_placement's contour matching (see
+    # CifExportConfig.flake_detection_output_dir) needs the two stages'
+    # outputs to come from the SAME run. A stale/mismatched path here fails
+    # silently (grid_preperation just finds no contours.json to match and
+    # writes empty flakes/*.json, no error) -- confirmed empirically: an
+    # earlier hardcoded config value pointed at a directory from a manual,
+    # one-off `flake_detection.run` invocation outside this orchestrator,
+    # and once that stray directory was gone, every image's flakes/*.json
+    # silently went empty.
+    export_config.flake_detection_output_dir = str(output_folder / 'flake_detection_results')
 
     print(f"\n=== Stage 2/2: grid_preperation (config: {pipeline_config.grid_preperation_config_path}) ===")
     export_results = run_grid_preperation(

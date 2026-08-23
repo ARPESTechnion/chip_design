@@ -61,7 +61,19 @@ def _rgb_to_cif_hex(rgb: tuple[int, int, int]) -> str:
     return f"0f{b:02x}{g:02x}{r:02x}"
 
 
-_HEADER_COLOR_RE = re.compile(r"^L\s+L(\d+);\s*\(CleWin:[^/\n]*/(0[fF][0-9a-fA-F]{6})", re.MULTILINE)
+_HEADER_COLOR_RE = re.compile(r"^L\s+L(\d+);\s*\(CleWin:[^/\n]*/([0-9a-fA-F]{8})", re.MULTILINE)
+"""8 hex chars, any leading byte -- NOT hardcoded to '0f'. This module's own
+write_cif always emits '0f' (see _rgb_to_cif_hex), but BaseGrid.cif's own
+pre-existing layer declarations use OTHER leading bytes too (e.g. '05' for
+its layers 40/42 -- apparently a CleWin fill-style nibble, not part of the
+RGB payload, which is always the trailing 6 hex chars either way). An
+earlier version of this regex required '0f' specifically, which silently
+failed to recognize BaseGrid.cif's own L040/L042 colors as already declared
+-- confirmed empirically -- so place_in_cif would have inserted a SECOND,
+conflicting color declaration for those layers the first time anything
+spliced content onto them (contact_placement's fixed L040/L041/L042 layers
+are exactly this case: layer 41 happened to already use '0f' and parsed
+fine, masking that 40/42 did not)."""
 
 
 def _parse_header_colors(text: str) -> dict[int, str]:
@@ -151,6 +163,59 @@ bare, colorless 'L Lxxx;' declarations for layers 0-100, written before the
 real colored ones."""
 
 
+def _write_cif_text(
+    layers: dict[int, list[list[tuple[float, float]]]],
+    layer_colors: dict[int, tuple[int, int, int]],
+    structure_name: str = "Flakes",
+    class_label: str = "Flake",
+) -> str:
+    """
+    Shared low-level primitive: render `layers` (layer_num -> list of
+    polygons, each a list of (x_um, y_um) vertices) + `layer_colors`
+    (layer_num -> rgb, may cover a superset of `layers`' keys -- e.g.
+    write_cif always predeclares every polygon's color even if some layer
+    ends up with 0 polygons) into this module's own exported-CIF text
+    convention (see module docstring: DS 1 1 10, '0f'+BGR hex colors,
+    bare 0-100 predeclare). Both write_cif and contact_placement's own
+    writer go through this so the two CIF flavors this codebase produces
+    (flake export, contact placement) can never silently drift apart in
+    header format, DS convention, or footer -- both are read back by the
+    same `_parse_exported_cif`/`place_in_cif`.
+
+    `structure_name`/`class_label` only affect cosmetic CIF comment text
+    (the '9 <name>;' structure-name line, and the 'Flake' word in each
+    dynamic layer's CleWin color comment) -- never parsed back by anything
+    in this module, safe to customize per caller.
+    """
+    lines = [
+        "(CIF written by grid_preperation - automated flake export);\n",
+        "(Nanoelectronics Research Center);\n",
+        "(Technion Israel Institute of Technology);\n",
+        "\n",
+        "(Layer names);\n",
+    ]
+    for i in range(_BARE_PREDECLARE_MAX_LAYER + 1):
+        lines.append(f"L L{i:03d};\n")
+    for layer_num in sorted(layer_colors):
+        hexcode = _rgb_to_cif_hex(layer_colors[layer_num])
+        lines.append(f"L L{layer_num:03d}; (CleWin: {layer_num:03d} {class_label}/{hexcode} {hexcode});\n")
+
+    lines += [
+        "\n(Top level);\n\n",
+        f"DS 1 {_EXPORT_DS_SCALE} {_EXPORT_DS_LENGTH};\n\n",
+        f"9 {structure_name};\n\n",
+    ]
+
+    for layer_num in sorted(layers):
+        lines.append(f"L L{layer_num:03d};\n")
+        for verts in layers[layer_num]:
+            coords = " ".join(f"{_um_to_export_units(x)} {_um_to_export_units(y)}" for x, y in verts)
+            lines.append(f"P {coords};\n")
+
+    lines += ["\nDF;\n", "C 1;\n", "E\n"]
+    return "".join(lines)
+
+
 def write_cif(polygons: list[Polygon], path: str | Path, palette: LayerPalette) -> None:
     """
     Write exported polygons (flakes, markers, debris -- everything past
@@ -177,35 +242,12 @@ def write_cif(polygons: list[Polygon], path: str | Path, palette: LayerPalette) 
             layer_colors[layer_num] = palette.rgb_for(layer_num)
         by_layer.setdefault(layer_num, []).append(poly)
 
-    lines = [
-        "(CIF written by grid_preperation - automated flake export);\n",
-        "(Nanoelectronics Research Center);\n",
-        "(Technion Israel Institute of Technology);\n",
-        "\n",
-        "(Layer names);\n",
-    ]
-    for i in range(_BARE_PREDECLARE_MAX_LAYER + 1):
-        lines.append(f"L L{i:03d};\n")
-    for layer_num in sorted(layer_colors):
-        hexcode = _rgb_to_cif_hex(layer_colors[layer_num])
-        lines.append(f"L L{layer_num:03d}; (CleWin: {layer_num:03d} Flake/{hexcode} {hexcode});\n")
-
-    lines += [
-        "\n(Top level);\n\n",
-        f"DS 1 {_EXPORT_DS_SCALE} {_EXPORT_DS_LENGTH};\n\n",
-        "9 Flakes;\n\n",
-    ]
-
-    for layer_num in sorted(by_layer):
-        lines.append(f"L L{layer_num:03d};\n")
-        for poly in by_layer[layer_num]:
-            coords = " ".join(
-                f"{_um_to_export_units(x)} {_um_to_export_units(y)}" for x, y in poly.vertices_um
-            )
-            lines.append(f"P {coords};\n")
-
-    lines += ["\nDF;\n", "C 1;\n", "E\n"]
-    Path(path).write_text("".join(lines))
+    layers = {
+        layer_num: [poly.vertices_um for poly in polys]
+        for layer_num, polys in by_layer.items()
+    }
+    text = _write_cif_text(layers, layer_colors)
+    Path(path).write_text(text)
 
 
 @dataclass

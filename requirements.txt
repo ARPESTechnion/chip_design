@@ -1,6 +1,7 @@
 opencv-python==5.0.0.93
 numpy==2.5.1
 matlabengine==26.1
+shapely==2.1.2
 
 # The ML / channels_model stack (torch, onnxruntime, etc.) is kept in its own
 # file since it pins CUDA-specific wheels -- install it too:
