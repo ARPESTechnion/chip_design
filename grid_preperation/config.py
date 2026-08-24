@@ -176,8 +176,9 @@ class CifExportConfig:
     much nearby clutter) rather than guessing.
     """
 
-    marker_refine_color_rgb: list = field(default_factory=lambda: [238, 190, 221])
-    marker_refine_color_tolerance: int = 10
+    marker_refine_color_hsv: list = field(default_factory=lambda: [327, 21])
+    marker_refine_hue_tolerance_deg: float = 24.0
+    marker_refine_sat_tolerance_pct: float = 12.0
     """
     Refinement now runs on the reconstructed image (see channel_selection.py
     / markers._refine_marker_center), where the crosshair's solid core
@@ -185,12 +186,40 @@ class CifExportConfig:
     cluster like any other, painted with that cluster's own real measured
     color, not the noisy antialiased blend it was in the original photo
     (which is what motivated the OLD Canny-edge-based refinement, now
-    replaced). Confirmed empirically stable at RGB(238,190,221) +-10 across
-    images. A marker position refines to the centroid of the best same-
-    colored square-ish blob found within the search window
-    (marker_refine_half_px); falls back to the unrefined position if none is
-    found (e.g. that marker's cluster wasn't selected by channels_model) —
-    never guesses.
+    replaced).
+
+    Matched in HSV, not RGB -- the same real-world crosshair color renders
+    at a different RGB per batch/image because of lighting (confirmed: an
+    earlier fixed-RGB reference, (238,190,221), worked for one batch but
+    not others), but lighting is mostly a brightness/exposure effect, which
+    HSV isolates into V. H/S stay comparatively stable across lighting, so
+    only they're matched here -- V is intentionally UNCONSTRAINED (see
+    _refine_marker_center, no v_lo/v_hi tolerance field exists). Same
+    principle DetectionConfig.substrate_hsv_range already relies on (wide v
+    range, tighter h range).
+
+    marker_refine_color_hsv is [H, S] in the COMMON color-picker scale --
+    H: 0-360 degrees, S: 0-100 percent (e.g. Windows Paint's "Edit colors"
+    dialog on a reconstructed/*.png debug image reads these out directly,
+    no manual conversion needed) -- NOT OpenCV's own H:0-179/S:0-255 scale.
+    _refine_marker_center converts to OpenCV's scale internally
+    (hue_cv = round(H/2) % 180, sat_cv = round(S/100*255)) right before
+    thresholding; the tolerances below follow the same common-scale
+    convention (hue in degrees, saturation in percent), converted the same
+    way. This batch's own measured value: H=327 deg, S=21%.
+    marker_refine_hue_tolerance_deg is the looser of the two on purpose --
+    the user's own observation, also confirmed by comparing this
+    measurement against the older RGB reference converted to the same
+    scale (~321 deg / 20% -- a ~6-degree hue drift, a much smaller relative
+    shift in saturation). Re-measure and update marker_refine_color_hsv
+    (not just widen tolerance further) if a new batch's lighting is
+    different enough that these tolerances still miss it -- never guess a
+    huge tolerance instead of a real per-batch reference.
+
+    A marker position refines to the centroid of the best same-colored
+    square-ish blob found within the search window (marker_refine_half_px);
+    falls back to the unrefined position if none is found (e.g. that
+    marker's cluster wasn't selected by channels_model) -- never guesses.
     """
 
     marker_refine_min_area: int = 100
