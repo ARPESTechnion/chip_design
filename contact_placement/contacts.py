@@ -83,15 +83,18 @@ def _group_pads_at(
     current_pad_direction: Point | None, blocked: BaseGeometry, chip_bounds: ChipBounds | None,
     min_gap_to_voltage: float | None, voltage_pads: list[ShapelyPolygon],
     current_arm_start_width: float, voltage_arm_start_width: float,
-) -> list[ShapelyPolygon] | None:
-    """Every pad polygon for `group` if ALL of them are placeable at this
-    one shared `radial_dist` AND connectable via a direct (straight,
-    unbent) arm alone -- in bounds, pad and direct-arm collision-free
-    against `blocked` AND against each other (checked cumulatively, one
-    connection at a time, exactly like the real per-connection loop later
-    will), and -- for current-kind connections, when min_gap_to_voltage is
-    given -- at least that far from every already-placed voltage pad. None
-    the moment any one of them fails.
+) -> tuple[list[ShapelyPolygon], BaseGeometry] | None:
+    """(pad polygons, `blocked` plus every pad+direct-arm this group placed)
+    if ALL of `group`'s connections are placeable at this one shared
+    `radial_dist` AND connectable via a direct (straight, unbent) arm alone
+    -- in bounds, pad and direct-arm collision-free against `blocked` AND
+    against each other (checked cumulatively, one connection at a time,
+    exactly like the real per-connection loop later will), and -- for
+    current-kind connections, when min_gap_to_voltage is given -- at least
+    that far from every already-placed voltage pad. None the moment any one
+    of them fails. The returned occupied region lets a caller (see
+    _remaining_groups_placeable) chain a lookahead across multiple groups
+    without re-deriving what this group would leave behind.
 
     Deliberately requires the DIRECT arm specifically (not falling back to
     the bent escape/shift/approach route the real per-connection loop can
@@ -137,7 +140,75 @@ def _group_pads_at(
         pads.append(pad)
         trial_blocked = unary_union([trial_blocked, pad, direct_arm]) if not trial_blocked.is_empty \
             else unary_union([pad, direct_arm])
-    return pads
+    return pads, trial_blocked
+
+
+def _remaining_groups_placeable(
+    groups: list[list[ContactConnection]], blocked: BaseGeometry, voltage_pads: list[ShapelyPolygon],
+    r: float, center: Point, work_area: float, pad_length: float, pad_width: float,
+    current_pad_direction: Point | None, chip_bounds: ChipBounds | None,
+    current_voltage_min_gap: float | None,
+    current_arm_start_width: float, voltage_arm_start_width: float,
+    min_pad_spacing: float, min_parallel_voltage_pad_spacing: float,
+) -> bool:
+    """True if every group in `groups` -- the ones the real per-group loop
+    in place_external_contacts still has left to process after whichever
+    group is currently being sized -- is ALSO directly placeable at this
+    SAME radial_dist `r` (not each independently re-minimized), placed in
+    sequence starting from `blocked`. Mirrors place_external_contacts's own
+    per-group sort-by-tangential-position + cumulative-spacing setup
+    exactly, so the simulated placement matches what the real loop would
+    actually do later.
+
+    Deliberately reuses the SAME `r` for every remaining group rather than
+    letting each one search for its own independent minimum: an earlier
+    version did the latter and was WRONG -- two symmetric groups (e.g.
+    Hall's own two voltage sides) each searching independently, mid-lookahead,
+    landed at DIFFERENT radii (whichever was cheapest for each one alone),
+    producing a lopsided trial placement that doesn't match what the real
+    per-group loop would ever actually produce (every group there gets its
+    own real, consistent search once its turn comes) -- confirmed as a real
+    false negative: it rejected radii that a proper joint check confirms
+    are genuinely fine. Checking "does everyone ALSO fit at this exact r"
+    is a sufficient (if slightly conservative -- the real loop may later
+    find an even smaller r for a given remaining group) and cheap
+    (one _group_pads_at call per remaining group, not a nested search) test.
+
+    Used as a lookahead so an earlier group's own greedy smallest-radius
+    choice can't strand a later group with nowhere left to go -- confirmed
+    as a real failure: Hall's voltage groups (searched first, per
+    current_voltage_min_gap's own docstring) could converge on a much
+    smaller radius once the current contacts' own internal footprint
+    shrank (see hall.py), and that tighter voltage placement then stranded
+    current's own group entirely -- even though a slightly larger (still
+    perfectly valid, still minimal for ITS OWN purposes) voltage radius
+    would have left current plenty of room."""
+    trial_blocked = blocked
+    trial_voltage_pads = list(voltage_pads)
+    for group in groups:
+        d = _unit(group[0].direction)
+        t = _perp(d)
+        group = sorted(group, key=lambda c: (c.position[0] - center[0]) * t[0] + (c.position[1] - center[1]) * t[1])
+        cumulative = [0.0]
+        for prev, cur in zip(group, group[1:]):
+            same_voltage = prev.kind == 'voltage' and cur.kind == 'voltage'
+            edge_gap = min_parallel_voltage_pad_spacing if same_voltage else min_pad_spacing
+            cumulative.append(cumulative[-1] + pad_width + edge_gap)
+        center_shift = (cumulative[0] + cumulative[-1]) / 2
+        offsets = [c - center_shift for c in cumulative]
+
+        group_gap = current_voltage_min_gap if group[0].kind == 'current' else None
+        result = _group_pads_at(
+            group, offsets, d, t, center, r, work_area, pad_length, pad_width,
+            current_pad_direction, trial_blocked, chip_bounds, group_gap, trial_voltage_pads,
+            current_arm_start_width, voltage_arm_start_width,
+        )
+        if result is None:
+            return False
+        pads, trial_blocked = result
+        if group[0].kind == 'voltage':
+            trial_voltage_pads = trial_voltage_pads + pads
+    return True
 
 
 def _find_min_radial_dist(
@@ -146,6 +217,9 @@ def _find_min_radial_dist(
     blocked: BaseGeometry, chip_bounds: ChipBounds | None, min_gap_to_voltage: float | None,
     voltage_pads: list[ShapelyPolygon], escape_radius: float,
     current_arm_start_width: float, voltage_arm_start_width: float,
+    remaining_groups: list[list[ContactConnection]] | None = None,
+    current_voltage_min_gap: float | None = None,
+    min_pad_spacing: float = 0.0, min_parallel_voltage_pad_spacing: float = 0.0,
 ) -> float | None:
     """Smallest radial_dist (pad-center distance from `center`, along `d`)
     at which this whole group's pads are all placeable at once -- searched
@@ -172,17 +246,33 @@ def _find_min_radial_dist(
     `radius_step <= 0` and failing the WHOLE group even when a direct
     connection alone would have been fine. Starting the search past this
     floor keeps that machinery always viable as a fallback, at the cost of
-    not reaching the absolute theoretical minimum distance in every case."""
+    not reaching the absolute theoretical minimum distance in every case.
+
+    `remaining_groups`, if given, is every group place_external_contacts's
+    own per-group loop still has left to process after this one -- a
+    candidate r is only accepted once _remaining_groups_placeable also
+    confirms every one of them still has SOME valid radial_dist against the
+    occupied region this group's own placement at r would leave behind (see
+    that function's own docstring for the real failure mode this closes)."""
     max_radial = work_area / 2 - pad_length / 2
     step = 1.0
     r = max(max(pad_length, pad_width) / 2, escape_radius + pad_length / 2 + step)
     while r <= max_radial:
-        if _group_pads_at(
+        result = _group_pads_at(
             group, offsets, d, t, center, r, work_area, pad_length, pad_width,
             current_pad_direction, blocked, chip_bounds, min_gap_to_voltage, voltage_pads,
             current_arm_start_width, voltage_arm_start_width,
-        ) is not None:
-            return r
+        )
+        if result is not None:
+            pads, trial_blocked = result
+            if remaining_groups is None or _remaining_groups_placeable(
+                remaining_groups, trial_blocked,
+                voltage_pads + pads if group[0].kind == 'voltage' else voltage_pads,
+                r, center, work_area, pad_length, pad_width, current_pad_direction, chip_bounds,
+                current_voltage_min_gap, current_arm_start_width, voltage_arm_start_width,
+                min_pad_spacing, min_parallel_voltage_pad_spacing,
+            ):
+                return r
         r += step
     return None
 
@@ -311,7 +401,8 @@ def place_external_contacts(
         # before any current group's own search can measure distance to
         # them -- see current_voltage_min_gap's own docstring.
         groups = sorted(groups, key=lambda g: 0 if g[0].kind == 'voltage' else 1)
-    for group in groups:
+    for group_idx, group in enumerate(groups):
+        remaining_groups = groups[group_idx + 1:]
         d = _unit(shared_direction) if shared_direction is not None else _unit(group[0].direction)
         t = _perp(d)
         n = len(group)
@@ -353,6 +444,8 @@ def place_external_contacts(
                 group, offsets, d, t, center, work_area, pad_length, pad_width,
                 current_pad_direction, blocked, chip_bounds, group_gap, voltage_pads_so_far, escape_radius,
                 current_arm_start_width, voltage_arm_start_width,
+                remaining_groups=remaining_groups, current_voltage_min_gap=current_voltage_min_gap,
+                min_pad_spacing=min_pad_spacing, min_parallel_voltage_pad_spacing=min_parallel_voltage_pad_spacing,
             )
             if radial_dist is None:
                 return None

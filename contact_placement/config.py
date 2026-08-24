@@ -60,38 +60,34 @@ class HallConfig:
     "minus" phrasing), centered on the new flake. "Contacts area: a
     rectangle new flake size plus 20." """
 
-    current_taper_width: float = 15.0
-    """Each of the 2 current contacts (one per long side of the new flake)
-    starts at the new-flake width and tapers OUT to this width as it moves
-    away from the flake. "They should get wider to 15 as it distant from the
-    flake." """
-
     contact_end_setback: float = 10.0
-    """Both current and voltage contacts run from the inner rectangle to
-    this far short of the contacts area boundary. "There length should be
-    from the inner rectangle until 10 from the contacts area." (stated
-    separately for current and voltage in the doc, same value both times)."""
+    """Both current and voltage contacts extend from the inner rectangle to
+    this far PAST the contacts area boundary (not short of it) -- user:
+    "current length is also the gap between the inner rectangle and the
+    contact area + 10" / "voltage contact length is the difference between
+    the contact area and the inner rectangle... + 10 (outside of the
+    contact area)". Puts the external arm's own connection point well
+    beyond the cut mask's own domain (which stays bounded by contacts_area),
+    keeping that connection naturally far from the mask."""
 
     voltage_width: float = 1.0
-    """Voltage contact width at its narrow (inner) end. "Their width should
-    be 1." """
+    """Constant cross-sectional width of every voltage contact (all 3 per
+    side, side and center alike -- no taper). Reverse-engineered from
+    materials/debugging/single_hall.cif's own measured geometry (a plain
+    rectangle, not a taper -- supersedes the earlier
+    voltage_center_taper_width/voltage_side_taper_width/current_taper_width
+    design, which tapered each contact wider away from the flake). Current
+    contacts have no equivalent field -- their constant width is always
+    new_flake.width directly, see hall.py."""
 
-    voltage_offset_from_inner_rect: float = 0.5
-    """Each voltage contact sits this far outside the inner rectangle's own
-    edge. "There distance from the inner rectangle is 0.5 outside." """
-
-    voltage_center_taper_width: float = 3.0
-    voltage_side_taper_width: float = 5.0
-    """3 voltage contacts per short side, evenly spaced; the center one
-    tapers to voltage_center_taper_width, the two side ones taper to
-    voltage_side_taper_width. "The center contacts should get wider to 3,
-    and the side ones should get wider to 5." """
-
-    voltage_arm_length: float = 0.8
-    """Within the cut-masked gap between contacts area and inner rectangle,
-    a small un-masked arm is left behind each voltage contact, centered on
-    it. "The arm length should be 0.8, and it should be centered relative to
-    the contact." """
+    mask_voltage_gap: float = 0.1
+    """Gap, on the flake-facing (near/inner-rectangle) side only, between a
+    voltage contact's own edge and the cut mask's own edge there -- user:
+    "the internal contacts need to be 0.1 shorter then the mask on the
+    flake side (this is the mask-voltage distances discussed)." Current has
+    no equivalent field -- its own near edge sits flush with the mask,
+    no gap, since it doesn't have the pinch problem this field also fixes
+    (see hall.py)."""
 
     external_pad_width: float = 300.0
     external_pad_height: float = 100.0
