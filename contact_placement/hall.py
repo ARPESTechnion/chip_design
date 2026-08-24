@@ -22,15 +22,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from shapely.geometry import Polygon as ShapelyPolygon
+from shapely.geometry import GeometryCollection, Polygon as ShapelyPolygon
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
 from .config import HallConfig
 from .contacts import ContactConnection, PlacedContact, place_external_contacts
 from .geometry import (
-    ChipBounds, Point, RotatedRect, collides, largest_inscribed_rectangle, tapered_quad, within_bounds,
+    ChipBounds, Point, RotatedRect, collides, largest_inscribed_rectangle, within_bounds,
 )
+
+
+def _local_rect(x0: float, x1: float, y0: float, y1: float) -> list[Point]:
+    """A plain axis-aligned rectangle in local (flake-frame) coordinates,
+    same 4-point convention as tapered_quad's output."""
+    return [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
 
 
 @dataclass
@@ -38,10 +44,6 @@ class HallResult:
     cut_mask: BaseGeometry           # L041 -- may be a MultiPolygon
     internal_contacts: list[ShapelyPolygon]  # L042 -- 2 current + 6 voltage
     external: list[PlacedContact]     # L040 -- 8 pads + arms (see contacts.py)
-
-
-def _rect_polygon(rect: RotatedRect) -> ShapelyPolygon:
-    return ShapelyPolygon(rect.corners())
 
 
 def place_hall(
@@ -72,73 +74,141 @@ def place_hall(
 
     internal_local: list[list[Point]] = []
     connections: list[ContactConnection] = []
-    arm_stubs_local: list[list[Point]] = []
+    # Same rectangles as internal_local, grouped by which contact they came
+    # from -- used below as the cut mask's own hole footprint. No dilation:
+    # the mask sits flush against every contact edge, zero gap (user,
+    # after reviewing a render with the earlier 0.1/1um keepout dilation:
+    # "the internal contacts and the mask should have no gap between them").
+    current_rects_local: dict[float, list[Point]] = {}
+    voltage_rects_local: dict[float, list[list[Point]]] = {1.0: [], -1.0: []}
 
-    # --- Current contacts: 2, at the two ends along the length axis ---
+    # --- Current contacts: 2, at the two ends along the length axis, flush
+    # against the inner rectangle -- plain rectangles, constant width =
+    # new_flake.width (no taper; see materials/debugging/single_hall.cif).
+    # The far end extends PAST the contacts area by contact_end_setback
+    # (not short of it -- user: "current length is also the gap between the
+    # inner rectangle and the contact area + 10"), so the external arm's own
+    # connection point sits well beyond the cut mask's own domain (which
+    # stays bounded by contacts_area, see below), naturally keeping the
+    # internal-to-external connection far from the mask without needing any
+    # special routing exclusion. ---
     for sign in (1.0, -1.0):
         y0 = sign * inner.height / 2
-        y1 = sign * (contacts_area.height / 2 - config.contact_end_setback)
-        quad = tapered_quad((0.0, y0), (0.0, y1), new_flake.width, config.current_taper_width)
-        internal_local.append(quad)
+        y1 = sign * (contacts_area.height / 2 + config.contact_end_setback)
+        half_w = new_flake.width / 2
+        rect = _local_rect(-half_w, half_w, min(y0, y1), max(y0, y1))
+        internal_local.append(rect)
+        current_rects_local[sign] = rect
         connections.append(ContactConnection(
             position=new_flake.to_absolute(0.0, y1),
             direction=new_flake.direction_to_absolute(0.0, sign),
-            width=config.current_taper_width,
+            width=new_flake.width,
             kind='current',
         ))
 
-    # --- Voltage contacts: 6, 3 per long side, evenly spaced along length ---
+    # --- Voltage contacts: 6, 3 per long side, evenly spaced along length,
+    # flush against the inner rectangle -- plain rectangles, constant width
+    # = config.voltage_width (no more separate side/center taper widths). ---
     # 3 points spread across the inner rectangle's length at the 1/4, 2/4,
     # 3/4 marks (i.e. -L/4, 0, +L/4) -- evenly spaced without sitting right
-    # on the inner rectangle's own corners.
+    # on the inner rectangle's own corners; equidistant from each other AND
+    # from the current contacts at the ends (both gaps are inner.height/4).
     half_l = inner.height / 2
     taps_y = [-half_l / 2, 0.0, half_l / 2]
-    tap_widths = [config.voltage_side_taper_width, config.voltage_center_taper_width, config.voltage_side_taper_width]
 
-    # "If impossible, drop flake from hall" -- adjacent taps must not overlap:
-    # each tap's cross-section (its taper width, since it runs along x) needs
-    # at least half its own width plus half its neighbor's within the gap
-    # between them.
+    # "If impossible, drop flake from hall" -- adjacent taps must not overlap.
     gap = taps_y[1] - taps_y[0]
-    for w_a, w_b in zip(tap_widths, tap_widths[1:]):
-        if gap < (w_a + w_b) / 2:
-            return None
+    if gap < config.voltage_width:
+        return None
 
     for sign in (1.0, -1.0):
-        x0 = sign * (inner.width / 2 + config.voltage_offset_from_inner_rect)
-        x1 = sign * (contacts_area.width / 2 - config.contact_end_setback)
-        x_inner_edge = sign * inner.width / 2
-        for y, taper_w in zip(taps_y, tap_widths):
-            quad = tapered_quad((x0, y), (x1, y), config.voltage_width, taper_w)
-            internal_local.append(quad)
+        # Contact's own near edge retreats mask_voltage_gap from the inner
+        # rectangle (a real, visible gap to the mask on the flake-facing
+        # side only -- user: "the internal contacts need to be 0.1 shorter
+        # then the mask on the flake side (this is the mask-voltage
+        # distances discussed)"). The HOLE used to cut the mask, in
+        # contrast, extends mask_voltage_gap PAST the strip's own inner
+        # edge (into inner-rectangle territory the strip never covers
+        # anyway, so harmless) rather than landing exactly ON it -- an
+        # exact boundary match there left a zero-width "pinch" connecting
+        # what should be separate mask pieces (confirmed: a real exported
+        # polygon whose ring walked out along the strip's own edge and
+        # back, rendering as a thin connecting line the user flagged
+        # directly). Both use the same constant since they're the same
+        # physical gap, just measured from opposite sides of it.
+        x0_contact = sign * (inner.width / 2 + config.mask_voltage_gap)
+        x0_hole = sign * (inner.width / 2 - config.mask_voltage_gap)
+        # Same "extend past contacts_area by contact_end_setback" rule as
+        # current -- user: "the voltage contact length is the difference
+        # between the contact area and the inner rectangle... + 10 (outside
+        # of the contact area)".
+        x1 = sign * (contacts_area.width / 2 + config.contact_end_setback)
+        half_v = config.voltage_width / 2
+        for y in taps_y:
+            rect = _local_rect(min(x0_contact, x1), max(x0_contact, x1), y - half_v, y + half_v)
+            internal_local.append(rect)
+            voltage_rects_local[sign].append(_local_rect(min(x0_hole, x1), max(x0_hole, x1), y - half_v, y + half_v))
             connections.append(ContactConnection(
                 position=new_flake.to_absolute(x1, y),
                 direction=new_flake.direction_to_absolute(sign, 0.0),
-                width=taper_w,
+                width=config.voltage_width,
                 kind='voltage',
             ))
-            # Un-masked arm bridging the inner-rectangle edge to this
-            # contact, centered on it -- "The arm length should be 0.8, and
-            # it should be centered relative to the contact."
-            arm_half = config.voltage_arm_length / 2
-            arm_center_x = x_inner_edge  # centered ON the inner-rectangle edge, per "centered relative to the contact"
-            arm_stubs_local.append([
-                (arm_center_x - sign * arm_half, y - config.voltage_width / 2),
-                (arm_center_x + sign * arm_half, y - config.voltage_width / 2),
-                (arm_center_x + sign * arm_half, y + config.voltage_width / 2),
-                (arm_center_x - sign * arm_half, y + config.voltage_width / 2),
-            ])
 
-    # --- Cut mask: contacts_area minus inner_rect minus all contact
-    # footprints, plus the voltage arm stubs re-added ---
-    internal_abs = [ShapelyPolygon([new_flake.to_absolute(x, y) for x, y in pts]) for pts in internal_local]
-    arm_stubs_abs = [ShapelyPolygon([new_flake.to_absolute(x, y) for x, y in pts]) for pts in arm_stubs_local]
+    def _abs(pts: list[Point]) -> ShapelyPolygon:
+        return ShapelyPolygon([new_flake.to_absolute(x, y) for x, y in pts])
 
-    cut_region = _rect_polygon(contacts_area).difference(_rect_polygon(inner))
-    for shape in internal_abs:
-        cut_region = cut_region.difference(shape)
-    for stub in arm_stubs_abs:
-        cut_region = cut_region.difference(stub)
+    internal_abs = [_abs(pts) for pts in internal_local]
+
+    # --- Cut mask: NOT one frame-shaped region -- a collection of separate,
+    # non-touching rectangles (user: "the cut mask is not a single polygon,
+    # but a collection of rectangles that dont touch each other, as in the
+    # examples"). Only exists in the LEFT/RIGHT margins (contacts_area's own
+    # edge in to the inner rectangle's edge, full contacts_area HEIGHT) --
+    # there's no separate top/bottom strip at all, since current's own
+    # contact already spans that whole territory itself (its width covers
+    # essentially the full inner region there, see materials/debugging/
+    # single_hall.cif's own L041 layer: all 8 real mask pieces sit in the
+    # left/right margins, none above/below current). Differencing current's
+    # 2 contacts AND voltage's own 3-per-side contacts out of each
+    # full-height margin strip naturally splits it into several disjoint
+    # simple pieces (confirmed: KK -> 4 pieces per side, 0 interior rings
+    # each, matching single_hall.cif's own 4-per-side split into 2 small
+    # tap-gap pieces + 2 large corner pieces) -- no manual per-gap
+    # construction needed. Mask sits flush against every contact edge (see
+    # internal_local above) -- zero gap, per the user's own review.
+    #
+    # This ALSO fixes the single-merged-frame bug an earlier version of this
+    # function had: subtracting every hole from one big "contacts_area minus
+    # inner" frame let them all merge with the frame's own inner-rectangle
+    # hole into one deeply concave ~37-vertex ring, which cif_export's
+    # keyhole bridge-line technique couldn't flatten correctly -- confirmed
+    # as a real bug: the mask rendered as a solid block completely covering
+    # the contacts in the actual exported CIF (materials/debugging/
+    # external_contacts_covered.png). Building only left/right (never a
+    # frame that fully encloses the inner rectangle) sidesteps that
+    # entirely: every piece here is simple from the start.
+    half_ca_h = contacts_area.height / 2
+    half_in_w = inner.width / 2
+    current_rects_abs = [_abs(current_rects_local[1.0]), _abs(current_rects_local[-1.0])]
+    mask_pieces: list[ShapelyPolygon] = []
+    for sign in (1.0, -1.0):
+        x0 = sign * half_in_w
+        x1 = sign * (contacts_area.width / 2)
+        strip = _abs(_local_rect(min(x0, x1), max(x0, x1), -half_ca_h, half_ca_h))
+        for hole in [*current_rects_abs, *[_abs(pts) for pts in voltage_rects_local[sign]]]:
+            strip = strip.difference(hole)
+        # Zero-gap differencing can leave degenerate slivers (a notch
+        # boundary landing exactly on the strip's own edge or another
+        # notch) as zero-area LineStrings/Points rather than Polygons --
+        # filter those out rather than pass them to the CIF writer, which
+        # expects every piece to have a real .exterior.
+        mask_pieces += [
+            g for g in (strip.geoms if hasattr(strip, 'geoms') else [strip])
+            if g.geom_type == 'Polygon' and g.area > 1e-6
+        ]
+
+    cut_region = GeometryCollection(mask_pieces)
 
     if collides(cut_region, occupied) or any(collides(s, occupied) for s in internal_abs):
         return None
