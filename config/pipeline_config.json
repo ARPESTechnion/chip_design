@@ -2,6 +2,7 @@
   "_comment": "Top-level config for all_code.py -- holds paths to each pipeline stage's own config file, not the stage settings themselves. Each stage documents and owns its own schema (see flake_detection/config.py, grid_preperation/config.py); edit those files' own JSON configs to tune detection/export behavior, edit this file only to point at a different config file entirely.",
   "flake_detection_config_path": "flake_detection/config/orange_flakes_tuned.json",
   "grid_preperation_config_path": "grid_preperation/config/example_config.json",
+  "contact_placement_config_path": "contact_placement/config/example_config.json",
   "_comment_input_folder": "Folder of raw chip images to run the pipeline over. --input_folder on the command line overrides this.",
   "input_folder": "flakes/all"
 }

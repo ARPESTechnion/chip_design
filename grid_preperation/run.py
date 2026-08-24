@@ -89,6 +89,23 @@ def _process_image(
 ) -> dict:
     """Run the full pipeline on one image. Returns a result dict for the
     summary JSON — never raises; alert conditions are reported, not thrown."""
+    # Clear this image's own prior output FIRST, before attempting anything
+    # -- every early-return alert branch below skips the code that (re)writes
+    # flakes/<stem>.json and cif/<stem>.cif, so without this, an image that
+    # succeeded on an EARLIER run (e.g. using a since-fixed but wrong cached
+    # reconstruction) but now correctly alerts would leave that old, stale,
+    # WRONG output sitting on disk untouched -- confirmed as a real bug:
+    # contact_placement.layout reads every flakes/*.json in the folder
+    # unconditionally, so it happily placed a ring using a stale flakes/
+    # WB.json from before a cache-collision fix, even though THIS run's own
+    # grid_preperation correctly alerted on WB and produced nothing for it.
+    # Deleting first, unconditionally, makes flakes/*.json and cif/*.cif
+    # always reflect only the MOST RECENT run's own actual success/failure
+    # for that image -- never a mix of this run's and a previous run's.
+    flakes_dir.mkdir(parents=True, exist_ok=True)
+    (flakes_dir / f"{img_path.stem}.json").unlink(missing_ok=True)
+    (cif_dir / f"{img_path.stem}.cif").unlink(missing_ok=True)
+
     image_bgr = cv2.imread(str(img_path))
     if image_bgr is None:
         return {'image': img_path.name, 'status': 'alert', 'reason': 'could not read image'}
@@ -121,7 +138,7 @@ def _process_image(
     # segmentation) -- both images share the same pixel dimensions (channel
     # selection never resizes), so flake_detection's pixel-space contour_px
     # transforms straight through this image's own calibration.
-    flakes_dir.mkdir(parents=True, exist_ok=True)
+    # (flakes_dir already created up top, before the stale-output cleanup.)
     flake_records = []
     if config.flake_detection_output_dir is not None:
         contours_path = Path(config.flake_detection_output_dir) / 'contours' / f"{img_path.stem}.json"

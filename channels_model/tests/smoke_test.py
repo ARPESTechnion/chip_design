@@ -29,6 +29,7 @@ import torch
 
 try:
     from ..config import ChannelsModelConfig
+    from ..matlab_clustering import _cache_paths
     from ..preprocess import NUM_CHANNELS
     from ..train import run
 except ImportError:
@@ -37,6 +38,7 @@ except ImportError:
     # sys.path so absolute imports resolve correctly.
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
     from channels_model.config import ChannelsModelConfig
+    from channels_model.matlab_clustering import _cache_paths
     from channels_model.preprocess import NUM_CHANNELS
     from channels_model.train import run
 
@@ -47,9 +49,17 @@ CHANNEL_ON_PROB = 0.4
 
 def _generate_synthetic_dataset(root: Path) -> tuple[Path, Path, Path]:
     """Synthetic images/labels, PLUS a pre-populated color-cluster channel
-    cache (random data, matching matlab_clustering's cache file naming
-    exactly: <cache_dir>/<stem>_indexed.png + <stem>_palette.csv) so the
-    training pipeline never has to call MATLAB for this synthetic data."""
+    cache (random data) so the training pipeline never has to call MATLAB
+    for this synthetic data. Filenames come from matlab_clustering's own
+    _cache_paths (not reconstructed by hand here) so this test can't
+    silently drift out of sync with the real cache-key format again -- it
+    already did once (the stem-only naming this used before _cache_paths
+    started hashing in the full source path too, see that function's own
+    docstring): a real cache-collision bug meant every cache filename
+    changed, and this test kept pre-populating the OLD names, which would
+    have made every entry a silent miss (falling through to a real,
+    slow/unavailable MATLAB call) instead of the fast no-MATLAB path this
+    test exists for."""
     images_dir = root / 'images'
     labels_dir = root / 'labels'
     cache_dir = root / 'channels_cache'
@@ -60,8 +70,9 @@ def _generate_synthetic_dataset(root: Path) -> tuple[Path, Path, Path]:
     rng = np.random.default_rng(seed=0)
     for i in range(NUM_IMAGES):
         stem = f"img_{i:03d}"
+        image_path = images_dir / f"{stem}.png"
         image = rng.integers(0, 256, size=(NATIVE_HEIGHT, NATIVE_WIDTH, 3), dtype=np.uint8)
-        cv2.imwrite(str(images_dir / f"{stem}.png"), image)
+        cv2.imwrite(str(image_path), image)
 
         channels_on = [b for b in range(1, NUM_CHANNELS + 1) if rng.random() < CHANNEL_ON_PROB]
         with open(labels_dir / f"{stem}.txt", 'w') as f:
@@ -70,10 +81,11 @@ def _generate_synthetic_dataset(root: Path) -> tuple[Path, Path, Path]:
         # Random indexed "cluster" image (values 0..NUM_CHANNELS) + a
         # matching random palette -- same file format create_channels_cached
         # writes for real, so it's read back exactly like a real cache hit.
+        indexed_path, palette_path = _cache_paths(image_path, cache_dir)
         indexed = rng.integers(0, NUM_CHANNELS + 1, size=(NATIVE_HEIGHT, NATIVE_WIDTH), dtype=np.uint8)
-        cv2.imwrite(str(cache_dir / f"{stem}_indexed.png"), indexed)
+        cv2.imwrite(str(indexed_path), indexed)
         palette = np.vstack([[0, 0, 0], rng.integers(0, 256, size=(NUM_CHANNELS, 3))])
-        np.savetxt(cache_dir / f"{stem}_palette.csv", palette, delimiter=',')
+        np.savetxt(palette_path, palette, delimiter=',')
 
     print(f"Generated {NUM_IMAGES} synthetic image/label pairs (+ pre-cached random channels) -> {root}")
     return images_dir, labels_dir, cache_dir
