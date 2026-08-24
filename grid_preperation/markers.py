@@ -145,8 +145,8 @@ def _refine_marker_center(
     Refine a template-matched marker position to the crosshair's actual
     solid-color square core, precisely, per image (rather than relying on a
     single fixed template-wide correction): threshold directly for
-    config.marker_refine_color_rgb (+-marker_refine_color_tolerance) within
-    a small window and take the centroid of the best matching blob.
+    config.marker_refine_color_hsv (+-hue/sat tolerance, V unconstrained)
+    within a small window and take the centroid of the best matching blob.
 
     Direct color thresholding, not edge detection: this runs on the
     reconstructed image (see channel_selection.py), where the crosshair core
@@ -155,6 +155,14 @@ def _refine_marker_center(
     photo this step was designed against before the pipeline switched to
     detecting markers on the reconstructed image (that used Canny edge
     detection instead; replaced since it's unnecessary now).
+
+    HSV, not RGB: the same real-world crosshair color renders at a
+    different RGB per batch/image because of lighting -- confirmed as a
+    real problem (a fixed RGB reference worked for one batch, not others).
+    Lighting is mostly a brightness/exposure effect, isolated into V by
+    HSV, so only H/S are matched -- V is deliberately left unconstrained.
+    See marker_refine_color_hsv's own docstring for the measurement this
+    batch's reference came from and why hue gets the looser tolerance.
 
     Falls back to the unrefined (x, y) if no plausible blob is found nearby
     (e.g. that marker's cluster wasn't selected by channels_model) -- never
@@ -166,12 +174,33 @@ def _refine_marker_center(
     y0, y1 = max(0, cy - half), min(h, cy + half)
     x0, x1 = max(0, cx - half), min(w, cx + half)
     window_bgr = image_bgr[y0:y1, x0:x1]
+    window_hsv = cv2.cvtColor(window_bgr, cv2.COLOR_BGR2HSV)
 
-    r, g, b = config.marker_refine_color_rgb
-    tol = config.marker_refine_color_tolerance
-    lower = np.array([max(0, b - tol), max(0, g - tol), max(0, r - tol)], dtype=np.uint8)
-    upper = np.array([min(255, b + tol), min(255, g + tol), min(255, r + tol)], dtype=np.uint8)
-    color_mask = cv2.inRange(window_bgr, lower, upper)
+    # config values are all in the COMMON picker scale (H degrees 0-360, S
+    # percent 0-100), not OpenCV's own H:0-179/S:0-255 -- convert here so
+    # every caller/config-editor can work in the scale a color picker (e.g.
+    # Windows Paint) actually shows, never doing this conversion by hand.
+    hue_deg, sat_pct = config.marker_refine_color_hsv
+    hue = round(hue_deg / 2) % 180
+    sat = round(sat_pct / 100 * 255)
+    h_tol = round(config.marker_refine_hue_tolerance_deg / 2)
+    s_tol = round(config.marker_refine_sat_tolerance_pct / 100 * 255)
+    s_lo, s_hi = max(0, sat - s_tol), min(255, sat + s_tol)
+
+    # OpenCV hue is circular, 0-179 -- a tolerance window can wrap past
+    # either end (e.g. hue=2, tolerance=12 needs both [170,179] AND
+    # [0,14]). Two in-range masks unioned handles both the wrapping and
+    # non-wrapping case uniformly. Python's % always returns non-negative
+    # for a positive divisor, so h_lo % 180 correctly wraps a negative
+    # h_lo (e.g. -10 % 180 == 170); h_hi % 180 correctly wraps h_hi > 179
+    # back down (e.g. 187 % 180 == 7).
+    h_lo, h_hi = hue - h_tol, hue + h_tol
+    if h_lo < 0 or h_hi > 179:
+        mask_a = cv2.inRange(window_hsv, (h_lo % 180, s_lo, 0), (179, s_hi, 255))
+        mask_b = cv2.inRange(window_hsv, (0, s_lo, 0), (h_hi % 180, s_hi, 255))
+        color_mask = cv2.bitwise_or(mask_a, mask_b)
+    else:
+        color_mask = cv2.inRange(window_hsv, (h_lo, s_lo, 0), (h_hi, s_hi, 255))
 
     contours, _ = cv2.findContours(color_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     best = None
