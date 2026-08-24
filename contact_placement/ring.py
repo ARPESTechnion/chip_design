@@ -183,6 +183,12 @@ def _grow_contacts(config: RingConfig, available: float) -> tuple[float, float, 
     room (current_len would grow far past 3 again in the second step) --
     confirmed this matters empirically: a moderately large synthetic test
     blocking rectangle scaled current_len to ~40 under that reading.
+
+    v_len is ALSO capped, at voltage_grow_cap, AFTER the proportional
+    scaling step (not in prompt.docx, a later user addition: "make the
+    maximum size of internal voltage width to be 3") -- any growth v_len
+    can't absorb is redistributed to v_dist/c_dist instead, so the total
+    still exactly fills `available`.
     """
     v_dist, v_len = config.voltage_min_distance_from_mask, config.voltage_min_width_in_blocking_rect
     c_dist, c_len = config.current_min_distance_from_voltage, config.current_min_length_in_blocking_rect
@@ -202,6 +208,21 @@ def _grow_contacts(config: RingConfig, available: float) -> tuple[float, float, 
         v_dist *= factor
         v_len *= factor
         c_dist *= factor
+
+        # v_len (voltage_min_width_in_blocking_rect, grown) is ALSO capped,
+        # same "grow up to a cap, then redistribute the rest" pattern as
+        # current_len above -- user: "make the maximum size of internal
+        # voltage width to be 3." Not in prompt.docx (which only caps
+        # current); redistribute whatever v_len couldn't absorb to v_dist/
+        # c_dist instead, proportionally between just those two, so the
+        # total still exactly fills `available`.
+        if v_len > config.voltage_grow_cap:
+            excess = v_len - config.voltage_grow_cap
+            v_len = config.voltage_grow_cap
+            remaining_total = v_dist + c_dist
+            redistribute_factor = (remaining_total + excess) / remaining_total
+            v_dist *= redistribute_factor
+            c_dist *= redistribute_factor
 
     return v_dist, v_len, c_dist, c_len
 

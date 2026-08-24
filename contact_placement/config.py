@@ -213,6 +213,16 @@ class RingConfig:
     increase all contacts sizes (including distances) by the same
     proportions." """
 
+    voltage_grow_cap: float = 3.0
+    """Hard cap on the voltage contact's own grown width
+    (voltage_min_width_in_blocking_rect, after the proportional growth step)
+    -- user: "make the maximum size of internal voltage width to be 3."
+    Not itself in prompt.docx (which only caps current); when the
+    proportional-growth step would push v_len past this, the excess is
+    redistributed to v_dist/c_dist instead (same "grow up to a cap, then
+    redistribute the rest" pattern as current_grow_cap) -- see
+    _grow_contacts."""
+
     voltage_stackout: float = 2.0
     voltage_stackout_connecting_side: float = 5.0
     """How far each voltage contact sticks out past the blocking rectangle's
@@ -250,7 +260,13 @@ class RingConfig:
     2 for current 2 for voltage." """
 
     min_pad_spacing: float = 50.0
-    min_parallel_voltage_pad_spacing: float = 150.0
+    min_parallel_voltage_pad_spacing: float = 50.0
+    """Distance between 2 adjacent pads, and between 2 parallel voltage
+    pads specifically, are both 50 for Ring -- user: "Distance between 2
+    parallel voltage external rectangles should be also 50" (overrides
+    prompt.docx's own "at least 150" for Ring; Hall's own equivalent field,
+    HallConfig.min_parallel_voltage_pad_spacing, is untouched, still 150)."""
+
     work_area: float = 900.0
     """Same spacing rules as Hall; Ring's work area is genuinely 900x900
     (only Hall's is the confirmed-1000 exception -- see HallConfig.work_area)."""
