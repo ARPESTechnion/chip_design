@@ -39,7 +39,7 @@
     "num_current_pads": 2,
     "num_voltage_pads": 6,
     "min_pad_spacing": 50.0,
-    "min_parallel_voltage_pad_spacing": 150.0,
+    "min_parallel_voltage_pad_spacing": 50.0,
     "work_area": 1000.0,
     "current_arm_start_width": 35.0,
     "voltage_arm_start_width": 20.0
