@@ -161,6 +161,27 @@ def place_hall(
         min_parallel_voltage_pad_spacing=config.min_parallel_voltage_pad_spacing,
         occupied=unary_union([occupied] + internal_abs),
         chip_bounds=chip_bounds,
+        # Same as Ring: no right angles in the routed arms -- user: "the
+        # contact paths should like the rings be straight and with no right
+        # angles." See contacts.py's own avoid_right_angles docstring.
+        avoid_right_angles=True,
+        # Current's own native direction (length axis, top/bottom) is
+        # perpendicular to voltage's (width axis, left/right) -- rotate
+        # current's own pads to voltage's direction instead so all 8 pads
+        # share one fixed orientation. User: "the current rectangle should
+        # be parallel to the voltage. that is the contact path should
+        # connect to its long side" (see materials/debugging/hallExample.png).
+        current_pad_direction=new_flake.direction_to_absolute(1.0, 0.0),
+        # Pull the whole assembly in close around the flake instead of
+        # always pinning it to the work-area edge -- user: "I want the
+        # rectangles to be more closer together... like the image", plus a
+        # new explicit cross-kind gap: "make the current rectangles
+        # distance from the closest voltage rectangle 50" (reusing
+        # min_pad_spacing's own value -- same "adjacent pads, any kind
+        # pairing, >=50 apart" concept this field already represents
+        # within a single group).
+        minimize_radial_distance=True,
+        current_voltage_min_gap=config.min_pad_spacing,
     )
     if external is None:
         return None

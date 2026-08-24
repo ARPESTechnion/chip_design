@@ -101,9 +101,11 @@ class HallConfig:
     300X100 rectangles. 2 for currant and 6 for voltage." """
 
     min_pad_spacing: float = 50.0
-    min_parallel_voltage_pad_spacing: float = 150.0
+    min_parallel_voltage_pad_spacing: float = 50.0
     """"The distance between 2 adjacent rectangles should be at least 50.
-    Distance between 2 parallal voltage rectangles should be at least 150." """
+    Distance between 2 parallal voltage rectangles should be at least 50."
+    (Updated spec value -- was "at least 150", matching Ring's own field
+    before ITS update -- see RingConfig.min_parallel_voltage_pad_spacing.)"""
 
     work_area: float = 1000.0
     """Square region the 8 external pads must fit within, centered on the

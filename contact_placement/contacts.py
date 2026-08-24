@@ -77,6 +77,116 @@ def _group_by_direction(connections: list[ContactConnection]) -> list[list[Conta
     return groups
 
 
+def _group_pads_at(
+    group: list[ContactConnection], offsets: list[float], d: Point, t: Point, center: Point,
+    radial_dist: float, work_area: float, pad_length: float, pad_width: float,
+    current_pad_direction: Point | None, blocked: BaseGeometry, chip_bounds: ChipBounds | None,
+    min_gap_to_voltage: float | None, voltage_pads: list[ShapelyPolygon],
+    current_arm_start_width: float, voltage_arm_start_width: float,
+) -> list[ShapelyPolygon] | None:
+    """Every pad polygon for `group` if ALL of them are placeable at this
+    one shared `radial_dist` AND connectable via a direct (straight,
+    unbent) arm alone -- in bounds, pad and direct-arm collision-free
+    against `blocked` AND against each other (checked cumulatively, one
+    connection at a time, exactly like the real per-connection loop later
+    will), and -- for current-kind connections, when min_gap_to_voltage is
+    given -- at least that far from every already-placed voltage pad. None
+    the moment any one of them fails.
+
+    Deliberately requires the DIRECT arm specifically (not falling back to
+    the bent escape/shift/approach route the real per-connection loop can
+    still use) -- confirmed as a real failure mode: pulling pads in close
+    (this search's whole point) shrinks the radial gap the bent route's
+    own tangential-shift staggering needs down to a sliver (a fraction of
+    an um), which technically keeps radius_step positive but leaves no
+    real room for 3+ same-side arms to avoid each other, so the group
+    fails downstream even though a fully direct solution at a slightly
+    larger radius would have worked cleanly. Requiring direct arms here
+    means the search naturally lands on a radial_dist where the simple,
+    intended case (matching the reference image: straight arms, pads
+    pulled in close) actually succeeds, rather than one where pads
+    LOOK placeable but their arms can't actually route."""
+    pads: list[ShapelyPolygon] = []
+    trial_blocked = blocked
+    for conn, offset in zip(group, offsets):
+        pad_center = (center[0] + d[0] * radial_dist + t[0] * offset, center[1] + d[1] * radial_dist + t[1] * offset)
+        if max(abs(pad_center[0] - center[0]), abs(pad_center[1] - center[1])) > work_area / 2:
+            return None
+        pad_direction = (
+            _unit(current_pad_direction) if (current_pad_direction is not None and conn.kind == 'current') else d
+        )
+        pad_aligned = abs(pad_direction[0] * d[0] + pad_direction[1] * d[1]) > 0.999
+        extent_along_d = pad_length if pad_aligned else pad_width
+        pad = _pad_polygon(pad_center, pad_direction, pad_length, pad_width)
+        if collides(pad, trial_blocked) or not within_bounds(pad, chip_bounds):
+            return None
+        if conn.kind == 'current' and min_gap_to_voltage is not None and voltage_pads:
+            if min(pad.distance(vp) for vp in voltage_pads) < min_gap_to_voltage:
+                return None
+
+        pad_near_edge = (
+            pad_center[0] - d[0] * extent_along_d / 2, pad_center[1] - d[1] * extent_along_d / 2,
+        )
+        arm_start_width = current_arm_start_width if conn.kind == 'current' else voltage_arm_start_width
+        direct_arm = ShapelyPolygon(edge_to_edge_taper(
+            conn.position, conn.direction, conn.width, pad_near_edge, d, arm_start_width,
+        ))
+        if collides(direct_arm, trial_blocked) or not within_bounds(direct_arm, chip_bounds):
+            return None
+
+        pads.append(pad)
+        trial_blocked = unary_union([trial_blocked, pad, direct_arm]) if not trial_blocked.is_empty \
+            else unary_union([pad, direct_arm])
+    return pads
+
+
+def _find_min_radial_dist(
+    group: list[ContactConnection], offsets: list[float], d: Point, t: Point, center: Point,
+    work_area: float, pad_length: float, pad_width: float, current_pad_direction: Point | None,
+    blocked: BaseGeometry, chip_bounds: ChipBounds | None, min_gap_to_voltage: float | None,
+    voltage_pads: list[ShapelyPolygon], escape_radius: float,
+    current_arm_start_width: float, voltage_arm_start_width: float,
+) -> float | None:
+    """Smallest radial_dist (pad-center distance from `center`, along `d`)
+    at which this whole group's pads are all placeable at once -- searched
+    upward in fixed steps from a conservative minimum, capped at the same
+    work-area-edge bound the old fixed placement always used. None if no
+    valid radial_dist exists within that range (caller fails closed, same
+    as the old `radial_dist <= 0` check).
+
+    Replaces always pinning pads to the work-area edge (`work_area/2 -
+    pad_length/2`, a FIXED value regardless of whether the pads actually
+    need to be that far out) -- user: "I want the rectangles to be more
+    closer together... like the image" (materials/debugging/hallExample.png
+    vs now.png: the reference has the whole 8-pad assembly sitting close
+    around the flake, not pushed out to the work area's own edge).
+
+    The search never returns a radial_dist so small that
+    `radial_dist - pad_length/2` (the pad's own near edge) sits at or
+    before `escape_radius` -- confirmed as a real failure mode: the
+    fallback bent-route machinery (used whenever a direct straight
+    connection isn't clear) stages its tangential shift across the gap
+    between escape_radius and the pad's own near edge
+    (conn_escape_radius/radius_step in place_external_contacts), and a
+    pulled-in-too-close pad leaves that gap zero or negative, making
+    `radius_step <= 0` and failing the WHOLE group even when a direct
+    connection alone would have been fine. Starting the search past this
+    floor keeps that machinery always viable as a fallback, at the cost of
+    not reaching the absolute theoretical minimum distance in every case."""
+    max_radial = work_area / 2 - pad_length / 2
+    step = 1.0
+    r = max(max(pad_length, pad_width) / 2, escape_radius + pad_length / 2 + step)
+    while r <= max_radial:
+        if _group_pads_at(
+            group, offsets, d, t, center, r, work_area, pad_length, pad_width,
+            current_pad_direction, blocked, chip_bounds, min_gap_to_voltage, voltage_pads,
+            current_arm_start_width, voltage_arm_start_width,
+        ) is not None:
+            return r
+        r += step
+    return None
+
+
 def _pad_polygon(center: Point, direction: Point, pad_length: float, pad_width: float) -> ShapelyPolygon:
     """A pad_length (radial, along `direction`) x pad_width (tangential)
     rectangle centered at `center`, long axis along `direction` -- i.e. the
@@ -108,6 +218,9 @@ def place_external_contacts(
     chip_bounds: ChipBounds | None = None,
     shared_direction: Point | None = None,
     avoid_right_angles: bool = False,
+    current_pad_direction: Point | None = None,
+    minimize_radial_distance: bool = False,
+    current_voltage_min_gap: float | None = None,
 ) -> list[PlacedContact] | None:
     """
     Place one external pad + one routed arm per connection, within a
@@ -146,6 +259,36 @@ def place_external_contacts(
     (not just "must bend at least once", which the escape/shift/approach
     routing already satisfied). Off by default -- Hall's own spec section
     still uses the older "must not be a straight line" wording, unchanged.
+
+    `current_pad_direction`, if given, overrides ONLY current-kind pads'
+    own ROTATION (not their position -- still placed along their own
+    group's `d`/offset as usual) to this direction instead of their
+    group's own `d`. For Hall, current's own native direction (length
+    axis, top/bottom) is perpendicular to voltage's (width axis, left/
+    right), so without this override current pads come out rotated 90
+    degrees relative to voltage's -- flagged directly: "the current
+    rectangle should be parallel to the voltage. that is the contact path
+    should connect to its long side" (see materials/debugging/hallExample.png
+    -- ALL 8 pads, current included, share one fixed landscape orientation;
+    only voltage's own natural direction happens to already match it).
+    hall.py passes voltage's own direction here; ring.py leaves this unset
+    (Ring's current already has its own, separately-specified reasons for
+    its geometry -- not in scope for this override).
+
+    `minimize_radial_distance`, if True, searches for the SMALLEST radial
+    distance each group's pads can sit at (see _find_min_radial_dist)
+    instead of always pinning them to the work-area edge -- user wanted the
+    whole assembly pulled in close around the flake, matching
+    materials/debugging/hallExample.png, rather than always maximally
+    spread out to work_area's own boundary.
+
+    `current_voltage_min_gap`, if given (only meaningful alongside
+    minimize_radial_distance), additionally requires every current pad to
+    sit at least this far (edge-to-edge) from the nearest already-placed
+    voltage pad -- user: "make the current rectangles distance from the
+    closest voltage rectangle 50." Voltage groups are placed FIRST (groups
+    reordered up front) whenever this is set, so their final pads exist to
+    measure against by the time a current group's own search runs.
     """
     placed: list[PlacedContact] = []
     blocked = occupied
@@ -163,6 +306,11 @@ def place_external_contacts(
               # position already sits exactly at the un-buffered escape radius)
 
     groups = [connections] if shared_direction is not None else _group_by_direction(connections)
+    if current_voltage_min_gap is not None:
+        # Voltage groups must be FULLY placed (final pad polygons known)
+        # before any current group's own search can measure distance to
+        # them -- see current_voltage_min_gap's own docstring.
+        groups = sorted(groups, key=lambda g: 0 if g[0].kind == 'voltage' else 1)
     for group in groups:
         d = _unit(shared_direction) if shared_direction is not None else _unit(group[0].direction)
         t = _perp(d)
@@ -198,9 +346,20 @@ def place_external_contacts(
         center_shift = (cumulative[0] + cumulative[-1]) / 2
         offsets = [c - center_shift for c in cumulative]
 
-        radial_dist = work_area / 2 - pad_length / 2
-        if radial_dist <= 0:
-            return None
+        if minimize_radial_distance:
+            group_gap = current_voltage_min_gap if group[0].kind == 'current' else None
+            voltage_pads_so_far = [p.pad for p in placed if p.kind == 'voltage']
+            radial_dist = _find_min_radial_dist(
+                group, offsets, d, t, center, work_area, pad_length, pad_width,
+                current_pad_direction, blocked, chip_bounds, group_gap, voltage_pads_so_far, escape_radius,
+                current_arm_start_width, voltage_arm_start_width,
+            )
+            if radial_dist is None:
+                return None
+        else:
+            radial_dist = work_area / 2 - pad_length / 2
+            if radial_dist <= 0:
+                return None
 
         # A single shared escape radius is NOT enough: pad offsets are almost
         # always spread much wider than the connections' own native
@@ -268,12 +427,32 @@ def place_external_contacts(
             if max(abs(pad_center[0] - center[0]), abs(pad_center[1] - center[1])) > work_area / 2:
                 return None  # this connection's pad doesn't fit in the work area at all
 
-            pad = _pad_polygon(pad_center, d, pad_length, pad_width)
+            # Current pads can be rotated to a fixed direction (matching
+            # voltage's own) independent of this group's own `d` -- see
+            # current_pad_direction's own docstring above. Only the pad's
+            # own ROTATION changes; pad_center (this connection's position
+            # within the group's normal radial layout) is untouched.
+            if current_pad_direction is not None and conn.kind == 'current':
+                pad_direction = _unit(current_pad_direction)
+            else:
+                pad_direction = d
+            pad_aligned = abs(pad_direction[0] * d[0] + pad_direction[1] * d[1]) > 0.999
+            # The pad's own extent along `d` (used below for how far its
+            # near edge sits from pad_center) is pad_length when the pad's
+            # long axis runs along `d` (the normal case), or pad_width when
+            # it's been rotated 90 degrees off of `d` (current, overridden)
+            # -- i.e. whichever of the pad's two dimensions actually faces
+            # the flake.
+            extent_along_d = pad_length if pad_aligned else pad_width
+
+            pad = _pad_polygon(pad_center, pad_direction, pad_length, pad_width)
             if collides(pad, blocked) or not within_bounds(pad, chip_bounds):
                 return None
 
             arm_start_width = current_arm_start_width if conn.kind == 'current' else voltage_arm_start_width
-            pad_near_edge = (pad_center[0] - d[0] * pad_length / 2, pad_center[1] - d[1] * pad_length / 2)
+            pad_near_edge = (
+                pad_center[0] - d[0] * extent_along_d / 2, pad_center[1] - d[1] * extent_along_d / 2,
+            )
 
             # Try the straightest possible connection first: one direct
             # taper straight from the inner contact to the pad's own near
