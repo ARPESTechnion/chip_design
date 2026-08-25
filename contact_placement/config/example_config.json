@@ -23,8 +23,8 @@
   "num_rings_to_try": 10,
 
   "hall": {
-    "inner_rect_width_margin": 3.0,
-    "inner_rect_length_margin": 4.0,
+    "inner_rect_width_margin": 1.5,
+    "inner_rect_length_margin": 2.0,
     "min_length_to_width_ratio": 2.0,
     "contacts_area_margin": 20.0,
     "contact_end_setback": 10.0,

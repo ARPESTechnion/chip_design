@@ -111,6 +111,15 @@ def _build_parser() -> argparse.ArgumentParser:
                          'grid_preperation\'s own placement into the master template still runs. Use '
                          'this if you want to place contacts yourself later via contact_placement.ui\'s '
                          'interactive preview instead of this file\'s headless auto-accept.')
+    p.add_argument('--keep-template', action='store_true',
+                    help='Do NOT reset the working template copy before this run -- splice into '
+                         'whatever is already there (grid_preperation\'s own default "reuse if present" '
+                         'behavior). Off by default: this file always starts from a fresh copy of the '
+                         'master template, since re-running it otherwise silently ACCUMULATES geometry '
+                         'on top of a previous run\'s own output (confirmed as a real, repeatable bug -- '
+                         'contact_placement\'s own splice step has no awareness of what it already wrote, '
+                         'so a flake whose Hall/Ring assignment changes between runs ends up with BOTH '
+                         'sets of contacts spliced in, not just the latest one).')
     return p
 
 
@@ -121,6 +130,7 @@ def run_pipeline(
     template_override: Path | None = None,
     no_placement: bool = False,
     no_contacts: bool = False,
+    keep_template: bool = False,
 ) -> tuple[list, list[dict], list[dict]]:
     """Run flake_detection, then grid_preperation, then contact_placement.
     Returns (flake_detection_results, grid_preperation_results,
@@ -165,8 +175,30 @@ def run_pipeline(
     # silently went empty.
     export_config.flake_detection_output_dir = str(output_folder / 'flake_detection_results')
 
-    print(f"\n=== Stage 2/3: grid_preperation (config: {pipeline_config.grid_preperation_config_path}) ===")
+    # Reset the working template copy before this run, unless the caller
+    # explicitly asked to keep it (--keep-template). Without this,
+    # grid_preperation.run() reuses whatever working copy is already
+    # sitting in cif_export_dir (its own default "reuse if present"
+    # behavior, meant for incrementally growing a layout across separate
+    # calls) -- but contact_placement's own splice step has NO awareness of
+    # what it already wrote there, so re-running this file's own Stage 3 on
+    # top of a previous run's output doesn't replace it, it ACCUMULATES:
+    # confirmed as a real, repeatable bug -- a flake whose Hall/Ring
+    # assignment changed between two runs ended up with BOTH sets of
+    # contacts spliced in at once, not just the latest one. Deleting the
+    # working copy here (not the original master template, which
+    # grid_preperation never touches) makes every run of THIS file
+    # self-contained by default, matching how someone actually expects
+    # "run it again" to behave for a one-shot full-pipeline entry point.
     cif_export_dir = output_folder / 'cif_export_results'
+    if not keep_template and export_config.template_cif_path is not None:
+        working_template_path = cif_export_dir / Path(export_config.template_cif_path).name
+        if working_template_path.exists():
+            working_template_path.unlink()
+            print(f"Reset working template copy (removed stale {working_template_path}; "
+                  f"pass --keep-template to accumulate onto it instead).")
+
+    print(f"\n=== Stage 2/3: grid_preperation (config: {pipeline_config.grid_preperation_config_path}) ===")
     export_results = run_grid_preperation(staging_dir, export_config, cif_export_dir)
 
     if no_placement or no_contacts:
@@ -204,6 +236,7 @@ def main() -> None:
     run_pipeline(
         input_folder, pipeline_config, args.output_folder,
         template_override=args.template, no_placement=args.no_placement, no_contacts=args.no_contacts,
+        keep_template=args.keep_template,
     )
 
 
