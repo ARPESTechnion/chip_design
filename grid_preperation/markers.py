@@ -48,6 +48,7 @@ result). See _find_candidates and find_top_markers for the full pipeline.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -61,6 +62,14 @@ from .config import CifExportConfig
 _TEMPLATE_PATH = Path(__file__).resolve().parent / "crosshair_template.png"
 _template_cache: np.ndarray | None = None
 _template_core_offset_cache: tuple[float, float] | None = None
+
+_REFINE_TOP_V_COLORS_N = 2
+"""How many of a refine window's own brightest (highest-V) distinct colors
+_refine_marker_center considers as possible-core candidates -- see that
+function's own docstring. 2 covers the core itself plus whichever single
+other color (typically an attached arm segment) happens to be next
+brightest; the squareness comparison between them, not the color choice
+itself, is what actually picks the core."""
 
 
 @dataclass
@@ -416,29 +425,29 @@ def _refine_marker_center(
     """
     Refine a template-matched marker position to the crosshair's actual
     solid-color square core, precisely, per image (rather than relying on a
-    single fixed template-wide correction): threshold directly for
-    config.marker_refine_color_hsv (+-hue/sat tolerance, V unconstrained)
-    within a small window and take the centroid of the best matching blob.
+    single fixed template-wide correction, OR a single manually-measured
+    reference color that needs re-measuring whenever a batch's lighting
+    shifts -- both tried, see marker_refine_half_px's own docstring for
+    why the latter was replaced): within a small window, find the 2 colors
+    with the highest V (brightness) actually present, and for EACH,
+    isolate its own exact-color blob nearest the window's center. Whichever
+    of the two is more squarish (marker_refine_min_extent) is treated as
+    the core -- the other is typically an attached arm segment (dimmer,
+    less squarish) or unrelated background, needing no separate exclusion
+    logic since it simply loses the squareness comparison. Self-calibrates
+    per marker, no reference color/tolerance config needed at all.
 
-    Direct color thresholding, not edge detection: this runs on the
-    reconstructed image (see channel_selection.py), where the crosshair core
-    is just a channels_model color cluster painted with its own flat, real
-    measured color -- no antialiasing/blending to fight, unlike the original
-    photo this step was designed against before the pipeline switched to
-    detecting markers on the reconstructed image (that used Canny edge
-    detection instead; replaced since it's unnecessary now).
+    Exact color match, not a tolerance range: this runs on the
+    reconstructed image (see channel_selection.py), where the crosshair
+    core (and every other real feature) renders as a flat, exact color --
+    a channels_model cluster color, not the noisy antialiased blend it was
+    in the original photo, so there's no antialiasing gradient to need a
+    tolerance for in the first place (confirmed directly: a real window
+    around a real core showed only a handful of exact, discrete colors).
 
-    HSV, not RGB: the same real-world crosshair color renders at a
-    different RGB per batch/image because of lighting -- confirmed as a
-    real problem (a fixed RGB reference worked for one batch, not others).
-    Lighting is mostly a brightness/exposure effect, isolated into V by
-    HSV, so only H/S are matched -- V is deliberately left unconstrained.
-    See marker_refine_color_hsv's own docstring for the measurement this
-    batch's reference came from and why hue gets the looser tolerance.
-
-    Falls back to the unrefined (x, y) if no plausible blob is found nearby
-    (e.g. that marker's cluster wasn't selected by channels_model) -- never
-    guesses.
+    Falls back to the unrefined (x, y) if no plausible square blob is
+    found nearby (e.g. that marker's cluster wasn't selected by
+    channels_model) -- never guesses.
     """
     cx, cy = int(x), int(y)
     half = config.marker_refine_half_px
@@ -446,50 +455,36 @@ def _refine_marker_center(
     y0, y1 = max(0, cy - half), min(h, cy + half)
     x0, x1 = max(0, cx - half), min(w, cx + half)
     window_bgr = image_bgr[y0:y1, x0:x1]
-    window_hsv = cv2.cvtColor(window_bgr, cv2.COLOR_BGR2HSV)
+    win_h, win_w = window_bgr.shape[:2]
+    win_cx, win_cy = win_w / 2.0, win_h / 2.0
 
-    # config values are all in the COMMON picker scale (H degrees 0-360, S
-    # percent 0-100), not OpenCV's own H:0-179/S:0-255 -- convert here so
-    # every caller/config-editor can work in the scale a color picker (e.g.
-    # Windows Paint) actually shows, never doing this conversion by hand.
-    hue_deg, sat_pct = config.marker_refine_color_hsv
-    hue = round(hue_deg / 2) % 180
-    sat = round(sat_pct / 100 * 255)
-    h_tol = round(config.marker_refine_hue_tolerance_deg / 2)
-    s_tol = round(config.marker_refine_sat_tolerance_pct / 100 * 255)
-    s_lo, s_hi = max(0, sat - s_tol), min(255, sat + s_tol)
+    pixels = window_bgr.reshape(-1, 3)
+    unique_colors, counts = np.unique(pixels, axis=0, return_counts=True)
+    unique_hsv = cv2.cvtColor(unique_colors.reshape(-1, 1, 3), cv2.COLOR_BGR2HSV).reshape(-1, 3)
+    top_v_order = np.argsort(-unique_hsv[:, 2])[:_REFINE_TOP_V_COLORS_N]
 
-    # OpenCV hue is circular, 0-179 -- a tolerance window can wrap past
-    # either end (e.g. hue=2, tolerance=12 needs both [170,179] AND
-    # [0,14]). Two in-range masks unioned handles both the wrapping and
-    # non-wrapping case uniformly. Python's % always returns non-negative
-    # for a positive divisor, so h_lo % 180 correctly wraps a negative
-    # h_lo (e.g. -10 % 180 == 170); h_hi % 180 correctly wraps h_hi > 179
-    # back down (e.g. 187 % 180 == 7).
-    h_lo, h_hi = hue - h_tol, hue + h_tol
-    if h_lo < 0 or h_hi > 179:
-        mask_a = cv2.inRange(window_hsv, (h_lo % 180, s_lo, 0), (179, s_hi, 255))
-        mask_b = cv2.inRange(window_hsv, (0, s_lo, 0), (h_hi % 180, s_hi, 255))
-        color_mask = cv2.bitwise_or(mask_a, mask_b)
-    else:
-        color_mask = cv2.inRange(window_hsv, (h_lo, s_lo, 0), (h_hi, s_hi, 255))
-
-    contours, _ = cv2.findContours(color_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    best = None
-    for c in contours:
-        area = cv2.contourArea(c)
-        if not (config.marker_refine_min_area < area < config.marker_refine_max_area):
-            continue
-        cw, ch = cv2.boundingRect(c)[2:]
-        extent = area / (cw * ch) if cw * ch else 0
-        if extent < config.marker_refine_min_extent:
-            continue
-        m = cv2.moments(c)
-        if m['m00'] == 0:
-            continue
-        core_x, core_y = x0 + m['m10'] / m['m00'], y0 + m['m01'] / m['m00']
-        if best is None or area > best[0]:
-            best = (area, core_x, core_y)
+    best: tuple[float, float, float] | None = None  # (extent, core_x, core_y)
+    for idx in top_v_order:
+        color_mask = np.all(window_bgr == unique_colors[idx], axis=-1).astype(np.uint8) * 255
+        n_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(color_mask, connectivity=8)
+        for i in range(1, n_labels):
+            area = stats[i, cv2.CC_STAT_AREA]
+            if not (config.marker_refine_min_area < area < config.marker_refine_max_area):
+                continue
+            cw, ch = stats[i, cv2.CC_STAT_WIDTH], stats[i, cv2.CC_STAT_HEIGHT]
+            extent = area / (cw * ch) if cw * ch else 0.0
+            if extent < config.marker_refine_min_extent:
+                continue
+            bcx, bcy = centroids[i]
+            # Must land within the window itself, not just anywhere a
+            # same-colored blob happens to appear at the window's edge --
+            # a real core candidate should already be roughly centered
+            # here, since this window is built around a validated coarse
+            # position.
+            if math.hypot(bcx - win_cx, bcy - win_cy) >= half:
+                continue
+            if best is None or extent > best[0]:
+                best = (extent, x0 + bcx, y0 + bcy)
 
     if best is None:
         return (x, y)
