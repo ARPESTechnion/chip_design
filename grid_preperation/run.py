@@ -86,6 +86,7 @@ def _process_image(
     palette: cif_io.LayerPalette,
     reconstructed_dir: Path,
     flakes_dir: Path,
+    otsu_mask_dir: Path,
 ) -> dict:
     """Run the full pipeline on one image. Returns a result dict for the
     summary JSON — never raises; alert conditions are reported, not thrown."""
@@ -118,7 +119,10 @@ def _process_image(
         return {'image': img_path.name, 'status': 'alert', 'reason': f'channel selection: {e}'}
 
     try:
-        marker_pair = markers.find_top_markers(chan_sel.reconstructed_bgr, config, detection)
+        marker_pair = markers.find_top_markers(
+            chan_sel.reconstructed_bgr, config, detection,
+            otsu_mask_dir=otsu_mask_dir, image_stem=img_path.stem,
+        )
     except markers.MarkerDetectionError as e:
         return {'image': img_path.name, 'status': 'alert', 'reason': f'marker detection: {e}'}
 
@@ -199,6 +203,7 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
     cif_dir.mkdir(parents=True, exist_ok=True)
     reconstructed_dir = output_folder / 'reconstructed'
     flakes_dir = output_folder / 'flakes'
+    otsu_mask_dir = output_folder / 'otsu_mask'
 
     detection = config.load_detection_config()
     reserved_layers: set[int] = set(range(101, 101 + config.channels_n_clusters))
@@ -230,7 +235,7 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
     for img_path in image_paths:
         result = _process_image(
             img_path, config, detection, cif_dir, working_template_path, palette, reconstructed_dir,
-            flakes_dir,
+            flakes_dir, otsu_mask_dir,
         )
         results.append(result)
         if result['status'] == 'ok':

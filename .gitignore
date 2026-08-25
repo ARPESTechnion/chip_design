@@ -11,3 +11,4 @@ data
 outputs
 channels_model/channels_cache
 contact_placement/materials
+grid_preperation/debugging
