@@ -129,17 +129,91 @@ class CifExportConfig:
     """Only search this top fraction of the image height for crosshair markers
     — they are always the top 2 boxes."""
 
-    crosshair_match_threshold: float = 0.5
+    crosshair_use_substrate_mask: bool = True
+    """Whether markers.find_top_markers tries the substrate-HSV exclusion
+    mask (markers._non_substrate_mask, hue/saturation-range based) as a
+    candidate source at all. See crosshair_use_otsu_mask -- at least one of
+    the two must be True. Both True (the default) tries substrate-HSV
+    alone, then Otsu-V alone, then both pooled as a last resort (see
+    find_top_markers); with only one True, that single mask is tried once,
+    with no fallback."""
+
+    crosshair_use_otsu_mask: bool = True
+    """Whether markers.find_top_markers tries the per-image Otsu V-channel
+    mask (markers._otsu_v_mask, brightness-based, no color dependence at
+    all) as a candidate source. See crosshair_use_substrate_mask. The
+    mask image is always written to <output>/otsu_mask/ regardless of this
+    flag (see find_top_markers) -- this flag only controls whether it's
+    actually USED for detection, not whether it's computed/saved."""
+
+    crosshair_core_min_area: int = 200
+    crosshair_core_max_area: int = 5000
+    crosshair_core_min_extent: float = 0.75
     """
-    Minimum normalized cross-correlation score (cv2.TM_CCOEFF_NORMED, matched
-    against crosshair_template.png over the substrate-exclusion mask — see
-    markers.py) for a candidate to count as a crosshair marker. The reticle is
-    a faint, partially alpha-blended overlay with no fixed solid color, so it's
-    located by shape-correlation rather than a color-range threshold. Tuned
-    empirically against the flakes/all/ sample set; expect occasional
-    borderline images (e.g. SY.png) to sit right at this boundary — revisit
-    with a larger real dataset.
+    min_area/max_area are WIDE sanity bounds only, not the real filter --
+    the actual per-candidate area window is auto-detected PER IMAGE from
+    the image's own real content (see markers._typical_core_area), because
+    a fixed absolute pixel-area range does not generalize across
+    datasets/batches captured at different pixel scales: plain grid-dot
+    squares measured ~800-980px area, ~30x30px bbox on a real TS34001
+    image, but ~1300-1800px area, ~40-50px bbox on flakes/all -- both real
+    core sizes, not noise, and a filter tight enough for one silently
+    rejected almost every real core in the other (confirmed as a real
+    regression: flakes/all's own success rate fell from 17/19 to 6/19
+    before this was made scale-adaptive). min_area/max_area just need to
+    comfortably bracket EVERY dataset's real core size with margin.
+
+    crosshair_core_min_extent is the fill ratio (area / bounding-box area)
+    a blob must still clear regardless of the auto-detected size window --
+    i.e. a solid, squarish blob. A real CROSSHAIR's own core measured
+    extent 0.83 on a real TS34001 image (small notches where its arms
+    connect eat into its own fill ratio slightly), clearly lower than an
+    isolated grid dot's own 0.92-0.98 -- this must stay comfortably below
+    that (0.75, not 0.85) or real crosshair cores get filtered out before
+    arm-evidence is even checked (confirmed as a real bug this threshold
+    caused). Matches a crosshair's own core AND a plain grid-dot square
+    equally (same shape) — see crosshair_arm_min_count/
+    crosshair_arm_min_fraction for how the two get told apart. NOT
+    template-matched against crosshair_template.png (an earlier version of
+    this used a core-only sub-crop of the template for that, and it was a
+    real dead end: the template's own core renders much larger/fuzzier
+    within its own crop than a real core's crisp, small, flat-colored
+    square in the reconstructed image — a genuine shape/scale mismatch,
+    not a threshold problem).
     """
+
+    crosshair_whole_match_threshold: float = 0.5
+    """
+    Minimum normalized cross-correlation score (cv2.TM_CCOEFF_NORMED,
+    matched against the FULL crosshair_template.png -- core AND all 4
+    arms together) for a candidate from markers._find_whole_template_candidates,
+    the ORIGINAL whole-shape detection this module used before
+    core+arm-evidence (crosshair_core_*/crosshair_arm_*) was added
+    alongside it as a complementary source, not a replacement -- confirmed
+    necessary: core+arm-evidence alone, even made scale-adaptive, still
+    missed real markers on flakes/all whose full shape was actually
+    intact (the common case); this whole-shape match catches those
+    directly and cheaply, while core+arm-evidence covers the less common
+    case of one broken arm. See markers._find_candidates for how the two
+    are merged.
+    """
+
+    crosshair_arm_min_fraction: float = 0.3
+    """A candidate's own arm-evidence strip (see markers._arm_evidence_count)
+    in a given direction (left/right/up/down) counts as "arm present" once
+    at least this fraction of it is non-substrate. Loose on purpose — real
+    arms are thin (1-2px) within a much wider check strip, so even a
+    partially-broken arm should still clear this."""
+
+    crosshair_arm_min_count: int = 2
+    """A core candidate is confirmed as a real crosshair once at least this
+    many of its 4 arm directions show evidence (see crosshair_arm_min_fraction) —
+    deliberately less than 4, so ANY single arm broken by color variance
+    doesn't sink an otherwise-real marker (the whole reason this two-stage
+    core+arm design replaced the old single whole-shape template match).
+    A plain grid-dot square (same core shape, zero arms) should score 0 here
+    regardless of this threshold; raise toward 3-4 only if real debris blobs
+    are still being confirmed as markers."""
 
     crosshair_nms_radius_px: float = 100.0
     """Non-max-suppression radius for merging duplicate correlation peaks
@@ -150,7 +224,12 @@ class CifExportConfig:
 
     crosshair_score_gap_min: float = 0.03
     """If a 3rd candidate's score is within this margin of the 2nd, the
-    top-2 ranking is ambiguous -> alert rather than silently picking a pair."""
+    top-2 ranking is ambiguous -> alert rather than silently picking a
+    pair. Score is now an arm-evidence count (0-4, see
+    markers._find_candidates), an integer -- this margin matters only when
+    two candidates tie exactly on arm count; a lower-arm-count 3rd
+    candidate is already excluded from top-2 by the sort itself regardless
+    of this gap."""
 
     marker_min_separation_px: float = 200.0
     """Minimum pixel distance between the two top markers. Below this, the pair
@@ -174,58 +253,32 @@ class CifExportConfig:
     per image, not a single fixed template-wide correction. Falls back to
     the unrefined position if no plausible core is found nearby (e.g. too
     much nearby clutter) rather than guessing.
-    """
 
-    marker_refine_color_hsv: list = field(default_factory=lambda: [327, 21])
-    marker_refine_hue_tolerance_deg: float = 24.0
-    marker_refine_sat_tolerance_pct: float = 12.0
-    """
-    Refinement now runs on the reconstructed image (see channel_selection.py
-    / markers._refine_marker_center), where the crosshair's solid core
-    renders as a flat, exact color -- it's just a channels_model color
-    cluster like any other, painted with that cluster's own real measured
-    color, not the noisy antialiased blend it was in the original photo
-    (which is what motivated the OLD Canny-edge-based refinement, now
-    replaced).
-
-    Matched in HSV, not RGB -- the same real-world crosshair color renders
-    at a different RGB per batch/image because of lighting (confirmed: an
-    earlier fixed-RGB reference, (238,190,221), worked for one batch but
-    not others), but lighting is mostly a brightness/exposure effect, which
-    HSV isolates into V. H/S stay comparatively stable across lighting, so
-    only they're matched here -- V is intentionally UNCONSTRAINED (see
-    _refine_marker_center, no v_lo/v_hi tolerance field exists). Same
-    principle DetectionConfig.substrate_hsv_range already relies on (wide v
-    range, tighter h range).
-
-    marker_refine_color_hsv is [H, S] in the COMMON color-picker scale --
-    H: 0-360 degrees, S: 0-100 percent (e.g. Windows Paint's "Edit colors"
-    dialog on a reconstructed/*.png debug image reads these out directly,
-    no manual conversion needed) -- NOT OpenCV's own H:0-179/S:0-255 scale.
-    _refine_marker_center converts to OpenCV's scale internally
-    (hue_cv = round(H/2) % 180, sat_cv = round(S/100*255)) right before
-    thresholding; the tolerances below follow the same common-scale
-    convention (hue in degrees, saturation in percent), converted the same
-    way. This batch's own measured value: H=327 deg, S=21%.
-    marker_refine_hue_tolerance_deg is the looser of the two on purpose --
-    the user's own observation, also confirmed by comparing this
-    measurement against the older RGB reference converted to the same
-    scale (~321 deg / 20% -- a ~6-degree hue drift, a much smaller relative
-    shift in saturation). Re-measure and update marker_refine_color_hsv
-    (not just widen tolerance further) if a new batch's lighting is
-    different enough that these tolerances still miss it -- never guess a
-    huge tolerance instead of a real per-batch reference.
-
-    A marker position refines to the centroid of the best same-colored
-    square-ish blob found within the search window (marker_refine_half_px);
-    falls back to the unrefined position if none is found (e.g. that
-    marker's cluster wasn't selected by channels_model) -- never guesses.
+    Refinement (markers._refine_marker_center) runs on the reconstructed
+    image (see channel_selection.py), where the crosshair's solid core
+    renders as a flat, exact color -- a channels_model cluster color, not
+    the noisy antialiased blend it was in the original photo. Rather than
+    matching against a single, manually-measured reference color (H/S +
+    tolerances, an earlier version of this field's own design -- had to be
+    re-measured by hand from a real reconstructed/*.png every time a new
+    batch's lighting shifted the core's real HSV value, confirmed as a
+    real recurring maintenance cost), it self-calibrates: within this
+    window, find the 2 colors with the highest V (brightness) actually
+    present, and for each, isolate its own exact-color blob nearest the
+    window's center -- whichever of the two is more squarish
+    (marker_refine_min_extent) is the core, no reference color needed at
+    all. Confirmed directly on a real batch: the OLD fixed-reference
+    approach silently fell back to the unrefined (biased) position on
+    2/3 of one dataset's markers (core color had drifted outside the
+    tolerance window on many images); this self-calibrating version
+    refined ALL of them, every one landing on a clean, high-extent
+    (0.8-1.0) square.
     """
 
     marker_refine_min_area: int = 100
     marker_refine_max_area: int = 1500
     marker_refine_min_extent: float = 0.55
-    """Shape filter for the refined core contour: plausible area range (px)
+    """Shape filter for the refined core blob: plausible area range (px)
     and minimum fill ratio (area / bounding-box area). Loose floor, even
     though the core should now render as a clean filled square (extent close
     to 1.0) on the reconstructed image."""
