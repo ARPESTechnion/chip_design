@@ -116,9 +116,15 @@ def place_hall(
     half_l = inner.height / 2
     taps_y = [-half_l / 2, 0.0, half_l / 2]
 
-    # "If impossible, drop flake from hall" -- adjacent taps must not overlap.
+    # "If impossible, drop flake from hall" -- adjacent taps must not
+    # overlap AND must leave a real minimum gap between their facing edges
+    # (user: "the distance between voltages should be at least 1"), not
+    # just avoid touching. Two taps voltage_width wide, centers `gap`
+    # apart, have an edge-to-edge distance of gap - voltage_width -- so
+    # centers must be at least voltage_width + min_voltage_distance apart
+    # for that distance to be >= min_voltage_distance.
     gap = taps_y[1] - taps_y[0]
-    if gap < config.voltage_width:
+    if gap < config.voltage_width + config.min_voltage_distance:
         return None
 
     for sign in (1.0, -1.0):

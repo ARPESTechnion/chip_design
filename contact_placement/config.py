@@ -89,6 +89,17 @@ class HallConfig:
     no gap, since it doesn't have the pinch problem this field also fixes
     (see hall.py)."""
 
+    min_voltage_distance: float = 1.0
+    """Minimum real gap between two adjacent voltage contacts' own facing
+    edges (the 3 taps along one long side) -- user: "the distance between
+    voltages should be at least 1." hall.py's own tap spacing check used
+    to only require the two taps' CENTERS be voltage_width apart (i.e.
+    just barely non-overlapping, a real gap of 0 was allowed); now
+    requires centers be voltage_width + min_voltage_distance apart, so the
+    actual edge-to-edge gap is always >= this value. Same "drop the flake
+    from Hall if impossible" behavior as the old overlap check -- see
+    hall.py's own comment there."""
+
     external_pad_width: float = 300.0
     external_pad_height: float = 100.0
     num_current_pads: int = 2
