@@ -129,6 +129,23 @@ class CifExportConfig:
     """Only search this top fraction of the image height for crosshair markers
     — they are always the top 2 boxes."""
 
+    crosshair_use_substrate_mask: bool = True
+    """Whether markers.find_top_markers tries the substrate-HSV exclusion
+    mask (markers._non_substrate_mask, hue/saturation-range based) as a
+    candidate source at all. See crosshair_use_otsu_mask -- at least one of
+    the two must be True. Both True (the default) tries substrate-HSV
+    alone, then Otsu-V alone, then both pooled as a last resort (see
+    find_top_markers); with only one True, that single mask is tried once,
+    with no fallback."""
+
+    crosshair_use_otsu_mask: bool = True
+    """Whether markers.find_top_markers tries the per-image Otsu V-channel
+    mask (markers._otsu_v_mask, brightness-based, no color dependence at
+    all) as a candidate source. See crosshair_use_substrate_mask. The
+    mask image is always written to <output>/otsu_mask/ regardless of this
+    flag (see find_top_markers) -- this flag only controls whether it's
+    actually USED for detection, not whether it's computed/saved."""
+
     crosshair_core_min_area: int = 200
     crosshair_core_max_area: int = 5000
     crosshair_core_min_extent: float = 0.75

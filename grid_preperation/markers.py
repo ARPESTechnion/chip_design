@@ -15,23 +15,35 @@ ranges cleanly) — a plain color-threshold + connected-components approach
 could not reliably isolate it. Instead we locate it by shape: normalized
 cross-correlation template matching (cv2.matchTemplate) against a fixed
 reference crop (crosshair_template.png, shipped alongside this module),
-applied to a substrate-exclusion mask so matching is robust to per-image
+applied to a non-substrate mask so matching is robust to per-image
 brightness/color variation.
 
-Two-stage match, not one whole-shape template match: the reticle's 4 thin
-arms turn out to be the LEAST color-stable part of a real image -- under
-enough lighting/color variance, an individual arm's own pixels can drift
-into the substrate-exclusion mask's own color range and vanish entirely
-from the mask, even though the marker itself is perfectly real (confirmed
+Two matching strategies, not one whole-shape template match alone: the
+reticle's 4 thin arms turn out to be the LEAST color-stable part of a real
+image -- under enough lighting/color variance, an individual arm's own
+pixels can drift into the mask's own excluded color range and vanish
+entirely, even though the marker itself is perfectly real (confirmed
 directly on a real batch: one marker's left arm disappeared from the mask
 in one image while its right and vertical arms survived fine). A single
-correlation score against the WHOLE cross (core + all 4 arms) is fragile to
-exactly this. Instead: (1) match the core ALONE (_core_template) -- small,
-solid, and comparatively stable -- to find candidates; (2) confirm each
-candidate is actually a crosshair (not a plain grid-dot square, which has
-the same core shape but no arms) via _arm_evidence_count, which only
-requires a MAJORITY of the 4 arms to show real evidence in the actual
-image, not all 4. See _find_candidates for the combined pipeline.
+correlation score against the WHOLE cross (core + all 4 arms,
+_find_whole_template_candidates) is fragile to exactly this, so it's
+paired with a second strategy tolerant of a broken arm: find solid
+core-shaped blobs alone (_find_core_blobs) and confirm each is really a
+crosshair via _arm_evidence_count, which only needs a MAJORITY of the 4
+arms to show evidence, not all 4.
+
+Two masks, not one, feed both strategies: the non-substrate mask
+(_non_substrate_mask, hue/saturation-range based) and a per-image Otsu
+V-channel split (_otsu_v_mask, brightness-based, no color dependence at
+all). Each mask fails on different images for different reasons, so a
+marker missed by one can still be found by the other. find_top_markers
+tries each mask ALONE first (not pooled from the start) and only pools
+them together as a last resort -- pooling up front let one mask's own
+false positives contaminate an image the other mask would have solved
+cleanly (confirmed empirically: the Otsu mask's whole-template match
+picked up unrelated bright-blob false positives on one image that tripped
+the ambiguous-ranking guard on what was otherwise a clean substrate-mask
+result). See _find_candidates and find_top_markers for the full pipeline.
 """
 
 from __future__ import annotations
@@ -92,6 +104,14 @@ def _template_core_offset() -> tuple[float, float]:
     kernel size 9-13px (~96, ~111 throughout) -- converges on ~(+11, -4)
     from geometric center, matching the small "few micron" drift originally
     reported, not a large one.
+
+    Deliberately NOT scaled per-image to the real image's own apparent
+    crosshair size (a scale-adaptive version of this offset, using
+    _typical_core_area as the per-image scale reference, was tried and
+    reverted -- see [[project_marker_detection_redesign]] memory notes:
+    the per-image scale estimate was too noisy on TS34001 to reliably beat
+    this fixed offset, made some images measurably worse, and the small
+    average improvement wasn't worth the added noise/complexity).
     """
     global _template_core_offset_cache
     if _template_core_offset_cache is None:
@@ -125,6 +145,37 @@ def _non_substrate_mask(image_bgr: np.ndarray, detection: DetectionConfig) -> np
         np.array([s.h_max, s.s_max, s.v_max], dtype=np.uint8),
     )
     return cv2.bitwise_not(substrate_mask)
+
+
+def _otsu_v_mask(image_bgr: np.ndarray) -> np.ndarray:
+    """Alternative to _non_substrate_mask: split the HSV V (brightness)
+    channel alone via Otsu's method -- an automatic, PER-IMAGE split point,
+    not a fixed cutoff (a fixed global brightness threshold was tried and
+    confirmed to NOT generalize: flakes/all 1/19, TS34001 2/18, the exact
+    same fixed-vs-scale-adaptive lesson as _find_core_blobs's own redesign,
+    see its docstring). A discrete "top-N brightest colors present" variant
+    (exploiting the reconstructed image's posterized, small-palette nature)
+    was also tried and reverted -- see [[project_marker_detection_redesign]]
+    memory notes: it structurally can't include the crosshair's own arms
+    (rendered dimmer than the core, so excluded from any small top-N
+    selection no matter how N is tuned), and a follow-up letter-adjacency
+    strategy meant to route around that regressed badly on flakes/all
+    (multiple genuinely letter-labeled markers per search region tied at
+    an identical flat score). Otsu's CONTINUOUS per-image split naturally
+    keeps core and arms together (both much brighter than substrate, even
+    though arms are dimmer than the core) without any of that. Complementary
+    to _non_substrate_mask, not a replacement: sidesteps hue/saturation
+    matching entirely, so it still catches a real marker whose arm color
+    happens to fall inside detection.substrate_hsv_range (the exact
+    failure mode that motivated this module's two-stage core+arm design in
+    the first place) as long as that arm is still visibly brighter than
+    the substrate. Both masks are fed through both matching strategies in
+    _find_candidates, since the two masks fail on different images for
+    different reasons."""
+    hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
+    v = hsv[:, :, 2]
+    _, mask = cv2.threshold(v, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    return mask
 
 
 _ARM_CHECK_MARGIN_FRAC = 0.27
@@ -301,38 +352,51 @@ def _find_whole_template_candidates(
 
 
 def _find_candidates(
-    search_mask: np.ndarray,
+    masks: list[np.ndarray],
     config: CifExportConfig,
 ) -> list[tuple[float, float, float]]:
-    """Two complementary candidate sources, merged: (1) the original
-    whole-shape template match (_find_whole_template_candidates) -- fast,
-    reliable whenever a marker's full cross is intact, which is the common
-    case; (2) core-blob + arm-evidence (_find_core_blobs +
-    _arm_evidence_count) -- tolerant of any ONE arm being broken by color
-    variance, the less common case (1) alone misses. A whole-template hit
-    always outranks an arm-evidence-only hit (assigned score 4 +
-    correlation, comfortably above arm-evidence's own 0-4 range) since a
-    complete shape match is inherently the more confident signal; among
-    arm-evidence-only candidates, more arms present ranks higher. NMS'd
-    together so the same physical marker found by both methods collapses
-    to one entry (keeping whichever version was scored higher). Returns
-    (x, y, score) in search_mask coordinates, (x, y) already each
-    candidate's own true core center -- this IS the position later used
-    as the calibration anchor (after _refine_marker_center's own further
-    precision pass), per the requirement that alignment is always
-    anchored to the middle of the square inside the cross, never any
-    other point on the marker."""
-    whole = [(x, y, 4.0 + score) for x, y, score in _find_whole_template_candidates(search_mask, config)]
+    """Both matching strategies, run over EVERY mask in `masks`, all merged
+    together: (1) the original whole-shape template match
+    (_find_whole_template_candidates) -- fast, reliable whenever a marker's
+    full cross is intact, which is the common case; (2) core-blob +
+    arm-evidence (_find_core_blobs + _arm_evidence_count) -- tolerant of any
+    ONE arm being broken, the less common case (1) alone misses. Callers
+    pass multiple masks (see find_top_markers: the substrate-HSV-range
+    exclusion mask AND the per-image Otsu V-channel split, _otsu_v_mask) so
+    the same marker has multiple independent chances to be found -- the two
+    masks fail on different images for different reasons (one is
+    hue/saturation-based and can lose an arm whose color drifts into
+    substrate range; the other is brightness-based and has no color
+    dependence at all, but can fail on low-contrast images), per the "more
+    the merrier, combine all of them" design.
 
-    blobs = _find_core_blobs(search_mask, config)
-    arm_based = []
-    for cx, cy, half_extent in blobs:
-        arm_count = _arm_evidence_count(search_mask, cx, cy, half_extent, config)
-        if arm_count < config.crosshair_arm_min_count:
-            continue
-        arm_based.append((cx, cy, float(arm_count)))
+    A whole-template hit always outranks an arm-evidence-only hit (assigned
+    score 4 + correlation, comfortably above arm-evidence's own 0-4 range)
+    since a complete shape match is inherently the more confident signal;
+    among arm-evidence-only candidates, more arms present ranks higher.
+    Every mask x strategy combination's results are pooled into one list
+    and NMS'd together, so the same physical marker found by several of
+    them collapses to one entry (keeping whichever version was scored
+    highest) -- a marker found by more sources isn't scored any higher for
+    it, since NMS only keeps the single best-scoring hit per location, but
+    it does mean a marker only ONE source manages to find is still found.
+    Returns (x, y, score) in mask coordinates, (x, y) already each
+    candidate's own true core center -- this IS the position later used as
+    the calibration anchor (after _refine_marker_center's own further
+    precision pass), per the requirement that alignment is always anchored
+    to the middle of the square inside the cross, never any other point on
+    the marker."""
+    scored: list[tuple[float, float, float]] = []
+    for mask in masks:
+        scored += [(x, y, 4.0 + score) for x, y, score in _find_whole_template_candidates(mask, config)]
 
-    scored = sorted(whole + arm_based, key=lambda p: -p[2])
+        for cx, cy, half_extent in _find_core_blobs(mask, config):
+            arm_count = _arm_evidence_count(mask, cx, cy, half_extent, config)
+            if arm_count < config.crosshair_arm_min_count:
+                continue
+            scored.append((cx, cy, float(arm_count)))
+
+    scored.sort(key=lambda p: -p[2])
 
     nms_radius_sq = config.crosshair_nms_radius_px ** 2
     kept: list[tuple[float, float, float]] = []
@@ -432,29 +496,28 @@ def _refine_marker_center(
     return (best[1], best[2])
 
 
-def find_top_markers(
-    image_bgr: np.ndarray,
+def _select_pair(
+    candidates: list[tuple[float, float, float]],
     config: CifExportConfig,
-    detection: DetectionConfig,
-) -> MarkerPair:
-    """
-    Locate the top-2 crosshair calibration markers.
-
-    Raises MarkerDetectionError (human-readable reason) if the base case
-    doesn't hold: fewer than 2 confident candidates, an ambiguous ranking, or
-    the top-2 pair fails a geometric sanity check.
-    """
-    img_h = image_bgr.shape[0]
-    search_h = max(_load_template().shape[0], int(img_h * config.marker_search_top_fraction))
-
-    mask = _non_substrate_mask(image_bgr[:search_h], detection)
-    candidates = _find_candidates(mask, config)
-
+) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Given a scored candidate list (see _find_candidates), pick the top-2
+    and validate the base case holds -- raises MarkerDetectionError if not
+    (fewer than 2 confident candidates, an ambiguous ranking, or the top-2
+    pair fails a geometric sanity check). Split out of find_top_markers so
+    it can be tried independently against each candidate source in turn
+    (see find_top_markers) -- pooling every source's candidates into one
+    list BEFORE this check runs would let a noisy source's spurious
+    near-tied candidates trip the ambiguous-ranking guard on an image
+    where a single cleaner source would have passed outright (confirmed
+    empirically: the Otsu-V mask's own whole-template match found 2 extra,
+    unrelated bright-blob false positives on one TS34001 image that the
+    substrate-HSV mask alone never saw, and pooling them in broke that
+    image's otherwise-clean, unambiguous HSV-only result)."""
     if len(candidates) < 2:
         raise MarkerDetectionError(
             f"found only {len(candidates)} crosshair marker candidate(s) "
             f"(core-shaped blob with >= {config.crosshair_arm_min_count} arms "
-            f"showing evidence) in top {config.marker_search_top_fraction:.0%} of image"
+            f"showing evidence)"
         )
 
     top_two = candidates[:2]
@@ -485,6 +548,84 @@ def find_top_markers(
         raise MarkerDetectionError(
             f"markers not horizontally aligned (dx={dx:.1f}, dy={dy:.1f})"
         )
+
+    return left_px, right_px
+
+
+def find_top_markers(
+    image_bgr: np.ndarray,
+    config: CifExportConfig,
+    detection: DetectionConfig,
+    otsu_mask_dir: Path | None = None,
+    image_stem: str | None = None,
+) -> MarkerPair:
+    """
+    Locate the top-2 crosshair calibration markers.
+
+    Tries each ENABLED candidate-generation source in turn -- the
+    substrate-HSV exclusion mask (if config.crosshair_use_substrate_mask),
+    then the per-image Otsu V-channel mask (if
+    config.crosshair_use_otsu_mask), then both pooled together as a last
+    resort (only if more than one source is enabled) -- returning the
+    first that yields a clean, unambiguous top-2 pair (see _select_pair).
+    Tried in this order (not pooled from the start) so a noisy source
+    can't contaminate a mask that would have succeeded on its own; the
+    pooled attempt exists for the remaining case where a real marker is
+    only partially visible through each single mask, needing evidence
+    from both to clear the >= 2 threshold at all. Raises
+    MarkerDetectionError immediately if BOTH flags are False -- there is
+    nothing to try.
+
+    Raises MarkerDetectionError (the LAST attempt's reason) if every
+    attempt fails: fewer than 2 confident candidates, an ambiguous ranking,
+    or the top-2 pair failing a geometric sanity check, in all attempts.
+
+    otsu_mask_dir/image_stem (same pattern as
+    channel_selection.select_and_reconstruct's own debug_dir): a routine
+    output of every run, the same category as the reconstructed image
+    itself, not an opt-in debug extra -- always saves the Otsu-V mask
+    (_otsu_v_mask) to otsu_mask_dir/{image_stem}.png regardless of
+    crosshair_use_otsu_mask, a plain black/white image of exactly what
+    that candidate source saw (or would see, if disabled), so it's always
+    available for inspection without re-running anything. Skipped only
+    when otsu_mask_dir is None (e.g. standalone/test callers that don't
+    want any file output)."""
+    img_h = image_bgr.shape[0]
+    search_h = max(_load_template().shape[0], int(img_h * config.marker_search_top_fraction))
+
+    otsu_mask = _otsu_v_mask(image_bgr[:search_h])
+    if otsu_mask_dir is not None:
+        otsu_mask_dir = Path(otsu_mask_dir)
+        otsu_mask_dir.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(otsu_mask_dir / f"{image_stem}.png"), otsu_mask)
+
+    mask_sources: list[np.ndarray] = []
+    if config.crosshair_use_substrate_mask:
+        mask_sources.append(_non_substrate_mask(image_bgr[:search_h], detection))
+    if config.crosshair_use_otsu_mask:
+        mask_sources.append(otsu_mask)
+    if not mask_sources:
+        raise MarkerDetectionError(
+            "no candidate mask sources enabled (crosshair_use_substrate_mask "
+            "and crosshair_use_otsu_mask both False)"
+        )
+
+    attempts = [[m] for m in mask_sources]
+    if len(mask_sources) > 1:
+        attempts.append(mask_sources)
+
+    left_px = right_px = None
+    last_error: MarkerDetectionError | None = None
+    for masks in attempts:
+        candidates = _find_candidates(masks, config)
+        try:
+            left_px, right_px = _select_pair(candidates, config)
+            break
+        except MarkerDetectionError as e:
+            last_error = e
+    else:
+        assert last_error is not None
+        raise last_error
 
     # Validation above uses the robust (if slightly less precise) template-
     # matched positions. Refine to the crosshair's actual core for the final
