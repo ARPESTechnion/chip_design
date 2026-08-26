@@ -48,6 +48,11 @@ SUPPORTED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.tif', '.tiff', '.bmp'}
 class FlakeMetrics:
     """All measurements for a single detected flake candidate."""
     contour_index: int
+    contour_px: list              # [[x, y], ...], pixel space of THIS image -- kept in
+                                   # memory for downstream geometry matching (see
+                                   # write_contours_json); deliberately excluded from
+                                   # results.json (see _write_results_json) so that
+                                   # stays compact and human-scannable for tuning.
     area_px: float
     bbox: tuple                  # (x, y, w, h)
     is_large: bool               # True when area_px >= config.large_flake_alert_area
@@ -459,6 +464,7 @@ def _process_image(
             )
             qualifying.append(FlakeMetrics(
                 contour_index=i,
+                contour_px=contour.reshape(-1, 2).tolist(),
                 area_px=area,
                 bbox=bbox,
                 is_large=is_large,
@@ -503,20 +509,45 @@ def _process_image(
 def _write_results_json(results: list[ImageResult], path: Path) -> None:
     """
     Serialize results to JSON. Raw metric values are included so you can
-    inspect real score distributions and tune thresholds.
+    inspect real score distributions and tune thresholds. contour_px is
+    deliberately excluded here (see write_contours_json) -- this file stays
+    compact and human-scannable; per-flake geometry lives in its own file.
     """
     data = [
         {
             'image_path': r.image_path,
             'num_candidates': r.num_candidates,
             'best_score': r.best_score,
-            'flakes': [asdict(f) for f in r.flakes],
+            'flakes': [
+                {k: v for k, v in asdict(f).items() if k != 'contour_px'}
+                for f in r.flakes
+            ],
             'dark_spots': [asdict(s) for s in r.dark_spots],
         }
         for r in results
     ]
     with open(path, 'w') as f:
         json.dump(data, f, indent=2)
+
+
+def write_contours_json(result: ImageResult, path: Path) -> None:
+    """
+    Per-image companion to results.json: each qualifying flake's real pixel
+    contour + score, for downstream stages that need to match a flake back
+    to its own geometry (e.g. grid_preperation, which finds its own regions
+    independently on a reconstructed image and needs to know which one
+    corresponds to which flake_detection flake -- see
+    grid_preperation.run's flake_detection_score matching). Both images share
+    the same pixel dimensions (grid_preperation never resizes), so contour_px
+    here and any pixel-space contour grid_preperation finds are directly
+    comparable with no coordinate transform.
+    """
+    data = [
+        {'contour_px': f.contour_px, 'bbox': list(f.bbox), 'final_score': f.final_score}
+        for f in result.flakes
+    ]
+    with open(path, 'w') as out:
+        json.dump(data, out, indent=2)
 
 
 # --------------------------------------------------------------------------- #
@@ -548,6 +579,7 @@ def detect_flakes(
 
     annotated_dir = output_folder / 'annotated'
     annotated_dir.mkdir(parents=True, exist_ok=True)
+    contours_dir = output_folder / 'contours'
 
     image_paths = sorted(
         p for p in input_folder.iterdir()
@@ -564,6 +596,9 @@ def detect_flakes(
         result = _process_image(img_path, config, annotated_dir)
         if result is not None and (result.flakes or result.dark_spots):
             results.append(result)
+            if result.flakes:
+                contours_dir.mkdir(parents=True, exist_ok=True)
+                write_contours_json(result, contours_dir / f"{img_path.stem}.json")
             parts = []
             if result.flakes:
                 large = sum(1 for f in result.flakes if f.is_large)
@@ -585,5 +620,6 @@ def detect_flakes(
     print(f"\nDone. {len(results)} image(s) with alerts.")
     print(f"Annotated images -> {annotated_dir}")
     print(f"Metrics          -> {output_folder / 'results.json'}")
+    print(f"Contours         -> {contours_dir}")
 
     return results

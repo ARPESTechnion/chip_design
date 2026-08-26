@@ -21,6 +21,7 @@ MATLAB.exe processes don't linger.
 from __future__ import annotations
 
 import atexit
+import hashlib
 from pathlib import Path
 
 import cv2
@@ -84,9 +85,30 @@ def create_channels(
 
 
 def _cache_paths(image_path: str | Path, cache_dir: str | Path) -> tuple[Path, Path]:
+    """
+    Cache filenames are keyed on BOTH the filename stem (for human-readable
+    debugging -- see create_channels_cached's own reconstructed/*.png debug
+    dumps, named by stem alone) AND a short hash of the image's full
+    resolved path -- confirmed as a real, currently-occurring bug without
+    the hash: two different folders' images sharing both a filename stem
+    AND resolution (e.g. flakes/all/WB.png vs
+    flakes/TS34001/Post Exfo/WB.png -- different real flakes, same
+    standard camera resolution) collided in the shared cache_dir, and
+    create_channels_cached's own shape-based staleness check can't catch a
+    collision when the shapes also happen to match (its own docstring
+    already flagged this as a known gap) -- one image's reconstruction
+    silently reused the OTHER's cached clustering data, which then fed
+    wrong marker/calibration input downstream. The hash makes every
+    distinct source path its own cache entry regardless of filename,
+    closing this class of collision entirely (not just the specific
+    flake_all/flake_TS34001 pair already caught) -- at the cost of a
+    one-time cache miss for any image path already cached under the old,
+    hash-less naming.
+    """
     stem = Path(image_path).stem
+    path_hash = hashlib.sha1(str(Path(image_path).resolve()).encode()).hexdigest()[:10]
     cache_dir = Path(cache_dir)
-    return cache_dir / f"{stem}_indexed.png", cache_dir / f"{stem}_palette.csv"
+    return cache_dir / f"{stem}_{path_hash}_indexed.png", cache_dir / f"{stem}_{path_hash}_palette.csv"
 
 
 def create_channels_cached(
@@ -107,16 +129,17 @@ def create_channels_cached(
 
     expected_shape: optional (H, W) of the real image at image_path, if the
     caller already has it decoded -- used to validate a cache hit against
-    the ACTUAL current image rather than trusting the cache by filename
-    stem alone. If omitted, this function decodes image_path itself just to
-    check. This guards against a real bug found empirically when
-    grid_preperation started sharing this cache with channels_model's
-    training cache_dir: two different images can share a stem (e.g.
-    flakes/all/AU.png vs channels_model/data/images/AU.png -- unrelated
-    images, different resolutions) and silently collide in the same
-    cache_dir. A shape mismatch is treated as a stale/foreign cache entry
-    and recomputed; if the shapes happened to match too, this check can't
-    catch it -- keep cache_dir specific to one image source when possible.
+    the ACTUAL current image rather than trusting the cache blindly. If
+    omitted, this function decodes image_path itself just to check. A
+    shape mismatch is treated as a stale/foreign cache entry and
+    recomputed -- belt-and-suspenders alongside _cache_paths' own per-path
+    hash (see its docstring): the hash is what actually PREVENTS a
+    collision between two different images that happen to share a
+    filename stem (confirmed as a real, previously-occurring bug -- e.g.
+    flakes/all/WB.png vs flakes/TS34001/Post Exfo/WB.png, different real
+    flakes, same resolution, silently swapped reconstructions before the
+    hash was added); this shape check catches the OTHER case, a genuinely
+    corrupted/truncated cache file for the SAME path.
     """
     indexed_path, palette_path = _cache_paths(image_path, cache_dir)
 

@@ -23,9 +23,47 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 from shapely.geometry import Polygon as ShapelyPolygon
+from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
 Point = tuple[float, float]
+
+_COLLISION_AREA_EPSILON = 1e-9
+"""Shapes in this stage are deliberately built to TOUCH at shared boundaries
+(an arm meets its own inner contact exactly at one point/edge, a contact
+meets the inner rectangle's edge, etc.) -- that's correct, not a collision.
+shapely's .intersects() treats any shared boundary point as True, which
+would flag every one of those legitimate joins as a failure. collides()
+checks the intersection has real AREA instead, so touching is always fine
+and only genuine overlap counts."""
+
+
+def collides(a: BaseGeometry, b: BaseGeometry) -> bool:
+    """True if a and b overlap by more than a floating-point-noise sliver --
+    use this everywhere in contact_placement instead of shapely's own
+    .intersects()/.overlaps(), which don't distinguish "touching at a shared
+    edge" (expected, fine) from "actually overlapping" (a real collision)."""
+    if not a.intersects(b):
+        return False
+    return a.intersection(b).area > _COLLISION_AREA_EPSILON
+
+
+ChipBounds = tuple[float, float, float, float]
+"""(minx, miny, maxx, maxy), absolute um -- the real chip/die extent, used
+to reject placements that would land geometry off the physical chip (e.g. a
+flake near the edge of its own imaged region getting a work-area-sized
+external pad layout that overshoots the die boundary). See
+cif_export.chip_bounds_from_cif for how this gets derived in practice."""
+
+
+def within_bounds(geom: BaseGeometry, bounds: ChipBounds | None) -> bool:
+    """True if `geom` is entirely within `bounds` (or bounds is None,
+    meaning no constraint is known -- never silently reject in that case)."""
+    if bounds is None:
+        return True
+    minx, miny, maxx, maxy = geom.bounds
+    bx0, by0, bx1, by1 = bounds
+    return minx >= bx0 and miny >= by0 and maxx <= bx1 and maxy <= by1
 
 
 @dataclass
@@ -54,6 +92,13 @@ class RotatedRect:
         """Local (rectangle-aligned) um -> absolute um."""
         c, s = math.cos(self.angle_rad), math.sin(self.angle_rad)
         return self.center[0] + x * c - y * s, self.center[1] + x * s + y * c
+
+    def direction_to_absolute(self, dx: float, dy: float) -> Point:
+        """Rotate-only (no translation) transform of a LOCAL direction
+        vector into absolute space -- use for contact/arm exit directions,
+        not positions (use to_absolute for those)."""
+        c, s = math.cos(self.angle_rad), math.sin(self.angle_rad)
+        return dx * c - dy * s, dx * s + dy * c
 
     def corners(self) -> list[Point]:
         """The 4 corners, in absolute um, closed-ring order."""
@@ -205,35 +250,177 @@ def tapered_quad(p0: Point, p1: Point, width0: float, width1: float) -> list[Poi
     ]
 
 
-def tapered_path(waypoints: list[Point], width_start: float, width_end: float) -> ShapelyPolygon:
+def edge_to_edge_taper(
+    p0: Point, direction0: Point, width0: float,
+    p1: Point, direction1: Point, width1: float,
+) -> list[Point]:
     """
-    A tapered polygon along a multi-segment path (>= 2 waypoints), width
-    interpolated linearly by cumulative arc-length from width_start (at
-    waypoints[0]) to width_end (at waypoints[-1]) -- used for every arm
-    connecting an inner contact to an external pad. Multiple straight
-    tapered_quad segments are unioned via shapely so a bent path (mandatory
-    per the spec: "Arms should not contain straight angle") comes out as one
-    clean polygon rather than several overlapping/misaligned pieces.
+    A 4-point polygon connecting two EDGES exactly -- one centered at p0,
+    perpendicular to direction0, width0 wide; the other centered at p1,
+    perpendicular to direction1, width1 wide -- rather than tapered_quad's
+    single shared perpendicular (which only matches an edge's true
+    orientation when that edge happens to be perpendicular to the p0->p1
+    travel direction itself).
+
+    Needed for a direct straight connection between an inner contact and
+    its pad: the contact's own true edge is perpendicular to ITS OWN
+    direction (e.g. Ring current's length axis), the pad's own true edge is
+    perpendicular to the (possibly different) pad direction (e.g. Ring's
+    shared width axis) -- and the straight line between them is generally
+    at neither angle. Using tapered_quad directly for this would draw both
+    end caps perpendicular to that connecting line instead, matching
+    NEITHER real edge -- confirmed as the exact defect flagged: "they are
+    not fully connected to the internal contacts and the external
+    rectangle. they should match exactly." This uses each edge's own real
+    normal, so the resulting polygon's start/end edges coincide exactly
+    with the contact's and pad's own edges (reduces to tapered_quad's own
+    result whenever direction0/direction1 both already equal the p0->p1
+    direction, e.g. Hall's straight-out arms).
+    """
+    n0 = _edge_normal(direction0)
+    n1 = _edge_normal(direction1)
+    return [
+        (p0[0] + n0[0] * width0 / 2, p0[1] + n0[1] * width0 / 2),
+        (p1[0] + n1[0] * width1 / 2, p1[1] + n1[1] * width1 / 2),
+        (p1[0] - n1[0] * width1 / 2, p1[1] - n1[1] * width1 / 2),
+        (p0[0] - n0[0] * width0 / 2, p0[1] - n0[1] * width0 / 2),
+    ]
+
+
+def _edge_normal(direction: Point) -> Point:
+    length = math.hypot(direction[0], direction[1])
+    if length == 0:
+        raise ValueError("_edge_normal: zero-length direction")
+    dx, dy = direction[0] / length, direction[1] / length
+    return -dy, dx
+
+
+def chamfer_right_angles(
+    waypoints: list[Point], widths: list[float], chamfer_fraction: float = 0.3,
+) -> tuple[list[Point], list[float]]:
+    """
+    Replace every ~90-degree interior corner in `waypoints` with a short
+    diagonal cut (two points straddling the original corner instead of one
+    sharp point), so the resulting tapered_path has no literal right angle
+    anywhere -- Ring's own updated spec: "Arms should not contain right
+    angles" (an earlier reading of the doc's previous wording, "straight
+    angle", was that the arm must bend at LEAST once -- already true of
+    place_external_contacts's escape/shift/approach routing, which is BUILT
+    from axis-aligned segments and so turns in exact 90-degree corners at
+    every bend; the updated wording flags those exact corners as the actual
+    problem). Endpoints (waypoints[0]/[-1]) are never touched -- those are
+    fixed connection points (an inner contact's own edge, a pad's own
+    edge), not routing choices.
+
+    Only touches corners near-perpendicular (within ~3 degrees); a corner
+    that's already some other angle (e.g. a straight-through waypoint from
+    upstream dedup) is left alone. `chamfer_fraction` of the SHORTER
+    adjacent segment is consumed on each side of the cut, so it can never
+    eat into (or reverse) either neighboring segment.
+    """
+    if len(waypoints) < 3:
+        return waypoints, widths
+    new_path = [waypoints[0]]
+    new_widths = [widths[0]]
+    for i in range(1, len(waypoints) - 1):
+        prev, cur, nxt = waypoints[i - 1], waypoints[i], waypoints[i + 1]
+        v1 = (cur[0] - prev[0], cur[1] - prev[1])
+        v2 = (nxt[0] - cur[0], nxt[1] - cur[1])
+        len1, len2 = math.hypot(*v1), math.hypot(*v2)
+        if len1 < 1e-9 or len2 < 1e-9:
+            new_path.append(cur)
+            new_widths.append(widths[i])
+            continue
+        u1, u2 = (v1[0] / len1, v1[1] / len1), (v2[0] / len2, v2[1] / len2)
+        cos_angle = u1[0] * u2[0] + u1[1] * u2[1]
+        if abs(cos_angle) > math.cos(math.radians(87.0)):  # not (close to) perpendicular
+            new_path.append(cur)
+            new_widths.append(widths[i])
+            continue
+        c = chamfer_fraction * min(len1, len2)
+        new_path.append((cur[0] - u1[0] * c, cur[1] - u1[1] * c))
+        new_widths.append(widths[i])
+        new_path.append((cur[0] + u2[0] * c, cur[1] + u2[1] * c))
+        new_widths.append(widths[i])
+    new_path.append(waypoints[-1])
+    new_widths.append(widths[-1])
+    return new_path, new_widths
+
+
+def tapered_path(
+    waypoints: list[Point], width_start: float, width_end: float,
+    taper_last_segment_only: bool = False, widths: list[float] | None = None,
+) -> ShapelyPolygon:
+    """
+    A tapered polygon along a multi-segment path (>= 2 waypoints).
+
+    `widths`, if given, is an explicit width per waypoint (same length as
+    waypoints, before duplicate-dropping) -- each segment tapers linearly
+    between its two endpoints' given widths. This is the general form; use
+    it when a path needs MORE than one taper zone (e.g. narrow down right
+    after leaving a wide inner contact, stay narrow through the risky
+    escape/shift/lane run, then widen again right before the pad -- see
+    contacts.py, which needs exactly this whenever a contact's own width
+    exceeds the pad-end arm_start_width).
+
+    Without `widths`: by default width is interpolated linearly by
+    cumulative arc-length from width_start (at waypoints[0]) to width_end
+    (at waypoints[-1]). taper_last_segment_only=True instead holds
+    width_start constant across every segment except the last, which alone
+    tapers to width_end -- keeps the arm thin through the risky early
+    segments (escaping the flake, shifting tangentially to line up with a
+    pad) and only grows to full pad-connecting width in the final, confined
+    approach segment (confirmed empirically: linear tapering let an arm's
+    early, still-growing width bulge into a neighboring arm's own lane even
+    though their centerlines never crossed).
+
+    Multiple straight tapered_quad segments are unioned via shapely so a
+    bent path (mandatory per the spec: "Arms should not contain straight
+    angle") comes out as one clean polygon rather than several overlapping/
+    misaligned pieces.
     """
     if len(waypoints) < 2:
         raise ValueError("tapered_path: need at least 2 waypoints")
+    if widths is not None and len(widths) != len(waypoints):
+        raise ValueError("tapered_path: widths must match waypoints length")
 
-    seg_lengths = [
-        math.hypot(waypoints[i + 1][0] - waypoints[i][0], waypoints[i + 1][1] - waypoints[i][1])
-        for i in range(len(waypoints) - 1)
-    ]
-    total = sum(seg_lengths)
-    if total == 0:
-        raise ValueError("tapered_path: zero-length path")
+    # Drop consecutive near-duplicate waypoints -- callers legitimately pass
+    # paths where a bend collapses to zero length in some cases (e.g. a
+    # tangential-shift leg with offset=0 for a centered contact), and a
+    # zero-length leg would otherwise blow up tapered_quad. Keep `widths` in
+    # sync with whatever waypoints survive.
+    deduped = [waypoints[0]]
+    deduped_widths = [widths[0]] if widths is not None else None
+    for i, p in enumerate(waypoints[1:], start=1):
+        if math.hypot(p[0] - deduped[-1][0], p[1] - deduped[-1][1]) > 1e-9:
+            deduped.append(p)
+            if widths is not None:
+                deduped_widths.append(widths[i])
+    waypoints = deduped
+    if len(waypoints) < 2:
+        raise ValueError("tapered_path: all waypoints coincide")
 
-    widths = [width_start]
-    cumulative = 0.0
-    for seg_len in seg_lengths:
-        cumulative += seg_len
-        widths.append(width_start + (width_end - width_start) * (cumulative / total))
+    if widths is not None:
+        point_widths = deduped_widths
+    elif taper_last_segment_only:
+        point_widths = [width_start] * len(waypoints)
+        point_widths[-1] = width_end
+    else:
+        seg_lengths = [
+            math.hypot(waypoints[i + 1][0] - waypoints[i][0], waypoints[i + 1][1] - waypoints[i][1])
+            for i in range(len(waypoints) - 1)
+        ]
+        total = sum(seg_lengths)
+        if total == 0:
+            raise ValueError("tapered_path: zero-length path")
+        point_widths = [width_start]
+        cumulative = 0.0
+        for seg_len in seg_lengths:
+            cumulative += seg_len
+            point_widths.append(width_start + (width_end - width_start) * (cumulative / total))
 
     quads = [
-        ShapelyPolygon(tapered_quad(waypoints[i], waypoints[i + 1], widths[i], widths[i + 1]))
+        ShapelyPolygon(tapered_quad(waypoints[i], waypoints[i + 1], point_widths[i], point_widths[i + 1]))
         for i in range(len(waypoints) - 1)
     ]
     return unary_union(quads)
