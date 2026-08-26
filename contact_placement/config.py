@@ -22,16 +22,20 @@ from pathlib import Path
 from typing import Optional
 
 
-def parse_range(value: str) -> list[float]:
+def frange(min_val: float, max_val: float, step: float) -> list[float]:
     """
-    Parse a "single number or a range" user-input field -- per the spec's
-    own UI section: "Ranges are separated with comma". `"5"` -> `[5.0]`,
-    `"4,5,6"` -> `[4.0, 5.0, 6.0]`. Values are tried in the given order
-    (e.g. by hall.py/ring.py when searching for a size that satisfies all
-    placement constraints) -- this function does no sorting/deduplication of
-    its own so the caller's tried-order matches what the user typed.
+    Inclusive stepped range [min_val, min_val+step, ..., max_val], per the
+    updated spec's explicit "X - Y with Z jumps" phrasing for Ring's
+    inner_ring/outer_ring fields (e.g. "Inner ring: 0.7 - 1 with 0.05
+    jumps" -> frange(0.7, 1.0, 0.05)). Ascending order (smallest first),
+    matching how place_ring searches candidates. Index-based (not repeated
+    float addition) to avoid floating-point drift over many steps; rounded
+    to 10 decimal places to avoid spurious values like 0.7999999999999999.
     """
-    return [float(v.strip()) for v in value.split(',') if v.strip()]
+    if step <= 0:
+        raise ValueError(f"frange: step must be positive, got {step}")
+    n = round((max_val - min_val) / step)
+    return [round(min_val + i * step, 10) for i in range(n + 1)]
 
 
 @dataclass
@@ -50,42 +54,51 @@ class HallConfig:
     inscribed in the flake's own contour)."""
 
     contacts_area_margin: float = 20.0
-    """Contacts area = new-flake rectangle grown by this on each side,
-    centered on the new flake. "Contacts area: a rectangle new flake size
-    plus 20." """
-
-    current_taper_width: float = 15.0
-    """Each of the 2 current contacts (one per long side of the new flake)
-    starts at the new-flake width and tapers OUT to this width as it moves
-    away from the flake. "They should get wider to 15 as it distant from the
-    flake." """
+    """Contacts area = new-flake rectangle with each dimension grown by this
+    (width+20, length+20; NOT doubled/per-side -- same single-addition
+    convention as inner_rect_width_margin/inner_rect_length_margin's
+    "minus" phrasing), centered on the new flake. "Contacts area: a
+    rectangle new flake size plus 20." """
 
     contact_end_setback: float = 10.0
-    """Both current and voltage contacts run from the inner rectangle to
-    this far short of the contacts area boundary. "There length should be
-    from the inner rectangle until 10 from the contacts area." (stated
-    separately for current and voltage in the doc, same value both times)."""
+    """Both current and voltage contacts extend from the inner rectangle to
+    this far PAST the contacts area boundary (not short of it) -- user:
+    "current length is also the gap between the inner rectangle and the
+    contact area + 10" / "voltage contact length is the difference between
+    the contact area and the inner rectangle... + 10 (outside of the
+    contact area)". Puts the external arm's own connection point well
+    beyond the cut mask's own domain (which stays bounded by contacts_area),
+    keeping that connection naturally far from the mask."""
 
     voltage_width: float = 1.0
-    """Voltage contact width at its narrow (inner) end. "Their width should
-    be 1." """
+    """Constant cross-sectional width of every voltage contact (all 3 per
+    side, side and center alike -- no taper). Reverse-engineered from
+    materials/debugging/single_hall.cif's own measured geometry (a plain
+    rectangle, not a taper -- supersedes the earlier
+    voltage_center_taper_width/voltage_side_taper_width/current_taper_width
+    design, which tapered each contact wider away from the flake). Current
+    contacts have no equivalent field -- their constant width is always
+    new_flake.width directly, see hall.py."""
 
-    voltage_offset_from_inner_rect: float = 0.5
-    """Each voltage contact sits this far outside the inner rectangle's own
-    edge. "There distance from the inner rectangle is 0.5 outside." """
+    mask_voltage_gap: float = 0.1
+    """Gap, on the flake-facing (near/inner-rectangle) side only, between a
+    voltage contact's own edge and the cut mask's own edge there -- user:
+    "the internal contacts need to be 0.1 shorter then the mask on the
+    flake side (this is the mask-voltage distances discussed)." Current has
+    no equivalent field -- its own near edge sits flush with the mask,
+    no gap, since it doesn't have the pinch problem this field also fixes
+    (see hall.py)."""
 
-    voltage_center_taper_width: float = 3.0
-    voltage_side_taper_width: float = 5.0
-    """3 voltage contacts per short side, evenly spaced; the center one
-    tapers to voltage_center_taper_width, the two side ones taper to
-    voltage_side_taper_width. "The center contacts should get wider to 3,
-    and the side ones should get wider to 5." """
-
-    voltage_arm_length: float = 0.8
-    """Within the cut-masked gap between contacts area and inner rectangle,
-    a small un-masked arm is left behind each voltage contact, centered on
-    it. "The arm length should be 0.8, and it should be centered relative to
-    the contact." """
+    min_voltage_distance: float = 1.0
+    """Minimum real gap between two adjacent voltage contacts' own facing
+    edges (the 3 taps along one long side) -- user: "the distance between
+    voltages should be at least 1." hall.py's own tap spacing check used
+    to only require the two taps' CENTERS be voltage_width apart (i.e.
+    just barely non-overlapping, a real gap of 0 was allowed); now
+    requires centers be voltage_width + min_voltage_distance apart, so the
+    actual edge-to-edge gap is always >= this value. Same "drop the flake
+    from Hall if impossible" behavior as the old overlap check -- see
+    hall.py's own comment there."""
 
     external_pad_width: float = 300.0
     external_pad_height: float = 100.0
@@ -95,9 +108,11 @@ class HallConfig:
     300X100 rectangles. 2 for currant and 6 for voltage." """
 
     min_pad_spacing: float = 50.0
-    min_parallel_voltage_pad_spacing: float = 150.0
+    min_parallel_voltage_pad_spacing: float = 50.0
     """"The distance between 2 adjacent rectangles should be at least 50.
-    Distance between 2 parallal voltage rectangles should be at least 150." """
+    Distance between 2 parallal voltage rectangles should be at least 50."
+    (Updated spec value -- was "at least 150", matching Ring's own field
+    before ITS update -- see RingConfig.min_parallel_voltage_pad_spacing.)"""
 
     work_area: float = 1000.0
     """Square region the 8 external pads must fit within, centered on the
@@ -121,6 +136,71 @@ class RingConfig:
     """Minimum gap between each voltage contact and the inner-ring cut mask.
     "There is a minimal 0.7 distance between the voltage and the mask." """
 
+    inner_ring_min: float = 0.7
+    inner_ring_max: float = 1.0
+    inner_ring_step: float = 0.05
+    """Search range for the inner ring (the solid cut-mask square)'s own
+    dimension. Per the spec's updated "Ring:" measurements section: "Inner
+    ring: 0.7 - 1 with 0.05 jumps" -- searched via config.frange(), smallest
+    first. The reference file (materials/ring_example_with_measurments.cif)
+    used 0.8, one valid step within this range -- used to derive/verify the
+    exact cut-mask formula in _ring_cut_mask (confirmed byte-exact,
+    symmetric-difference-zero, against that file's own polygon vertices)."""
+
+    outer_ring_min: float = 0.25
+    outer_ring_max: float = 0.3
+    outer_ring_step: float = 0.025
+    """Search range for the outer ring: the width of the BLANK (uncut) gap
+    between the inner ring's own edge and where the arm/finger assembly
+    begins -- this gap is what leaves a real, visible RING of uncut flake
+    material around the inner square, the whole point of the shape
+    (confirmed with the user after an earlier version fused the arms
+    directly onto the square, no gap, and was flagged as wrong: "this is a
+    single square with arms. the inner ring is missing"). Per the spec's
+    updated measurements: "Outer ring: 0.25 - 0.3 with 0.025 jumps" --
+    searched via config.frange(). The reference file used 0.2 (predates
+    this exact range being pinned down; the shape formula itself was
+    verified against that file regardless, see inner_ring_min above)."""
+
+    distance_between_arms: float = 0.5
+    """Fixed (not a search range) gap between the two arm/finger
+    assemblies' own innermost edges, along the blocking rectangle's length
+    axis. "Distance between arms: 0.5 constant." Confirmed by direct
+    measurement of a C5Meas annotation in
+    materials/ring_example_with_measurments.cif spanning exactly this
+    gap."""
+
+    arm_width: float = 0.7
+    """Fixed cross-sectional (tangential) width of each arm -- NOT a search
+    range. "Arm width: 0.7 constant." Also sets how far, along the length
+    axis, the combined arm+finger assembly reaches inward toward the
+    center: `distance_between_arms/2 + arm_width` (see _ring_cut_mask's
+    `reach`) -- confirmed as one value driving both roles by reverse-
+    engineering materials/ring_example_with_measurments.cif's real polygon
+    vertices (verified byte-exact, symmetric-difference area = 0)."""
+
+    finger_width: float = 0.35
+    """Fixed tangential width the "finger" adds BEYOND the outer ring's own
+    edge (i.e. the finger reaches `outer_ring + finger_width` from the
+    inner ring's center, tangentially -- wider than the arm/outer-ring
+    assembly, but confined to a narrow band along the length axis, see
+    _ring_cut_mask's `big_rect`/`notch` construction for the exact
+    formula). "Finger width: 0.35 constant." Reverse-engineered by
+    scanline analysis of materials/ring_example_with_measurments.cif's
+    real polygon vertices and verified byte-exact (symmetric-difference
+    area = 0) before being wired in."""
+
+    arm_protrusion_beyond_blocking: float = 3.0
+    """How far each cut-mask arm's far tip extends past the blocking
+    rectangle's own edge (along the width axis the arms run on -- see
+    _ring_cut_mask). User: "the arms should stick out 3 um beyond the
+    blocking rectangle." Sets _try_ring's far_reach directly:
+    `blocking.width/2 + arm_protrusion_beyond_blocking` (replaces the
+    earlier `mask_half + v_dist` placeholder, which had no real spec basis
+    -- the updated 5-field Ring measurements section has no arm-length
+    parameter of its own, so this was reusing voltage_min_distance_from_mask
+    as a stand-in until the user specified the real rule)."""
+
     current_min_distance_from_voltage: float = 1.4
     """Minimum gap between each current contact and its adjacent voltage
     contact. "And a minimal 1.4 between the currant and its adjacent
@@ -142,17 +222,44 @@ class RingConfig:
     increase all contacts sizes (including distances) by the same
     proportions." """
 
+    voltage_grow_cap: float = 3.0
+    """Hard cap on the voltage contact's own grown width
+    (voltage_min_width_in_blocking_rect, after the proportional growth step)
+    -- user: "make the maximum size of internal voltage width to be 3."
+    Not itself in prompt.docx (which only caps current); when the
+    proportional-growth step would push v_len past this, the excess is
+    redistributed to v_dist/c_dist instead (same "grow up to a cap, then
+    redistribute the rest" pattern as current_grow_cap) -- see
+    _grow_contacts."""
+
     voltage_stackout: float = 2.0
     voltage_stackout_connecting_side: float = 5.0
     """How far each voltage contact sticks out past the blocking rectangle's
-    own edge -- 2 normally, 5 on the side it connects outward to the
-    external contacts from. "The voltage contacts should stack out 2 from
-    the blocking rectangle and at 5 on the side where they are connected to
-    the external contacts." """
+    own WIDTH edge (the long edge, running along the length axis -- "vertically
+    to its length") -- 2 on the non-connecting side, 5 on the side it connects
+    outward to the external contacts from. "The voltage contacts should stack
+    out 2 from the blocking rectangle vertically to its length and at 5 on the
+    side where they are connected to the external contacts." """
 
     current_min_stackout: float = 6.0
-    """"The current should stack out at least 6 from the blocking
-    rectangle." """
+    """Unlike voltage (which exits sideways along the WIDTH axis, see
+    voltage_stackout), each current contact exits along the LENGTH axis --
+    straight out past the blocking rectangle's own length-axis end, in the
+    same sign direction (north/south) it's already stacked in, rather than
+    bending toward exit_sign. This is how far past that end it extends on
+    its own connecting side. "The current should stack out at least 6 from
+    the blocking rectangle, on the side where they are connected to the
+    external contacts. This side is along the rectangle's length." Confirmed
+    directly by the user after an earlier version exited current sideways
+    like voltage: "the current external connection should connect to the
+    internal along the flake's length axis, and should stick out more from
+    this direction." The current contact's own cross-sectional width
+    (perpendicular to this travel direction) is the blocking rectangle's own
+    width plus 1 -- "the width of the current contacts should be the same
+    as the blocking rectangle's width" then "lets change the width to be 1
+    larger then the blocking rectangle" (an earlier version reused
+    current_min_length_in_blocking_rect's own value here instead, flagged as
+    too small)."""
 
     external_pad_width: float = 300.0
     external_pad_height: float = 100.0
@@ -162,13 +269,23 @@ class RingConfig:
     2 for current 2 for voltage." """
 
     min_pad_spacing: float = 50.0
-    min_parallel_voltage_pad_spacing: float = 150.0
+    min_parallel_voltage_pad_spacing: float = 50.0
+    """Distance between 2 adjacent pads, and between 2 parallel voltage
+    pads specifically, are both 50 for Ring -- user: "Distance between 2
+    parallel voltage external rectangles should be also 50" (overrides
+    prompt.docx's own "at least 150" for Ring; Hall's own equivalent field,
+    HallConfig.min_parallel_voltage_pad_spacing, is untouched, still 150)."""
+
     work_area: float = 900.0
     """Same spacing rules as Hall; Ring's work area is genuinely 900x900
     (only Hall's is the confirmed-1000 exception -- see HallConfig.work_area)."""
 
-    current_arm_start_width: float = 16.0
-    voltage_arm_start_width: float = 12.0
+    current_arm_start_width: float = 20.0
+    voltage_arm_start_width: float = 16.0
+    """Width of each external-pad-connecting arm at its pad end; the other
+    end matches whichever inner contact it connects to. "Current arms start
+    width 20, voltage arms start width 16." (Updated spec value -- was
+    16/12.)"""
 
     arrow_base: float = 40.0
     arrow_height: float = 20.0
@@ -176,13 +293,6 @@ class RingConfig:
     external pad pair. "There should be an arrow between each voltage to
     current: isosceles triangle with base 40 and height 20." """
 
-    inner_ring_dim: str = "5"
-    arm_distance: str = "3"
-    """User input, single value or comma-separated range (spec: "Inner ring
-    dim (can be single number or a range), distance from arm rings (can be
-    single number or a range)"). Parse with parse_range(). Defaults here are
-    placeholders -- there's no spec-given default, set these per your actual
-    chip design before running."""
 
 
 @dataclass
