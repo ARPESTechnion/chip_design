@@ -162,6 +162,18 @@ def run_pipeline(
         export_config.template_cif_path = str(template_override)
     if no_placement:
         export_config.template_cif_path = None
+    # Always wired to the SAME DetectionConfig flake_detection itself just
+    # ran with (pipeline_config.flake_detection_config_path), overriding
+    # whatever static value grid_preperation's own config file happens to
+    # have -- these used to be two independent fields that had to be kept
+    # in sync by hand across every stage's config file whenever either
+    # changed (confirmed as a real maintenance smell: nothing enforced
+    # they actually matched, so the two stages could silently score/detect
+    # flakes and markers against different color ranges). grid_preperation's
+    # own field still exists for its standalone CLI (`python -m
+    # grid_preperation.run --detection-config ...`), just no longer
+    # trusted when running through this orchestrator.
+    export_config.detection_config_path = pipeline_config.flake_detection_config_path
     # Always wired to THIS run's own flake_detection output, overriding
     # whatever static value the grid_preperation config file happens to
     # have -- contact_placement's contour matching (see

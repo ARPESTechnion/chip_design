@@ -35,13 +35,15 @@ GDS_Code.m's own Prepare_Polygons() uses a literal flat gray(64,64,64) here,
 but that turned out to break this pipeline's marker detection empirically:
 markers.find_top_markers isolates candidates via
 markers._non_substrate_mask, an HSV in-range check tuned for the REAL
-substrate color (DetectionConfig.substrate_hsv_range, h 105-145 / s 40-255 /
-v 20-160) -- a zero-saturation gray fails that range, so the whole
-reconstructed background reads as "non-substrate" and swamps template
-matching with a uniform foreground (0 crosshair candidates found on every
-test image). This RGB was chosen to sit inside that same HSV range (roughly
-h=125, s=80, v=90) so the reconstructed background is correctly recognized
-as substrate again, while still being a flat/textureless fill that Canny-
+substrate color (DetectionConfig.substrate_hsv_range, h 210-290deg / s
+15.7-100% / v 7.8-62.7% -- the common color-picker scale every HSV config
+field in this codebase uses, see HSVRange.to_opencv_bounds) -- a
+zero-saturation gray fails that range, so the whole reconstructed
+background reads as "non-substrate" and swamps template matching with a
+uniform foreground (0 crosshair candidates found on every test image).
+This RGB was chosen to sit inside that same HSV range (roughly h=250deg,
+s=31%, v=35%) so the reconstructed background is correctly recognized as
+substrate again, while still being a flat/textureless fill that Canny-
 based polygon extraction (polygons.py) treats as empty background exactly
 like the literal gray would.
 """

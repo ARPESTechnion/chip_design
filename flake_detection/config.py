@@ -11,6 +11,8 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Literal, Optional
 
+import numpy as np
+
 
 @dataclass
 class RGBRange:
@@ -29,19 +31,53 @@ class RGBRange:
 @dataclass
 class HSVRange:
     """
-    Color range in HSV space (OpenCV convention).
-      Hue        : [0, 179]  (0=red, 30=orange, 60=yellow, 90=green, 120=blue, 150=magenta)
-      Saturation : [0, 255]  (0=grey/white, 255=fully saturated)
-      Value      : [0, 255]  (0=black, 255=bright)
+    Color range in HSV space, in the COMMON color-picker scale -- Hue in
+    degrees [0, 360], Saturation/Value in percent [0, 100] -- e.g. what
+    Windows Paint's "Edit colors" dialog (or any standard color picker)
+    shows directly, NOT OpenCV's own native H:[0,179]/S:[0,255]/V:[0,255]
+    scale. Every config file (and every human measuring a color from a
+    screenshot) works in this scale; to_opencv_bounds() does the
+    conversion right before a cv2 call, so no caller/config-editor ever
+    does it by hand. Same convention already established elsewhere in this
+    codebase (see grid_preperation.markers._refine_marker_center's own
+    HSV handling) -- unified here so it's the ONE rule for every HSV field
+    in any config, not something to re-derive per field.
+
+      Hue        : [0, 360]  (0=red, 30=orange, 60=yellow, 120=green, 180=cyan, 240=blue, 300=magenta)
+      Saturation : [0, 100]  (0=grey/white, 100=fully saturated)
+      Value      : [0, 100]  (0=black, 100=bright)
 
     Used for both substrate detection and target color scoring.
     """
-    h_min: int = 0
-    h_max: int = 179
-    s_min: int = 0
-    s_max: int = 255
-    v_min: int = 0
-    v_max: int = 255
+    h_min: float = 0.0
+    h_max: float = 360.0
+    s_min: float = 0.0
+    s_max: float = 100.0
+    v_min: float = 0.0
+    v_max: float = 100.0
+
+    def to_opencv_bounds(self) -> tuple[np.ndarray, np.ndarray]:
+        """(lower, upper) uint8 arrays in OpenCV's own H:0-179/S:0-255/
+        V:0-255 scale, ready for cv2.inRange. Does NOT handle a
+        hue range that wraps past 0/360 (e.g. h_min=350, h_max=10) --
+        none of this codebase's real ranges need that; a single
+        cv2.inRange call assumes h_min <= h_max in OpenCV's own 0-179
+        space too, same as before this class stored the common scale.
+        Clamped, not modular, at the top end -- 360deg means "the same hue
+        as 0deg" physically, but clamping to OpenCV's real max index (179)
+        instead of wrapping to 0 is what makes h_min=0/h_max=360 (the
+        natural "match every hue" spelling) actually cover the full range,
+        rather than collapsing to a single point (confirmed as a real bug
+        the first version of this method had: round(360/2) % 180 == 0)."""
+        def _hue(deg: float) -> int:
+            return max(0, min(179, round(deg / 2)))
+
+        def _pct(p: float) -> int:
+            return max(0, min(255, round(p / 100 * 255)))
+
+        lower = np.array([_hue(self.h_min), _pct(self.s_min), _pct(self.v_min)], dtype=np.uint8)
+        upper = np.array([_hue(self.h_max), _pct(self.s_max), _pct(self.v_max)], dtype=np.uint8)
+        return lower, upper
 
 
 @dataclass
@@ -109,7 +145,7 @@ class DetectionConfig:
 
     substrate_hsv_range: HSVRange = field(
         default_factory=lambda: HSVRange(
-            h_min=105, h_max=145, s_min=40, s_max=255, v_min=20, v_max=160
+            h_min=210, h_max=290, s_min=15.7, s_max=100.0, v_min=7.8, v_max=62.7
         )
     )
     """

@@ -27,16 +27,19 @@
   "substrate_hsv_range": {
     "_comment": [
       "The blue-purple SiO2 substrate background.",
-      "H 105-145 covers blue through blue-purple hues.",
-      "V 20-155 captures the medium-dark substrate without catching bright flakes.",
+      "H in degrees [0-360], S/V in percent [0-100] -- the common color-picker scale",
+      "(e.g. Windows Paint), converted to OpenCV's own scale internally -- never enter",
+      "OpenCV H:0-179/S:0-255/V:0-255 values here.",
+      "H 210-290 covers blue through blue-purple hues.",
+      "V 7.8-60.8 captures the medium-dark substrate without catching bright flakes.",
       "Widen V_max if substrate appears brighter in your images."
     ],
-    "h_min": 105,
-    "h_max": 145,
-    "s_min": 40,
-    "s_max": 255,
-    "v_min": 20,
-    "v_max": 155
+    "h_min": 210,
+    "h_max": 290,
+    "s_min": 15.7,
+    "s_max": 100.0,
+    "v_min": 7.8,
+    "v_max": 60.8
   },
 
   "color_mode": "rgb",
@@ -50,16 +53,19 @@
   "hsv_range": {
     "_comment": [
       "Target color: orange/brownish flakes on the chip.",
-      "H 3-28 covers the full orange range observed (5th-95th pct across all samples).",
-      "S 30-130 targets moderately saturated orange; excludes pale pink grid markers.",
-      "V 130-220 avoids the dark substrate and blown-out reflections."
+      "H in degrees [0-360], S/V in percent [0-100] -- the common color-picker scale",
+      "(e.g. Windows Paint), converted to OpenCV's own scale internally -- never enter",
+      "OpenCV H:0-179/S:0-255/V:0-255 values here.",
+      "H 6-56 covers the full orange range observed (5th-95th pct across all samples).",
+      "S 11.8-51.0 targets moderately saturated orange; excludes pale pink grid markers.",
+      "V 51.0-86.3 avoids the dark substrate and blown-out reflections."
     ],
-    "h_min": 3,
-    "h_max": 28,
-    "s_min": 30,
-    "s_max": 130,
-    "v_min": 130,
-    "v_max": 220
+    "h_min": 6,
+    "h_max": 56,
+    "s_min": 11.8,
+    "s_max": 51.0,
+    "v_min": 51.0,
+    "v_max": 86.3
   },
 
   "min_color_fraction": 0.35,

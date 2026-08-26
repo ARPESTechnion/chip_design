@@ -107,10 +107,8 @@ def _build_target_color_mask(image_bgr: np.ndarray, config: DetectionConfig) -> 
         upper = np.array([r.b_max, r.g_max, r.r_max], dtype=np.uint8)
         return cv2.inRange(image_bgr, lower, upper)
 
-    h = config.hsv_range
     image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
-    lower = np.array([h.h_min, h.s_min, h.v_min], dtype=np.uint8)
-    upper = np.array([h.h_max, h.s_max, h.v_max], dtype=np.uint8)
+    lower, upper = config.hsv_range.to_opencv_bounds()
     return cv2.inRange(image_hsv, lower, upper)
 
 
@@ -126,12 +124,8 @@ def _build_candidate_mask(image_bgr: np.ndarray, config: DetectionConfig) -> np.
     as background. The remainder are flake candidates.
     """
     image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
-    s = config.substrate_hsv_range
-    exclude = cv2.inRange(
-        image_hsv,
-        np.array([s.h_min, s.s_min, s.v_min], dtype=np.uint8),
-        np.array([s.h_max, s.s_max, s.v_max], dtype=np.uint8),
-    )
+    lower, upper = config.substrate_hsv_range.to_opencv_bounds()
+    exclude = cv2.inRange(image_hsv, lower, upper)
     if config.marker_removal_enabled:
         # Pink dots
         m = config.marker_rgb_range
