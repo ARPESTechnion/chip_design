@@ -21,13 +21,13 @@
   },
 
   "substrate_hsv_range": {
-    "_comment": "The substrate background color. Everything outside this range is a flake candidate.",
-    "h_min": 105,
-    "h_max": 145,
-    "s_min": 40,
-    "s_max": 255,
-    "v_min": 20,
-    "v_max": 160
+    "_comment": "The substrate background color. Everything outside this range is a flake candidate. H in degrees [0-360], S/V in percent [0-100] -- the common color-picker scale (e.g. Windows Paint), converted to OpenCV's own scale internally -- never enter OpenCV H:0-179/S:0-255/V:0-255 values here.",
+    "h_min": 210,
+    "h_max": 290,
+    "s_min": 15.7,
+    "s_max": 100.0,
+    "v_min": 7.8,
+    "v_max": 62.7
   },
 
   "min_color_fraction": 0.3,
@@ -47,18 +47,19 @@
   "hsv_range": {
     "_comment": [
       "Active when color_mode is hsv (recommended).",
-      "Hue [0-179]: 0=red 30=yellow 60=green 90=cyan 120=blue 150=magenta",
-      "Saturation [0-255]: 0=grey/white, 255=fully saturated",
-      "Value [0-255]: 0=black, 255=bright",
-      "NbSe2 on SiO2 example: h 190-230 maps to hue 95-115 in OpenCV (divide degrees by 2).",
+      "H in degrees [0-360], S/V in percent [0-100] -- the common color-picker scale",
+      "(e.g. Windows Paint), converted to OpenCV's own H:0-179/S:0-255/V:0-255 scale",
+      "internally -- never enter OpenCV-scale values here, and never divide degrees by 2 by hand.",
+      "Hue: 0=red 60=yellow 120=green 180=cyan 240=blue 300=magenta",
+      "NbSe2 on SiO2 example: h 190-230.",
       "Set to full range first, then narrow after inspecting the color mask output."
     ],
     "h_min": 0,
-    "h_max": 179,
+    "h_max": 360,
     "s_min": 0,
-    "s_max": 255,
+    "s_max": 100,
     "v_min": 0,
-    "v_max": 255
+    "v_max": 100
   },
 
   "blur_kernel_size": 5,

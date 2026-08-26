@@ -22,7 +22,7 @@
   ],
 
   "_comment_detection_config_path": "DetectionConfig JSON reused for flake color range and marker pink/bright ranges — keep this in sync with whatever flake_detection used to find these images.",
-  "detection_config_path": "flake_detection/config/orange_flakes_tuned.json",
+  "detection_config_path": "flake_detection/config/TS34001.json",
 
   "_comment_flake_detection_output_dir": "A flake_detection run's own --output folder (contains contours/). If set, each image's flakes/<stem>.json in THIS run's output gets flake_detection's real per-flake contour+score, transformed through this image's own calibration -- what contact_placement consumes. Leave null to skip (flakes/<stem>.json will just be empty).",
   "flake_detection_output_dir": "flakes/all/flake_detection_results",
@@ -50,6 +50,7 @@
   "marker_max_separation_px": 1800.0,
   "max_marker_row_skew_ratio": 0.15,
   "marker_refine_half_px": 25,
+  "marker_refine_top_v_colors_n": 2,
   "marker_refine_min_area": 100,
   "marker_refine_max_area": 1500,
   "marker_refine_min_extent": 0.55,
@@ -75,6 +76,5 @@
   "palette_quantize_step": 24,
 
   "_comment_output": "template_cif_path is only ever read, never modified in place -- it's copied once into --output and every placement is spliced into that working copy. Set to null to skip placement entirely (same effect as --no-placement).",
-  "template_cif_path": "grid_preperation/BaseGrid.cif",
-  "output_dir": null
+  "template_cif_path": "grid_preperation/BaseGrid.cif"
 }

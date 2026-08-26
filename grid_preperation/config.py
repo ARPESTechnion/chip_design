@@ -263,17 +263,28 @@ class CifExportConfig:
     re-measured by hand from a real reconstructed/*.png every time a new
     batch's lighting shifted the core's real HSV value, confirmed as a
     real recurring maintenance cost), it self-calibrates: within this
-    window, find the 2 colors with the highest V (brightness) actually
-    present, and for each, isolate its own exact-color blob nearest the
-    window's center -- whichever of the two is more squarish
-    (marker_refine_min_extent) is the core, no reference color needed at
-    all. Confirmed directly on a real batch: the OLD fixed-reference
-    approach silently fell back to the unrefined (biased) position on
-    2/3 of one dataset's markers (core color had drifted outside the
-    tolerance window on many images); this self-calibrating version
-    refined ALL of them, every one landing on a clean, high-extent
+    window, find the marker_refine_top_v_colors_n colors with the highest
+    V (brightness) actually present, and for each, isolate its own
+    exact-color blob nearest the window's center -- whichever candidate is
+    more squarish (marker_refine_min_extent) is the core, no reference
+    color needed at all. Confirmed directly on a real batch: the OLD
+    fixed-reference approach silently fell back to the unrefined (biased)
+    position on 2/3 of one dataset's markers (core color had drifted
+    outside the tolerance window on many images); this self-calibrating
+    version refined ALL of them, every one landing on a clean, high-extent
     (0.8-1.0) square.
     """
+
+    marker_refine_top_v_colors_n: int = 2
+    """How many of a refine window's own brightest (highest-V) distinct
+    colors marker_refine_half_px's search considers as possible-core
+    candidates. 2 covers the core itself plus whichever single other color
+    (typically an attached arm segment) happens to be next brightest -- the
+    squareness comparison between candidates, not the color choice itself,
+    is what actually picks the core, so raising this mostly just adds more
+    (losing) candidates to that comparison rather than changing the
+    result, unless a batch's real core color is further down the
+    brightness ranking than usual."""
 
     marker_refine_min_area: int = 100
     marker_refine_max_area: int = 1500
@@ -388,10 +399,6 @@ class CifExportConfig:
     template_cif_path: Optional[str] = "grid_preperation/BaseGrid.cif"
     """Master CIF to splice exported polygons into. If None, only per-image
     CIF files are written and no placement is attempted."""
-
-    output_dir: Optional[str] = None
-    """Destination for per-image CIF files and the results summary. Defaults
-    to <input_folder>/cif_export_results/."""
 
     # ------------------------------------------------------------------ #
     # Serialization helpers                                               #

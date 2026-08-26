@@ -63,14 +63,6 @@ _TEMPLATE_PATH = Path(__file__).resolve().parent / "crosshair_template.png"
 _template_cache: np.ndarray | None = None
 _template_core_offset_cache: tuple[float, float] | None = None
 
-_REFINE_TOP_V_COLORS_N = 2
-"""How many of a refine window's own brightest (highest-V) distinct colors
-_refine_marker_center considers as possible-core candidates -- see that
-function's own docstring. 2 covers the core itself plus whichever single
-other color (typically an attached arm segment) happens to be next
-brightest; the squareness comparison between them, not the color choice
-itself, is what actually picks the core."""
-
 
 @dataclass
 class MarkerPair:
@@ -147,12 +139,8 @@ def _non_substrate_mask(image_bgr: np.ndarray, detection: DetectionConfig) -> np
     """Pixels outside the substrate HSV range — everything that isn't bare
     substrate (markers, labels, flakes, debris)."""
     image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
-    s = detection.substrate_hsv_range
-    substrate_mask = cv2.inRange(
-        image_hsv,
-        np.array([s.h_min, s.s_min, s.v_min], dtype=np.uint8),
-        np.array([s.h_max, s.s_max, s.v_max], dtype=np.uint8),
-    )
+    lower, upper = detection.substrate_hsv_range.to_opencv_bounds()
+    substrate_mask = cv2.inRange(image_hsv, lower, upper)
     return cv2.bitwise_not(substrate_mask)
 
 
@@ -428,14 +416,15 @@ def _refine_marker_center(
     single fixed template-wide correction, OR a single manually-measured
     reference color that needs re-measuring whenever a batch's lighting
     shifts -- both tried, see marker_refine_half_px's own docstring for
-    why the latter was replaced): within a small window, find the 2 colors
-    with the highest V (brightness) actually present, and for EACH,
-    isolate its own exact-color blob nearest the window's center. Whichever
-    of the two is more squarish (marker_refine_min_extent) is treated as
-    the core -- the other is typically an attached arm segment (dimmer,
-    less squarish) or unrelated background, needing no separate exclusion
-    logic since it simply loses the squareness comparison. Self-calibrates
-    per marker, no reference color/tolerance config needed at all.
+    why the latter was replaced): within a small window, find the
+    config.marker_refine_top_v_colors_n colors with the highest V
+    (brightness) actually present, and for EACH, isolate its own
+    exact-color blob nearest the window's center. Whichever candidate is
+    most squarish (marker_refine_min_extent) is treated as the core -- any
+    other (typically an attached arm segment, dimmer/less squarish, or
+    unrelated background) needs no separate exclusion logic since it
+    simply loses the squareness comparison. Self-calibrates per marker, no
+    reference color/tolerance config needed at all.
 
     Exact color match, not a tolerance range: this runs on the
     reconstructed image (see channel_selection.py), where the crosshair
@@ -461,7 +450,7 @@ def _refine_marker_center(
     pixels = window_bgr.reshape(-1, 3)
     unique_colors, counts = np.unique(pixels, axis=0, return_counts=True)
     unique_hsv = cv2.cvtColor(unique_colors.reshape(-1, 1, 3), cv2.COLOR_BGR2HSV).reshape(-1, 3)
-    top_v_order = np.argsort(-unique_hsv[:, 2])[:_REFINE_TOP_V_COLORS_N]
+    top_v_order = np.argsort(-unique_hsv[:, 2])[:config.marker_refine_top_v_colors_n]
 
     best: tuple[float, float, float] | None = None  # (extent, core_x, core_y)
     for idx in top_v_order:
