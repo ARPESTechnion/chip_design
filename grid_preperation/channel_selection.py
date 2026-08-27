@@ -27,26 +27,43 @@ except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from channels_model.matlab_clustering import create_channels_cached
 
-_BACKGROUND_RGB = (66, 62, 90)
-"""
-Background fill for unselected-cluster pixels.
+from flake_detection.config import DetectionConfig
 
-GDS_Code.m's own Prepare_Polygons() uses a literal flat gray(64,64,64) here,
-but that turned out to break this pipeline's marker detection empirically:
-markers.find_top_markers isolates candidates via
-markers._non_substrate_mask, an HSV in-range check tuned for the REAL
-substrate color (DetectionConfig.substrate_hsv_range, h 210-290deg / s
-15.7-100% / v 7.8-62.7% -- the common color-picker scale every HSV config
-field in this codebase uses, see HSVRange.to_opencv_bounds) -- a
-zero-saturation gray fails that range, so the whole reconstructed
-background reads as "non-substrate" and swamps template matching with a
-uniform foreground (0 crosshair candidates found on every test image).
-This RGB was chosen to sit inside that same HSV range (roughly h=250deg,
-s=31%, v=35%) so the reconstructed background is correctly recognized as
-substrate again, while still being a flat/textureless fill that Canny-
-based polygon extraction (polygons.py) treats as empty background exactly
-like the literal gray would.
-"""
+
+def _background_rgb_for(detection: DetectionConfig) -> tuple[int, int, int]:
+    """
+    Background fill for unselected-cluster pixels, at THIS dataset's own
+    substrate_hsv_range midpoint -- guaranteed to fall inside that range
+    regardless of what it is, unlike a single fixed RGB constant shared
+    across every dataset (what this function replaced).
+
+    GDS_Code.m's own Prepare_Polygons() uses a literal flat gray(64,64,64)
+    here, but that turned out to break this pipeline's marker detection
+    empirically: markers.find_top_markers isolates candidates via
+    markers._non_substrate_mask, an HSV in-range check tuned for the
+    REAL substrate color -- a zero-saturation gray fails that range, so
+    the whole reconstructed background reads as "non-substrate" and
+    swamps template matching with a uniform foreground (0 crosshair
+    candidates found on every test image). A single fixed RGB tuned to
+    sit inside ONE dataset's own substrate range (confirmed working for
+    flakes/all, TS34001, orange_flakes_tuned's shared H 210-290deg/S
+    15.7-100%/V 7.8-62.7% range) was the first fix -- but that's still
+    just a fixed constant, and it broke again the same way the moment a
+    new dataset (Ta2009) used a genuinely different substrate range
+    (H 260-300deg/S 45-75%/V 45-75% -- the old constant's own H=248deg/
+    S=31%/V=35% falls outside it on all three axes). Deriving the fill
+    from THIS call's own detection.substrate_hsv_range instead makes it
+    correct for any dataset by construction, not by coincidence.
+    """
+    s = detection.substrate_hsv_range
+    h_mid = (s.h_min + s.h_max) / 2
+    s_mid = (s.s_min + s.s_max) / 2
+    v_mid = (s.v_min + s.v_max) / 2
+    hue_cv = max(0, min(179, round(h_mid / 2)))
+    sat_cv = max(0, min(255, round(s_mid / 100 * 255)))
+    val_cv = max(0, min(255, round(v_mid / 100 * 255)))
+    bgr = cv2.cvtColor(np.uint8([[[hue_cv, sat_cv, val_cv]]]), cv2.COLOR_HSV2BGR)[0, 0]
+    return (int(bgr[2]), int(bgr[1]), int(bgr[0]))  # RGB, matching canvas_rgb's own channel order
 
 _session = None
 _session_path = None
@@ -87,11 +104,20 @@ def select_and_reconstruct(
     image_bgr: np.ndarray,
     image_path: str | Path,
     config,
+    detection: DetectionConfig,
     debug_dir: Path | None = None,
 ) -> ChannelSelection:
     """
     Run the trained channels_model on image_path's color clusters and
     reconstruct a posterized image from only the model-selected clusters.
+
+    detection is THIS run's own DetectionConfig (see run.py: already
+    loaded once via config.load_detection_config()) -- its
+    substrate_hsv_range determines the background fill color for
+    unselected-cluster pixels (_background_rgb_for), so the reconstructed
+    background is always correctly recognized as substrate by
+    markers._non_substrate_mask, whatever this dataset's own substrate
+    color happens to be.
     """
     channels, palette = create_channels_cached(
         image_path, config.channels_cache_dir,
@@ -111,7 +137,7 @@ def select_and_reconstruct(
     selected = [k + 1 for k in range(n_clusters) if probs[k] > config.channels_model_threshold]
 
     canvas_rgb = np.empty_like(rgb)
-    canvas_rgb[:] = _BACKGROUND_RGB
+    canvas_rgb[:] = _background_rgb_for(detection)
     for k in selected:
         mask = channels[..., k - 1] > 0
         canvas_rgb[mask] = np.clip(palette[k], 0, 255).astype(np.uint8)
