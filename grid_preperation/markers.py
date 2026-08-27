@@ -367,11 +367,16 @@ def _find_candidates(
     dependence at all, but can fail on low-contrast images), per the "more
     the merrier, combine all of them" design.
 
-    A whole-template hit always outranks an arm-evidence-only hit (assigned
-    score 4 + correlation, comfortably above arm-evidence's own 0-4 range)
-    since a complete shape match is inherently the more confident signal;
-    among arm-evidence-only candidates, more arms present ranks higher.
-    Every mask x strategy combination's results are pooled into one list
+    Both scored onto the SAME [4.0, 5.0] range (whole-template: 4.0 +
+    correlation; arm-evidence: 4.0 + arm_count/4) so the two compete
+    fairly rather than one structurally always beating the other --
+    confirmed as a real, necessary fix: a bare 0-4 arm-evidence score
+    meant even the WEAKEST admissible whole-template hit (barely over
+    crosshair_whole_match_threshold) always outranked even a PERFECT 4/4
+    arm-evidence match, which let a real whole-template false positive (an
+    unrelated flake blob, no crosshair structure at all) beat out a real
+    marker's own confident arm-evidence candidate on a real dataset
+    (Ta2009). Every mask x strategy combination's results are pooled into one list
     and NMS'd together, so the same physical marker found by several of
     them collapses to one entry (keeping whichever version was scored
     highest) -- a marker found by more sources isn't scored any higher for
@@ -391,7 +396,18 @@ def _find_candidates(
             arm_count = _arm_evidence_count(mask, cx, cy, half_extent, config)
             if arm_count < config.crosshair_arm_min_count:
                 continue
-            scored.append((cx, cy, float(arm_count)))
+            # Rescaled onto the SAME [4.0, 5.0] range whole-template hits
+            # use (4/4 arms -> 5.0, matching a perfect correlation; the
+            # minimum admissible arm_count -> 4.0), not a bare 0-4 float.
+            # A bare 0-4 score meant EVERY whole-template hit -- even one
+            # that barely cleared crosshair_whole_match_threshold -- always
+            # outranked even a PERFECT 4/4 arm-evidence match, no matter
+            # how confident either signal actually was. Confirmed as a
+            # real, serious bug on Ta2009: a whole-template match on a
+            # plain flake blob (no crosshair structure at all, arm_count=1
+            # there) outscored the real marker's own 4/4 arm-evidence
+            # candidate, which never even got a chance to compete.
+            scored.append((cx, cy, 4.0 + arm_count / 4.0))
 
     scored.sort(key=lambda p: -p[2])
 
@@ -419,12 +435,17 @@ def _refine_marker_center(
     why the latter was replaced): within a small window, find the
     config.marker_refine_top_v_colors_n colors with the highest V
     (brightness) actually present, and for EACH, isolate its own
-    exact-color blob nearest the window's center. Whichever candidate is
-    most squarish (marker_refine_min_extent) is treated as the core -- any
-    other (typically an attached arm segment, dimmer/less squarish, or
-    unrelated background) needs no separate exclusion logic since it
-    simply loses the squareness comparison. Self-calibrates per marker, no
-    reference color/tolerance config needed at all.
+    exact-color blob nearest the window's center. Candidates must clear
+    BOTH a minimum fill ratio (marker_refine_min_extent) AND a maximum
+    aspect ratio (marker_refine_max_aspect) -- fill ratio alone doesn't
+    reject a thin bar (a solid rectangle can have extent even closer to
+    1.0 than a real rounded-corner core, since it doesn't penalize
+    elongation at all; confirmed as a real bug: a thin fragment of an
+    adjacent letter, sharing the core's own exact color, once won
+    refinement over the real core this way). Whichever qualifying
+    candidate has the highest fill ratio is treated as the core.
+    Self-calibrates per marker, no reference color/tolerance config needed
+    at all.
 
     Exact color match, not a tolerance range: this runs on the
     reconstructed image (see channel_selection.py), where the crosshair
@@ -463,6 +484,9 @@ def _refine_marker_center(
             cw, ch = stats[i, cv2.CC_STAT_WIDTH], stats[i, cv2.CC_STAT_HEIGHT]
             extent = area / (cw * ch) if cw * ch else 0.0
             if extent < config.marker_refine_min_extent:
+                continue
+            aspect = max(cw, ch) / min(cw, ch) if min(cw, ch) else 999.0
+            if aspect > config.marker_refine_max_aspect:
                 continue
             bcx, bcy = centroids[i]
             # Must land within the window itself, not just anywhere a
@@ -619,3 +643,16 @@ def find_top_markers(
     right_px = _refine_marker_center(image_bgr, *right_px, config)
 
     return MarkerPair(left_px=left_px, right_px=right_px)
+
+
+def draw_marker_centers(image_bgr: np.ndarray, markers: MarkerPair) -> np.ndarray:
+    """A copy of image_bgr with a cross drawn at each of markers' own final
+    (refined) positions -- red for left_px (the filename/grid marker),
+    green for right_px -- for visually auditing detection/calibration
+    accuracy (see CifExportConfig.draw_marker_centers). Purely a debug
+    rendering, never fed back into detection or calibration."""
+    annotated = image_bgr.copy()
+    for pos, color in ((markers.left_px, (0, 0, 255)), (markers.right_px, (0, 255, 0))):
+        x, y = int(round(pos[0])), int(round(pos[1]))
+        cv2.drawMarker(annotated, (x, y), color, cv2.MARKER_CROSS, 50, 3)
+    return annotated
