@@ -113,7 +113,7 @@ def _process_image(
 
     try:
         chan_sel = channel_selection.select_and_reconstruct(
-            image_bgr, img_path, config, debug_dir=reconstructed_dir,
+            image_bgr, img_path, config, detection, debug_dir=reconstructed_dir,
         )
     except Exception as e:  # noqa: BLE001 - MATLAB/ONNX/clustering failure is an alert, not a crash
         return {'image': img_path.name, 'status': 'alert', 'reason': f'channel selection: {e}'}
