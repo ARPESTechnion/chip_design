@@ -222,14 +222,24 @@ class CifExportConfig:
     separation (observed ~1100-1200px) so the two real markers are never
     merged into one."""
 
-    crosshair_score_gap_min: float = 0.03
+    crosshair_score_gap_min: float = 0.06
     """If a 3rd candidate's score is within this margin of the 2nd, the
     top-2 ranking is ambiguous -> alert rather than silently picking a
-    pair. Score is now an arm-evidence count (0-4, see
-    markers._find_candidates), an integer -- this margin matters only when
-    two candidates tie exactly on arm count; a lower-arm-count 3rd
-    candidate is already excluded from top-2 by the sort itself regardless
-    of this gap."""
+    pair. Matters most for whole-template-match hits (score 4+correlation,
+    a continuous value) -- confirmed as a real, serious bug on Ta2009 at
+    the old default (0.03): cv2.matchTemplate's normalized correlation can
+    score an unrelated blob (e.g. a flake) ALMOST as high as a real,
+    fainter crosshair match elsewhere in the same image (observed gap
+    0.038-0.053 between a false 2nd-place hit and the real 3rd-place
+    marker it silently displaced), corrupting that image's whole
+    calibration with no alert at all. Raised from 0.03 to 0.06 specifically
+    to catch that gap range -- verified this has ZERO effect on flakes/all
+    or TS34001 (identical pass counts at every value tested, 0.03 through
+    0.15), so the extra margin costs nothing on datasets that were already
+    unambiguous; on Ta2009 it converts a few previously-silent-wrong
+    results into correctly-flagged alerts (safer, matches this whole
+    module's own "alert rather than guess" philosophy) at the cost of a
+    few previously-correct-by-luck results also alerting unnecessarily."""
 
     marker_min_separation_px: float = 200.0
     """Minimum pixel distance between the two top markers. Below this, the pair
@@ -245,7 +255,7 @@ class CifExportConfig:
     If |dy_px| / |dx_px| exceeds this ratio, alert — implies the wrong blobs
     were selected or the image has unexpected rotation for the base case."""
 
-    marker_refine_half_px: int = 25
+    marker_refine_half_px: int = 90
     """
     After template matching + validation (which use the coarser, more
     robust template-matched position), each marker position is refined to
@@ -253,6 +263,18 @@ class CifExportConfig:
     per image, not a single fixed template-wide correction. Falls back to
     the unrefined position if no plausible core is found nearby (e.g. too
     much nearby clutter) rather than guessing.
+
+    Raised from 25 to 90 -- confirmed as a real bug at 25: a real coarse
+    (pre-refine) position can land far enough from the true core (~70px,
+    observed on a real image) that the old, narrower window never reached
+    it at all, silently falling back to the imprecise coarse position with
+    no error. Verified safe: comparing every marker's own refined position
+    at half=25 vs half=90 across two full datasets, only the ONE actually-
+    broken marker moved (by the expected amount, landing on the real
+    core) -- nothing else shifted by more than a few px, so the wider
+    window isn't accidentally catching unrelated content elsewhere. Still
+    comfortably below marker_min_separation_px (200) -- can't reach into a
+    neighboring marker's own territory.
 
     Refinement (markers._refine_marker_center) runs on the reconstructed
     image (see channel_selection.py), where the crosshair's solid core
@@ -289,10 +311,31 @@ class CifExportConfig:
     marker_refine_min_area: int = 100
     marker_refine_max_area: int = 1500
     marker_refine_min_extent: float = 0.55
-    """Shape filter for the refined core blob: plausible area range (px)
-    and minimum fill ratio (area / bounding-box area). Loose floor, even
-    though the core should now render as a clean filled square (extent close
-    to 1.0) on the reconstructed image."""
+    marker_refine_max_aspect: float = 1.5
+    """Shape filter for the refined core blob: plausible area range (px),
+    minimum fill ratio (area / bounding-box area), and maximum aspect
+    ratio (bounding-box longer side / shorter side). Same 1.5 convention
+    as markers._find_core_blobs's own squareness check. extent ALONE is
+    not enough to reject a thin bar -- a solid, thin rectangle can have
+    extent even closer to 1.0 than a real (rounded-corner) square core,
+    since fill ratio doesn't penalize elongation at all. Confirmed as a
+    real bug on a real image: a thin ~35x4px strip of the SAME exact core
+    color (likely a stray fragment of the adjacent letter, which shares
+    the core's own color -- see marker_refine_top_v_colors_n) scored a
+    HIGHER extent (0.98) than the real core (0.95, aspect 1.47) and won
+    the refinement, landing the final marker position on empty background
+    partway toward the letter instead of on the real core."""
+
+    draw_marker_centers: bool = False
+    """When True, every image that successfully finds its top-2 markers
+    gets a copy of its reconstructed image saved to
+    <output>/marker_centers/<stem>.png with a cross drawn at each final
+    (refined) marker position -- red for the left/filename marker, green
+    for the right one -- so misdetection/misalignment can be diagnosed by
+    eye instead of only from pass/fail counts and reasons. Off by default
+    (extra per-image file I/O with no effect on detection itself). Only
+    written for images that actually succeed -- an alerted image has no
+    marker positions to draw."""
 
     # ------------------------------------------------------------------ #
     # Polygon export                                                       #
