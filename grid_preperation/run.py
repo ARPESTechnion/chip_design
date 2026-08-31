@@ -87,6 +87,7 @@ def _process_image(
     reconstructed_dir: Path,
     flakes_dir: Path,
     otsu_mask_dir: Path,
+    marker_centers_dir: Path,
 ) -> dict:
     """Run the full pipeline on one image. Returns a result dict for the
     summary JSON — never raises; alert conditions are reported, not thrown."""
@@ -106,6 +107,13 @@ def _process_image(
     flakes_dir.mkdir(parents=True, exist_ok=True)
     (flakes_dir / f"{img_path.stem}.json").unlink(missing_ok=True)
     (cif_dir / f"{img_path.stem}.cif").unlink(missing_ok=True)
+    # Same reasoning as above, applied to marker_centers/ -- confirmed as a
+    # real bug: an image that used to succeed (wrongly) left its own old,
+    # WRONG marker_centers/<stem>.png sitting on disk untouched once a
+    # detection fix made it correctly alert instead, giving a misleading
+    # impression (a debug image implying success) for an image the CURRENT
+    # run never actually placed a cross on at all.
+    (marker_centers_dir / f"{img_path.stem}.png").unlink(missing_ok=True)
 
     image_bgr = cv2.imread(str(img_path))
     if image_bgr is None:
@@ -125,6 +133,11 @@ def _process_image(
         )
     except markers.MarkerDetectionError as e:
         return {'image': img_path.name, 'status': 'alert', 'reason': f'marker detection: {e}'}
+
+    if config.draw_marker_centers:
+        marker_centers_dir.mkdir(parents=True, exist_ok=True)
+        annotated = markers.draw_marker_centers(chan_sel.reconstructed_bgr, marker_pair)
+        cv2.imwrite(str(marker_centers_dir / f"{img_path.stem}.png"), annotated)
 
     try:
         cal = calibration.calibrate(img_path, marker_pair, config)
@@ -204,6 +217,7 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
     reconstructed_dir = output_folder / 'reconstructed'
     flakes_dir = output_folder / 'flakes'
     otsu_mask_dir = output_folder / 'otsu_mask'
+    marker_centers_dir = output_folder / 'marker_centers'
 
     detection = config.load_detection_config()
     reserved_layers: set[int] = set(range(101, 101 + config.channels_n_clusters))
@@ -235,7 +249,7 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
     for img_path in image_paths:
         result = _process_image(
             img_path, config, detection, cif_dir, working_template_path, palette, reconstructed_dir,
-            flakes_dir, otsu_mask_dir,
+            flakes_dir, otsu_mask_dir, marker_centers_dir,
         )
         results.append(result)
         if result['status'] == 'ok':

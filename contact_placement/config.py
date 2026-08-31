@@ -349,9 +349,19 @@ class ContactPlacementConfig:
     """"Number of halls to try to rich" -- cap on how many flakes get a Hall
     placement attempt (in score order) before the rest fall through to Ring."""
 
-    min_flake_size_for_hall: float = 10.0
-    """"min flake size for hall" -- new-flake rectangle area (um^2) below
-    which Hall isn't attempted for that flake."""
+    min_flake_length_for_hall: float = 9.0
+    """Minimum LONG-side length (um) of the new-flake inscribed rectangle
+    below which Hall isn't attempted for that flake. Replaces the old
+    single area-based min_flake_size_for_hall -- length and width are
+    checked separately (not their product) since a Hall bar needs enough
+    room along BOTH axes independently: a long, very thin sliver could
+    clear an area threshold while still being too narrow for a real Hall
+    channel (see min_flake_width_for_hall)."""
+
+    min_flake_width_for_hall: float = 4.0
+    """Minimum SHORT-side width (um) of the new-flake inscribed rectangle
+    below which Hall isn't attempted for that flake. See
+    min_flake_length_for_hall."""
 
     num_rings_to_try: int = 10
     """"Number of rings to try to rich" -- cap on how many remaining
