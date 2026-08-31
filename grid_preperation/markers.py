@@ -316,6 +316,189 @@ def _arm_evidence_count(mask: np.ndarray, cx: float, cy: float, half_extent: flo
     return count
 
 
+_ARM_SEGMENT_MIN_ASPECT = 4.0
+"""A candidate lone arm segment (see _find_arm_segments) must be at least
+this elongated (long-side / short-side) to plausibly be a thin crosshair
+arm rather than a flake fragment or letter-glyph stroke."""
+
+_ARM_SEGMENT_LENGTH_TOLERANCE = (0.8, 3.5)
+"""(low, high) multipliers applied to sqrt(this mask's own
+_typical_core_area) to decide which elongated blobs are plausibly
+crosshair-arm-scaled -- measured directly from a real, confirmed Ta2009
+arm segment (length 87px against sqrt(typical_core_area)=48.8px, ratio
+1.78), given generous headroom on both sides since only ONE real
+measurement was available to calibrate against. Scale-relative, not a
+fixed pixel range, per this module's established convention (see
+_ARM_CHECK_MARGIN_FRAC's own docstring)."""
+
+_ARM_PAIR_Y_TOLERANCE_FRAC = 0.25
+"""Two horizontal (or two vertical) arm segments are only considered the
+SAME crosshair's opposing pair if their cross-axis centers differ by less
+than this fraction of their own average length -- real opposing arms
+measured exactly aligned (0px apart) on Ta2009; this leaves headroom for
+minor rendering noise while staying far tighter than the gap needed to
+reject two coincidentally-similar unrelated segments elsewhere in an
+image."""
+
+_ARM_PAIR_LENGTH_RATIO_MAX = 2.0
+"""Two segments can only pair up if their own lengths are within this
+ratio of each other -- a real crosshair's opposing arms are the same
+length; this rejects pairing e.g. a real arm with an unrelated, merely
+similarly-oriented flake edge of very different length."""
+
+_ARM_PAIR_GAP_TOLERANCE = (0.3, 3.0)
+"""(low, high) multipliers applied to sqrt(typical_core_area) bounding the
+gap between two candidate opposing arms' own facing inner edges -- where
+the core would sit. Without this, two segments can share similar
+length/cross-axis alignment by sheer coincidence while sitting nowhere
+near each other, producing a bogus derived center in empty space between
+them (confirmed as a real false positive this session: an unrelated
+distant segment paired against a letter-glyph stroke on Ta2009's
+IW.png). Measured directly on a real Ta2009 marker: gap 113px against
+sqrt(typical_core_area) 48.8px, ratio 2.31 -- comfortably inside this
+range."""
+
+_ARM_PERP_MATCH_TOLERANCE_FRAC = 1.5
+"""How close a perpendicular segment's own NEAR edge must be to a pair's
+derived center, as a multiple of sqrt(typical_core_area), to corroborate
+(raise confidence of, but not required for) that pair -- see
+_triangulate_from_arms. NOT the segment's centroid, which sits a whole
+arm-length further away: the true gap from a real core to where its arm
+begins is the same order of magnitude as the pair's own half-gap
+(confirmed directly: 56.5px measured on a real Ta2009 marker against
+sqrt(typical_core_area)=48.8px, ratio ~1.16), so this needs real headroom
+past 1.0, unlike _ARM_PAIR_Y_TOLERANCE_FRAC's much tighter cross-axis
+alignment check."""
+
+
+def _find_arm_segments(
+    mask: np.ndarray, typical_area: float,
+) -> tuple[list[tuple[float, float, float, float, float]], list[tuple[float, float, float, float, float]]]:
+    """Every thin, elongated non-substrate blob in `mask`, classified by
+    orientation -- candidate INDIVIDUAL crosshair arms, found independently
+    of any hypothesized center (unlike _arm_evidence_count, which checks
+    for arm evidence in a strip AROUND an already-known candidate
+    position). Feeds _triangulate_from_arms, which recovers a crosshair's
+    true center directly from 2+ surviving arms' own geometry -- needed
+    for a real, confirmed Ta2009 failure mode: several markers are missing
+    their core square AND one arm in the SOURCE PHOTO itself (confirmed by
+    inspecting the raw, pre-reconstruction image directly -- not a masking
+    or reconstruction artifact), so neither _find_whole_template_candidates
+    nor _find_core_blobs/_arm_evidence_count can ever find them (the
+    former has no core to correlate against; the latter has no core blob
+    to start from at all). See [[project_marker_detection_redesign]]
+    memory notes for the EU/AW/HX/ON case history that motivated this.
+
+    Returns (horizontal, vertical) -- each a list of (cx, cy, near_edge,
+    far_edge, length) along that segment's own long axis (near/far_edge in
+    x for horizontal, y for vertical)."""
+    n_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    lo, hi = _ARM_SEGMENT_LENGTH_TOLERANCE
+    length_lo, length_hi = math.sqrt(typical_area) * lo, math.sqrt(typical_area) * hi
+
+    horizontal: list[tuple[float, float, float, float, float]] = []
+    vertical: list[tuple[float, float, float, float, float]] = []
+    for i in range(1, n_labels):
+        x, y, w, h, _area = stats[i]
+        if w == 0 or h == 0:
+            continue
+        length = max(w, h)
+        if not (length_lo <= length <= length_hi):
+            continue
+        if max(w, h) / min(w, h) < _ARM_SEGMENT_MIN_ASPECT:
+            continue
+        cx, cy = centroids[i]
+        if w >= h:
+            horizontal.append((float(cx), float(cy), float(x), float(x + w), float(length)))
+        else:
+            vertical.append((float(cx), float(cy), float(y), float(y + h), float(length)))
+    return horizontal, vertical
+
+
+def _triangulate_from_arms(mask: np.ndarray, config: CifExportConfig) -> list[tuple[float, float, float]]:
+    """Recover a crosshair's true center directly from 2-3 of its own
+    surviving arms' geometry, with no dependence on a core blob or a
+    matchable whole-shape template correlation existing at all -- see
+    _find_arm_segments for why this is needed.
+
+    A single opposing pair (two horizontal arms, or two vertical arms)
+    ALREADY fully determines the 2D center on its own: the cross-axis
+    coordinate is their shared alignment (average of their own centers),
+    the along-axis coordinate is the midpoint of the gap between their
+    facing inner edges (where the core sits). A lone perpendicular segment
+    near that derived point corroborates it (raises the score from 2-arm
+    to 3-arm confidence) but isn't required.
+
+    Deliberately conservative about which pairs are even considered (see
+    _ARM_PAIR_Y_TOLERANCE_FRAC / _ARM_PAIR_LENGTH_RATIO_MAX) -- this
+    strategy has no core/whole-shape corroboration of its own to fall back
+    on, so false pairings (two unrelated similarly-oriented segments
+    elsewhere in the image) would otherwise be a real risk."""
+    typical_area = _typical_core_area(mask, config)
+    if typical_area is None:
+        return []
+    horizontal, vertical = _find_arm_segments(mask, typical_area)
+    align_tolerance = math.sqrt(typical_area) * _ARM_PAIR_Y_TOLERANCE_FRAC
+    edge_tolerance = math.sqrt(typical_area) * _ARM_PERP_MATCH_TOLERANCE_FRAC
+    gap_lo, gap_hi = math.sqrt(typical_area) * _ARM_PAIR_GAP_TOLERANCE[0], math.sqrt(typical_area) * _ARM_PAIR_GAP_TOLERANCE[1]
+
+    candidates: list[tuple[float, float, float]] = []
+    for same_axis, perp_axis, axis_is_horizontal in ((horizontal, vertical, True), (vertical, horizontal, False)):
+        for i in range(len(same_axis)):
+            for j in range(i + 1, len(same_axis)):
+                cx1, cy1, near1, far1, len1 = same_axis[i]
+                cx2, cy2, near2, far2, len2 = same_axis[j]
+                length_ratio = max(len1, len2) / min(len1, len2)
+                if length_ratio > _ARM_PAIR_LENGTH_RATIO_MAX:
+                    continue
+                cross1, cross2 = (cy1, cy2) if axis_is_horizontal else (cx1, cx2)
+                if abs(cross1 - cross2) > _ARM_PAIR_Y_TOLERANCE_FRAC * ((len1 + len2) / 2):
+                    continue
+                # Order the pair so `far1 <= near2` (segment 1 is the
+                # near/left-or-top one) -- the gap between them is where
+                # the core sits.
+                if near1 > near2:
+                    near1, far1, near2, far2 = near2, far2, near1, far1
+                # The gap between the two segments' own FACING inner edges
+                # must itself be plausibly core-plus-margin-scaled -- two
+                # segments can otherwise share similar length/alignment by
+                # sheer coincidence while sitting nowhere near each other
+                # (confirmed as a real false positive on Ta2009's IW.png:
+                # an unrelated distant segment paired with a letter-glyph
+                # stroke, landing the derived "center" on neither).
+                gap = near2 - far1
+                if not (gap_lo <= gap <= gap_hi):
+                    continue
+                gap_mid = (far1 + near2) / 2.0
+                cross_mid = (cross1 + cross2) / 2.0
+                cx, cy = (gap_mid, cross_mid) if axis_is_horizontal else (cross_mid, gap_mid)
+
+                # A perpendicular segment corroborates this pair's derived
+                # center if it's ALIGNED with it (its own cross-axis center
+                # close to (cx, cy)) AND its NEAR edge -- not its centroid,
+                # which sits a whole arm-length away -- is close to it (the
+                # gap between a real core and where its arm begins is the
+                # same order of magnitude as this pair's own gap_mid
+                # margin, confirmed directly: 56.5px measured vs the pair's
+                # own 56.5px half-gap on a real Ta2009 marker).
+                arm_count = 2
+                for pcx, pcy, pnear, pfar, _plen in perp_axis:
+                    if axis_is_horizontal:
+                        aligned = abs(pcx - cx) <= align_tolerance
+                        near_edge_dist = min(abs(pnear - cy), abs(pfar - cy))
+                    else:
+                        aligned = abs(pcy - cy) <= align_tolerance
+                        near_edge_dist = min(abs(pnear - cx), abs(pfar - cx))
+                    if aligned and near_edge_dist <= edge_tolerance:
+                        arm_count = 3
+                        break
+
+                if arm_count < config.crosshair_arm_min_count:
+                    continue
+                candidates.append((cx, cy, 4.0 + arm_count / 4.0))
+    return candidates
+
+
 def _find_whole_template_candidates(
     search_mask: np.ndarray,
     config: CifExportConfig,
@@ -351,13 +534,18 @@ def _find_whole_template_candidates(
 def _find_candidates(
     masks: list[np.ndarray],
     config: CifExportConfig,
-) -> list[tuple[float, float, float]]:
-    """Both matching strategies, run over EVERY mask in `masks`, all merged
-    together: (1) the original whole-shape template match
+) -> list[tuple[float, float, float, str]]:
+    """All three matching strategies, run over EVERY mask in `masks`, all
+    merged together: (1) the original whole-shape template match
     (_find_whole_template_candidates) -- fast, reliable whenever a marker's
     full cross is intact, which is the common case; (2) core-blob +
     arm-evidence (_find_core_blobs + _arm_evidence_count) -- tolerant of any
-    ONE arm being broken, the less common case (1) alone misses. Callers
+    ONE arm being broken, the less common case (1) alone misses; (3) direct
+    arm triangulation (_triangulate_from_arms, gated behind
+    config.crosshair_use_arm_triangulation) -- tolerant of the core AND
+    one arm being missing, needed for markers with no matchable whole shape
+    and no core blob to start an arm-evidence check from at all (a real,
+    confirmed case on Ta2009 -- see that function's own docstring). Callers
     pass multiple masks (see find_top_markers: the substrate-HSV-range
     exclusion mask AND the per-image Otsu V-channel split, _otsu_v_mask) so
     the same marker has multiple independent chances to be found -- the two
@@ -382,15 +570,20 @@ def _find_candidates(
     highest) -- a marker found by more sources isn't scored any higher for
     it, since NMS only keeps the single best-scoring hit per location, but
     it does mean a marker only ONE source manages to find is still found.
-    Returns (x, y, score) in mask coordinates, (x, y) already each
+    Returns (x, y, score, source) in mask coordinates, (x, y) already each
     candidate's own true core center -- this IS the position later used as
     the calibration anchor (after _refine_marker_center's own further
-    precision pass), per the requirement that alignment is always anchored
-    to the middle of the square inside the cross, never any other point on
-    the marker."""
-    scored: list[tuple[float, float, float]] = []
+    precision pass -- SKIPPED for 'tri'-sourced candidates, see
+    find_top_markers), per the requirement that alignment is always
+    anchored to the middle of the square inside the cross, never any other
+    point on the marker. `source` is one of 'whole' / 'arm' / 'tri',
+    identifying which strategy produced that candidate (needed by
+    find_top_markers to decide whether refinement is even meaningful for
+    it -- a 'tri' candidate exists precisely because no real core is
+    present to refine toward)."""
+    scored: list[tuple[float, float, float, str]] = []
     for mask in masks:
-        scored += [(x, y, 4.0 + score) for x, y, score in _find_whole_template_candidates(mask, config)]
+        scored += [(x, y, 4.0 + score, 'whole') for x, y, score in _find_whole_template_candidates(mask, config)]
 
         for cx, cy, half_extent in _find_core_blobs(mask, config):
             arm_count = _arm_evidence_count(mask, cx, cy, half_extent, config)
@@ -407,16 +600,25 @@ def _find_candidates(
             # plain flake blob (no crosshair structure at all, arm_count=1
             # there) outscored the real marker's own 4/4 arm-evidence
             # candidate, which never even got a chance to compete.
-            scored.append((cx, cy, 4.0 + arm_count / 4.0))
+            scored.append((cx, cy, 4.0 + arm_count / 4.0, 'arm'))
+
+        # Third strategy: triangulate directly from 2-3 surviving arms,
+        # with no core blob or matchable whole shape needed at all -- see
+        # _triangulate_from_arms for the real, confirmed Ta2009 case (a
+        # marker missing its core AND one arm in the source photo itself)
+        # this exists for. Same [4.0, 5.0] scoring convention as the other
+        # two strategies, so it competes fairly in the shared NMS below.
+        if config.crosshair_use_arm_triangulation:
+            scored += [(x, y, score, 'tri') for x, y, score in _triangulate_from_arms(mask, config)]
 
     scored.sort(key=lambda p: -p[2])
 
     nms_radius_sq = config.crosshair_nms_radius_px ** 2
-    kept: list[tuple[float, float, float]] = []
-    for cx, cy, score in scored:
-        if any((cx - kx) ** 2 + (cy - ky) ** 2 <= nms_radius_sq for kx, ky, _ in kept):
+    kept: list[tuple[float, float, float, str]] = []
+    for cx, cy, score, source in scored:
+        if any((cx - kx) ** 2 + (cy - ky) ** 2 <= nms_radius_sq for kx, ky, _, _ in kept):
             continue
-        kept.append((cx, cy, score))
+        kept.append((cx, cy, score, source))
     return kept
 
 
@@ -505,9 +707,9 @@ def _refine_marker_center(
 
 
 def _select_pair(
-    candidates: list[tuple[float, float, float]],
+    candidates: list[tuple[float, float, float, str]],
     config: CifExportConfig,
-) -> tuple[tuple[float, float], tuple[float, float]]:
+) -> tuple[tuple[float, float, str], tuple[float, float, str]]:
     """Given a scored candidate list (see _find_candidates), pick the top-2
     and validate the base case holds -- raises MarkerDetectionError if not
     (fewer than 2 confident candidates, an ambiguous ranking, or the top-2
@@ -539,8 +741,8 @@ def _select_pair(
             )
 
     pts = sorted(top_two, key=lambda p: p[0])
-    left_px = (pts[0][0], pts[0][1])
-    right_px = (pts[1][0], pts[1][1])
+    left_px = (pts[0][0], pts[0][1], pts[0][3])
+    right_px = (pts[1][0], pts[1][1], pts[1][3])
 
     dx = right_px[0] - left_px[0]
     dy = right_px[1] - left_px[1]
@@ -639,8 +841,17 @@ def find_top_markers(
     # matched positions. Refine to the crosshair's actual core for the final
     # positions actually used for calibration -- falls back to the
     # unrefined position per-marker if no clean core is found nearby.
-    left_px = _refine_marker_center(image_bgr, *left_px, config)
-    right_px = _refine_marker_center(image_bgr, *right_px, config)
+    # SKIPPED for a 'tri'-sourced position (see _triangulate_from_arms):
+    # that candidate exists precisely because the real core is missing
+    # from the source image, not merely hard to isolate -- attempting to
+    # refine it anyway searches the same window for SOME OTHER
+    # plausible-looking blob (a letter-glyph fragment, most likely) and can
+    # walk the correct triangulated position onto a wrong one (confirmed
+    # as a real bug this session on Ta2009's IW.png).
+    left_x, left_y, left_source = left_px
+    right_x, right_y, right_source = right_px
+    left_px = (left_x, left_y) if left_source == 'tri' else _refine_marker_center(image_bgr, left_x, left_y, config)
+    right_px = (right_x, right_y) if right_source == 'tri' else _refine_marker_center(image_bgr, right_x, right_y, config)
 
     return MarkerPair(left_px=left_px, right_px=right_px)
 

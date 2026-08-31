@@ -146,6 +146,20 @@ class CifExportConfig:
     flag (see find_top_markers) -- this flag only controls whether it's
     actually USED for detection, not whether it's computed/saved."""
 
+    crosshair_use_arm_triangulation: bool = True
+    """Whether markers._find_candidates includes markers._triangulate_from_arms
+    (direct triangulation from 2-3 surviving arm segments, no core blob or
+    matchable whole-shape template correlation needed at all) as a
+    candidate source, on EVERY mask tried (unlike crosshair_use_substrate_mask/
+    crosshair_use_otsu_mask, this isn't itself a separate mask -- it's a
+    third STRATEGY layered onto whichever mask(s) are already enabled).
+    Added for a real, confirmed Ta2009 case: several markers are missing
+    their core square AND one arm in the source photo itself, recoverable
+    only by triangulating the true center from the 2-3 arms that survive.
+    Verified safe on flakes/all and TS34001 (zero regressions, one TS34001
+    image newly fixed) -- default True. Set False to fall back to only the
+    original two strategies, e.g. to isolate/compare behavior."""
+
     crosshair_core_min_area: int = 200
     crosshair_core_max_area: int = 5000
     crosshair_core_min_extent: float = 0.75
@@ -309,20 +323,30 @@ class CifExportConfig:
     brightness ranking than usual."""
 
     marker_refine_min_area: int = 100
-    marker_refine_max_area: int = 1500
+    marker_refine_max_area: int = 5000
     marker_refine_min_extent: float = 0.55
     marker_refine_max_aspect: float = 1.5
     """Shape filter for the refined core blob: plausible area range (px),
     minimum fill ratio (area / bounding-box area), and maximum aspect
-    ratio (bounding-box longer side / shorter side). Same 1.5 convention
-    as markers._find_core_blobs's own squareness check. extent ALONE is
-    not enough to reject a thin bar -- a solid, thin rectangle can have
-    extent even closer to 1.0 than a real (rounded-corner) square core,
-    since fill ratio doesn't penalize elongation at all. Confirmed as a
-    real bug on a real image: a thin ~35x4px strip of the SAME exact core
-    color (likely a stray fragment of the adjacent letter, which shares
-    the core's own color -- see marker_refine_top_v_colors_n) scored a
-    HIGHER extent (0.98) than the real core (0.95, aspect 1.47) and won
+    ratio (bounding-box longer side / shorter side). max_area matches
+    crosshair_core_max_area's own WIDE sanity-bound convention (not a real
+    per-image filter -- squareness/extent does the actual discriminating,
+    see below) rather than a tight absolute pixel cap: confirmed as a real
+    bug on Ta2009 (raised from 1500 -- too tight for ANY dataset, really:
+    flakes/all's own real cores were already documented up to ~1800px) --
+    a real core measuring 1992px was silently excluded outright by the old
+    1500 cap, before squareness ever got a chance to compare it against
+    anything, so refine fell back to a same-colored, in-range fragment of
+    an adjacent letter instead (Ta2009's CR.png, confirmed via direct pixel
+    inspection). Same 1.5 aspect convention as markers._find_core_blobs's
+    own squareness check. extent ALONE is not enough to reject a thin bar
+    -- a solid, thin rectangle can have extent even closer to 1.0 than a
+    real (rounded-corner) square core, since fill ratio doesn't penalize
+    elongation at all. Confirmed as a real bug on a real image: a thin
+    ~35x4px strip of the SAME exact core color (likely a stray fragment of
+    the adjacent letter, which shares the core's own color -- see
+    marker_refine_top_v_colors_n) scored a HIGHER extent (0.98) than the
+    real core (0.95, aspect 1.47) and won
     the refinement, landing the final marker position on empty background
     partway toward the letter instead of on the real core."""
 
