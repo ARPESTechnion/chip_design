@@ -19,7 +19,8 @@
 
   "_comment_user_tunable": "These are the 'popping UI' parameters from the spec -- set here for headless/CLI runs, adjustable in the UI before committing to export.",
   "num_halls_to_try": 9999,
-  "min_flake_size_for_hall": 10.0,
+  "min_flake_length_for_hall": 9.0,
+  "min_flake_width_for_hall": 4.0,
   "num_rings_to_try": 9999,
 
   "hall": {

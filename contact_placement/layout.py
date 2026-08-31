@@ -87,7 +87,8 @@ def _committed_geometry(mode: Literal['hall', 'ring'], result: HallResult | Ring
 def place_all(config: ContactPlacementConfig) -> list[PlacementResult]:
     """
     Run Hall (up to config.num_halls_to_try attempts, in descending-score
-    order, skipping flakes below config.min_flake_size_for_hall) then Ring
+    order, skipping flakes below config.min_flake_length_for_hall /
+    min_flake_width_for_hall) then Ring
     (up to config.num_rings_to_try attempts, over whatever's left) across
     every qualifying flake from config.grid_preperation_output_dir. Returns
     one PlacementResult per candidate flake -- mode=None/result=None means
@@ -137,7 +138,8 @@ def place_all(config: ContactPlacementConfig) -> list[PlacementResult]:
             new_flake = largest_inscribed_rectangle(candidate.vertices_um)
         except ValueError:
             continue  # too small/degenerate to even measure -- not a real Hall attempt
-        if new_flake.width * new_flake.height < config.min_flake_size_for_hall:
+        flake_length, flake_width = max(new_flake.width, new_flake.height), min(new_flake.width, new_flake.height)
+        if flake_length < config.min_flake_length_for_hall or flake_width < config.min_flake_width_for_hall:
             continue  # below size gate -- not a real Hall attempt, doesn't consume the budget
 
         hall_attempts += 1

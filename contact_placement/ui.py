@@ -53,7 +53,8 @@ class ContactPlacementUI:
             'output_dir': tk.StringVar(),
             'min_flake_score': tk.StringVar(value='0.3'),
             'num_halls_to_try': tk.StringVar(value='10'),
-            'min_flake_size_for_hall': tk.StringVar(value='10.0'),
+            'min_flake_length_for_hall': tk.StringVar(value='9.0'),
+            'min_flake_width_for_hall': tk.StringVar(value='4.0'),
             'num_rings_to_try': tk.StringVar(value='10'),
             'inner_ring_min': tk.StringVar(value='0.7'),
             'inner_ring_max': tk.StringVar(value='1.0'),
@@ -76,23 +77,24 @@ class ContactPlacementUI:
         add_row(1, "output dir (optional):", 'output_dir', browse=True)
         add_row(2, "Min flake score:", 'min_flake_score')
         add_row(3, "Number of halls to try:", 'num_halls_to_try')
-        add_row(4, "Min flake size for hall:", 'min_flake_size_for_hall')
-        add_row(5, "Number of rings to try:", 'num_rings_to_try')
-        add_row(6, "Inner ring min:", 'inner_ring_min')
-        add_row(7, "Inner ring max:", 'inner_ring_max')
-        add_row(8, "Inner ring step:", 'inner_ring_step')
-        add_row(9, "Outer ring min:", 'outer_ring_min')
-        add_row(10, "Outer ring max:", 'outer_ring_max')
-        add_row(11, "Outer ring step:", 'outer_ring_step')
+        add_row(4, "Min flake length for hall:", 'min_flake_length_for_hall')
+        add_row(5, "Min flake width for hall:", 'min_flake_width_for_hall')
+        add_row(6, "Number of rings to try:", 'num_rings_to_try')
+        add_row(7, "Inner ring min:", 'inner_ring_min')
+        add_row(8, "Inner ring max:", 'inner_ring_max')
+        add_row(9, "Inner ring step:", 'inner_ring_step')
+        add_row(10, "Outer ring min:", 'outer_ring_min')
+        add_row(11, "Outer ring max:", 'outer_ring_max')
+        add_row(12, "Outer ring step:", 'outer_ring_step')
 
         btns = ttk.Frame(form)
-        btns.grid(row=12, column=0, columnspan=3, pady=8, sticky='w')
+        btns.grid(row=13, column=0, columnspan=3, pady=8, sticky='w')
         ttk.Button(btns, text="Preview", command=self.preview).grid(row=0, column=0, padx=4)
         self.export_btn = ttk.Button(btns, text="Export to CIF", command=self.export, state='disabled')
         self.export_btn.grid(row=0, column=1, padx=4)
 
         self.status = ttk.Label(form, text="")
-        self.status.grid(row=13, column=0, columnspan=3, sticky='w')
+        self.status.grid(row=14, column=0, columnspan=3, sticky='w')
 
         self.canvas = tk.Canvas(root, width=900, height=700, bg='white')
         self.canvas.grid(row=0, column=1, sticky='nsew', padx=10, pady=10)
@@ -113,7 +115,8 @@ class ContactPlacementUI:
                 output_dir=self.vars['output_dir'].get() or None,
                 min_flake_score=float(self.vars['min_flake_score'].get()),
                 num_halls_to_try=int(self.vars['num_halls_to_try'].get()),
-                min_flake_size_for_hall=float(self.vars['min_flake_size_for_hall'].get()),
+                min_flake_length_for_hall=float(self.vars['min_flake_length_for_hall'].get()),
+                min_flake_width_for_hall=float(self.vars['min_flake_width_for_hall'].get()),
                 num_rings_to_try=int(self.vars['num_rings_to_try'].get()),
             )
             config.ring.inner_ring_min = float(self.vars['inner_ring_min'].get())
