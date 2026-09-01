@@ -1,0 +1,100 @@
+{
+  "_readme": [
+    "Tuned config for orange/brownish ARPES flake detection on SiO2/Si substrate.",
+    "Calibrated from 17 good + 15 bad sample images.",
+    "",
+    "Detection strategy: flakes are found by substrate-border exclusion (not color-first),",
+    "so whole flakes are detected even when they have internal color gradients.",
+    "Each candidate is then scored by how much of it is the target orange color —",
+    "green blobs and grid markers (color_fraction near 0) are dropped at that stage.",
+    "",
+    "closing_kernel_size=0: closing is intentionally disabled on the substrate mask.",
+    "Closing would merge nearby differently-colored objects (orange flake + green debris)",
+    "into a single mixed-color candidate, corrupting the color_fraction filter.",
+    "The isolation score counts ALL non-substrate debris (including green/teal)."
+  ],
+
+  "marker_removal_enabled": true,
+  "marker_rgb_range": {
+    "_comment": "Bright pink/magenta location markers. R ~255, G ~197, B ~255.",
+    "r_min": 220, "r_max": 255,
+    "g_min": 220, "g_max": 255,
+    "b_min": 220, "b_max": 255
+  },
+  "marker_bright_threshold": 200,
+  "marker_dilation_px": 25,
+
+  "substrate_hsv_range": {
+    "_comment": [
+      "The blue-purple SiO2 substrate background.",
+      "H in degrees [0-360], S/V in percent [0-100] -- the common color-picker scale",
+      "(e.g. Windows Paint), converted to OpenCV's own scale internally -- never enter",
+      "OpenCV H:0-179/S:0-255/V:0-255 values here.",
+      "H 210-290 covers blue through blue-purple hues.",
+      "V 7.8-60.8 captures the medium-dark substrate without catching bright flakes.",
+      "Widen V_max if substrate appears brighter in your images."
+    ],
+    "h_min": 210,
+    "h_max": 290,
+    "s_min": 40,
+    "s_max": 70,
+    "v_min": 40,
+    "v_max": 70
+  },
+
+  "color_mode": "hsv",
+
+  "rgb_range": {
+    "r_min": 135, "r_max": 200,
+    "g_min": 90, "g_max": 150,
+    "b_min": 95, "b_max": 125
+  },
+
+  "hsv_range": {
+    "_comment": [
+      "Target color: orange/brownish flakes on the chip.",
+      "H in degrees [0-360], S/V in percent [0-100] -- the common color-picker scale",
+      "(e.g. Windows Paint), converted to OpenCV's own scale internally -- never enter",
+      "OpenCV H:0-179/S:0-255/V:0-255 values here.",
+      "H 6-56 covers the full orange range observed (5th-95th pct across all samples).",
+      "S 11.8-51.0 targets moderately saturated orange; excludes pale pink grid markers.",
+      "V 51.0-86.3 avoids the dark substrate and blown-out reflections."
+    ],
+    "h_min": 325,
+    "h_max": 355,
+    "s_min": 40,
+    "s_max": 65,
+    "v_min": 60,
+    "v_max": 86.3
+  },
+
+  "min_color_fraction": 0.35,
+
+  "blur_kernel_size": 5,
+  "closing_kernel_size": 0,
+
+  "min_flake_area": 3000,
+  "max_flake_area": 25000,
+  "large_flake_alert_area": 25000,
+
+  "contour_erosion_px": 3,
+  "max_laplacian_var": 100.0,
+  "max_intensity_std": 40.0,
+  "laplacian_weight": 0.4,
+  "std_weight": 0.6,
+
+  "neighborhood_factor": 3.0,
+  "max_neighbor_coverage": 0.08,
+
+  "dark_spot_enabled": true,
+  "dark_spot_brightness_max": 40,
+  "dark_spot_min_area": 200,
+  "dark_spot_max_area": 15000,
+
+  "color_fraction_weight": 0.4,
+  "texture_score_weight": 0.2,
+  "isolation_score_weight": 0.4,
+
+  "min_final_score": 0.35,
+  "top_n": null
+}
