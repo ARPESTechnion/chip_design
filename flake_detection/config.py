@@ -89,7 +89,8 @@ class DetectionConfig:
       1. Preprocess     — Gaussian blur
       2. Candidate mask — invert the substrate HSV mask to find all visible material;
                           opening removes noise, closing bridges cracks within flakes
-      3. Contours       — find connected non-substrate regions; filter by size
+      3. Contours       — find connected non-substrate regions; filter by size, then by
+                          border-touching and solidity (irregular/spiky shapes)
       4. Color fraction — fraction of each candidate matching the target color;
                           hard-filtered by min_color_fraction before scoring
       5. Texture        — Laplacian variance + intensity std inside each contour
@@ -226,6 +227,71 @@ class DetectionConfig:
     """
     Candidates with area_px >= this are flagged is_large=True and drawn in
     orange. They still pass through full scoring. Set 0 to disable.
+    """
+
+    min_solidity: float = 0.4
+    """
+    Minimum solidity (contour area / convex-hull area) [0-1] required for a
+    candidate AT OR ABOVE solidity_relief_area_hi (the size-relief "large
+    flake" end) -- see min_solidity_strict for the small-flake end and
+    solidity_relief_area_lo/hi for how the two are interpolated between.
+    1.0 = perfectly convex; solidity measures concavity, i.e. how much of
+    the shape's own convex hull is "missing" into dents/notches -- it
+    rejects irregular/spiky/multi-lobed shapes (star-shaped debris, several
+    touching fragments merged into one contour, jagged noise).
+
+    Why there are TWO thresholds (size-relief), not one flat value: a real,
+    single-piece flake can be legitimately MORE concave the bigger it is --
+    larger flakes are more likely to have real physical bends, multiple
+    domains, or genuine notches from exfoliation, all of which lower
+    solidity without the shape being junk. A single long, thin, curved
+    strip is the sharpest example: it produces one big concave region (a
+    large area deficit against the convex hull) purely from being bent,
+    even though it's a completely legitimate single piece. Empirically
+    confirmed across all 3 real datasets (flakes/all, TS34001, Ta2009)
+    before this was caught: a flat 0.85 rejected 3 real flakes (Ta2009
+    BH.png 0.813/IT.png 0.827/PW.png 0.848, all ordinary jagged-edge
+    shapes), a flat 0.7 additionally rejected flakes/all's IH.png (solidity
+    0.577, a long gently-S-curved strip scoring 0.93 on every OTHER
+    metric -- clearly one real flake by eye). Size-relief lets the SMALL
+    end be stricter (0.72, catching more junk there) while the LARGE end
+    stays permissive (0.4) for exactly the shapes that legitimately need
+    it -- verified safe (0.117 minimum margin, TS34001's WI.png) against
+    every known-good flake across all 3 datasets at these exact values;
+    don't raise either endpoint without re-checking against real
+    `solidity`/`area_px` values in results.json first.
+
+    If you need a stronger filter for genuinely multi-lobed/spiky shapes
+    specifically (as opposed to single-piece curved ones), a
+    convexity-DEFECT-COUNT metric (cv2.convexityDefects, counting distinct
+    dents rather than summing their area) would likely separate that case
+    better than solidity alone -- untried here, no real data to calibrate
+    it against yet.
+    """
+
+    min_solidity_strict: float = 0.72
+    """Minimum solidity required for a candidate AT OR BELOW
+    solidity_relief_area_lo (the size-relief "small flake" end) -- see
+    min_solidity's own docstring for the full size-relief rationale."""
+
+    solidity_relief_area_lo: float = 1500.0
+    """Candidate area (px) at/below which min_solidity_strict applies in
+    full. Between this and solidity_relief_area_hi, the required solidity
+    is linearly interpolated between min_solidity_strict and min_solidity."""
+
+    solidity_relief_area_hi: float = 6500.0
+    """Candidate area (px) at/above which min_solidity (the lenient,
+    large-flake end) applies in full. See solidity_relief_area_lo."""
+
+    reject_border_touching: bool = True
+    """
+    If True, a candidate whose bounding box touches any image edge is
+    rejected outright (regardless of its other scores) -- such a contour
+    is necessarily clipped by the frame, so its true area/shape/color
+    fraction cannot be measured accurately, and it may well continue
+    beyond the captured image entirely. Set False to allow border-touching
+    candidates through (e.g. if the capture region is known to be a strict
+    crop of a larger flake you still want scored).
     """
 
     # ------------------------------------------------------------------ #

@@ -80,6 +80,31 @@ images — it doesn't itself contain any detection/export tuning:
   outright if less than this fraction of its pixels match the target color.
 - **`min_flake_area`** / **`max_flake_area`** — pixel-area bounds for a
   candidate to be considered at all (filters out dust and grid markers).
+- **`reject_border_touching`** — if `True` (default), a candidate whose
+  bounding box touches any image edge is rejected outright — it's clipped by
+  the frame, so its true area/shape/color can't be measured, and it may well
+  continue beyond the captured image.
+- **`min_solidity`** / **`min_solidity_strict`** / **`solidity_relief_area_lo`**
+  / **`solidity_relief_area_hi`** — a candidate is rejected if `contour area /
+  convex-hull area` (`1.0` = perfectly convex; lower = a more concave/irregular
+  outline — star-shaped debris, several touching fragments merged into one
+  contour, jagged noise) falls below a **size-dependent** threshold: candidates
+  at/below `solidity_relief_area_lo` px must clear `min_solidity_strict`
+  (default `0.72`); candidates at/above `solidity_relief_area_hi` px only need
+  to clear `min_solidity` (default `0.4`); anything in between is linearly
+  interpolated. **Why size-dependent, not one flat number**: a real,
+  single-piece flake can legitimately be *more* concave the bigger it is — a
+  long, thin, gently curved strip produces one big concave region purely from
+  being bent, even though it's completely legitimate, not junk; bigger flakes
+  are also just more likely to have real bends or multiple domains. A flat
+  `0.85`, then a flat `0.7`, were each tried first and both rejected real,
+  visually-verified flakes (including one scoring `0.93` on every other
+  metric) before landing on this size-relief scheme — the defaults above are
+  verified safe (comfortable margin) against every known-good flake across
+  this project's labeled datasets. Adjust only after inspecting `solidity`
+  and `area_px` together in `results.json` for your own known good/bad flakes
+  — a threshold safe for one dataset's typical flake shape/size isn't
+  guaranteed safe for another.
 - **`min_final_score`** — minimum combined color/texture/isolation score
   [0-1] for a flake to appear in results. Start at `0.0`, inspect
   `results.json`'s score distribution, then raise to cut false positives.
@@ -165,15 +190,18 @@ stopped on it (see `flake_detection/detector.py`'s `_STAGE_COLORS`):
 | Color | Stage failed | Label shown |
 |---|---|---|
 | 🔴 Red | Area filter (`min_flake_area`/`max_flake_area`) | `a:<area>` |
+| 🔵 Blue | Bounding box touches the image border (`reject_border_touching`) | `border` |
+| ⚪ Grey | Too irregular/spiky, size-relieved (`min_solidity`/`min_solidity_strict`) | `sol:<solidity><threshold>` |
 | 🟠 Orange | Color fraction too low (`min_color_fraction`) | `cf:<value>` |
 | 🟡 Yellow | Texture — weakest sub-score | `t:<texture_score> cf:<cf>` |
 | 🟣 Purple | Isolation — weakest sub-score | `i:<isolation_score> cf:<cf>` |
 | 🟢 Green (thicker outline) | Passed everything | `<final_score> cf:<cf>` |
 | 🟣 Magenta rectangle | Dark-spot alert (unrelated to the above filter chain) | `dark <brightness>` |
 
-A contour reaching texture/isolation scoring already cleared the area and
-color filters, so yellow/purple mean "close, but not good enough" rather
-than "wrong color entirely" (that's orange). Tune whichever config
+A contour reaching texture/isolation scoring already cleared the area,
+border, shape, and color filters, so yellow/purple mean "close, but not
+good enough" rather than "wrong color entirely" (that's orange) or
+"unmeasurable/malformed shape" (that's blue/grey). Tune whichever config
 threshold matches the color you're seeing too much of.
 
 ## Running `grid_preperation` alone
