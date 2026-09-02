@@ -8,7 +8,9 @@ Pipeline overview (one image at a time):
                        Opening removes noise; closing is intentionally omitted so nearby
                        differently-colored objects (orange flake + green debris) are never
                        merged. This mask is used for both contour detection and isolation.
-  3. Contours        — find connected non-substrate regions; filter by area.
+  3. Contours        — find connected non-substrate regions; filter by area, then by
+                       border-touching (clipped by the frame) and solidity (irregular/
+                       spiky shapes -- contour area / convex-hull area).
                        Detecting by substrate-border (not by color) means a flake with
                        internal color gradients is still found as one contour.
   4. Color fraction  — fraction of each contour's pixels that match the target orange color.
@@ -22,6 +24,8 @@ Pipeline overview (one image at a time):
 Output per run:
   output_folder/annotated/   — original images with detection overlays
   output_folder/results.json — per-image, per-flake metrics for threshold tuning
+  output_folder/contours/    — per-image JSON, chosen flakes' real pixel contours + score
+  output_folder/scores/      — per-image .txt, full score breakdown for each chosen flake
 """
 
 from __future__ import annotations
@@ -56,6 +60,7 @@ class FlakeMetrics:
     area_px: float
     bbox: tuple                  # (x, y, w, h)
     is_large: bool               # True when area_px >= config.large_flake_alert_area
+    solidity: float               # area_px / convex-hull area [0-1]; lower = more irregular/spiky
 
     # Color relevance (Stage 4)
     color_fraction: float        # Fraction of flake pixels matching target color [0-1]
@@ -304,13 +309,17 @@ def _detect_dark_spots(
 # Hierarchical stage colors (BGR).  Each contour is drawn in the color of the
 # first stage it failed, so you can tell at a glance where the pipeline stops.
 _STAGE_COLORS = {
-    'size':      (50,  50,  200),   # red      — failed area filter
-    'color':     (0,   140, 255),   # orange   — wrong color (low color_fraction)
-    'texture':   (0,   230, 230),   # yellow   — texture is the weakest sub-score
-    'isolation': (200, 0,   200),   # purple   — isolation is the weakest sub-score
-    'passed':    (0,   210, 0),     # green    — passed all stages
+    'size':      (50,  50,  200),   # red        — failed area filter
+    'border':    (255, 0,   0),     # blue       — bounding box touches the image edge
+    'shape':     (128, 128, 128),   # grey       — too irregular/spiky (low solidity)
+    'color':     (0,   140, 255),   # orange     — wrong color (low color_fraction)
+    'texture':   (0,   230, 230),   # yellow     — texture is the weakest sub-score
+    'isolation': (200, 0,   200),   # purple     — isolation is the weakest sub-score
+    'passed':    (0,   210, 0),     # green      — passed all stages
 }
-_STAGE_THICKNESS = {'size': 1, 'color': 1, 'texture': 1, 'isolation': 1, 'passed': 2}
+_STAGE_THICKNESS = {
+    'size': 1, 'border': 1, 'shape': 1, 'color': 1, 'texture': 1, 'isolation': 1, 'passed': 2,
+}
 
 
 def _annotate_image(
@@ -325,6 +334,8 @@ def _annotate_image(
     Color  Stage failed          Label shows
     -----  --------------------  ----------------------------
     Red    area filter           a:<area>
+    Blue   touches image border  border
+    Grey   irregular shape       sol:<solidity><threshold_for_its_area>
     Orange color fraction        cf:<value>
     Yellow texture (weakest)     t:<texture_score> cf:<cf>
     Purple isolation (weakest)   i:<isolation_score> cf:<cf>
@@ -359,6 +370,29 @@ def _annotate_image(
         )
 
     return annotated
+
+
+# --------------------------------------------------------------------------- #
+# Stage 3c — Shape (solidity) size-relief                                      #
+# --------------------------------------------------------------------------- #
+
+def _min_solidity_for_area(area: float, config: DetectionConfig) -> float:
+    """
+    The solidity a candidate of this area must clear -- linearly
+    interpolated between config.min_solidity_strict (at/below
+    solidity_relief_area_lo) and config.min_solidity (at/above
+    solidity_relief_area_hi), clamped outside that range. See
+    min_solidity's own docstring for why size-relief exists at all: a
+    larger real flake can be legitimately more concave (bends, multiple
+    domains) without being junk, so the same flat threshold that's safe
+    for a small flake is too strict for a large one.
+    """
+    lo, hi = config.solidity_relief_area_lo, config.solidity_relief_area_hi
+    if hi <= lo:
+        return config.min_solidity_strict
+    t = (area - lo) / (hi - lo)
+    t = max(0.0, min(1.0, t))
+    return config.min_solidity_strict + t * (config.min_solidity - config.min_solidity_strict)
 
 
 # --------------------------------------------------------------------------- #
@@ -403,6 +437,8 @@ def _process_image(
         candidate_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
 
+    img_h, img_w = candidate_mask.shape
+
     # contour_stages maps each contour index to (stage, label).
     # Only contours above _MIN_DISPLAY_AREA are evaluated and annotated.
     _MIN_DISPLAY_AREA = 200
@@ -423,6 +459,29 @@ def _process_image(
             continue
 
         num_size_candidates += 1
+
+        # Stage 3b: border filter — a contour clipped by the image frame has
+        # an unmeasurable true area/shape (and may well continue beyond the
+        # capture entirely), so it's rejected outright rather than scored.
+        if config.reject_border_touching:
+            bx, by, bw, bh = bbox
+            if bx <= 0 or by <= 0 or bx + bw >= img_w or by + bh >= img_h:
+                contour_stages[i] = ('border', 'border')
+                continue
+
+        # Stage 3c: shape filter — reject irregular/spiky/multi-lobed
+        # contours via solidity (contour area / convex-hull area). A real
+        # flake's own boundary rarely dips below the size-relief threshold
+        # for its own area (_min_solidity_for_area); star-shaped debris,
+        # several touching fragments merged into one contour, or jagged
+        # noise typically do.
+        hull_area = float(cv2.contourArea(cv2.convexHull(contour)))
+        solidity = area / hull_area if hull_area > 0 else 0.0
+        min_solidity = _min_solidity_for_area(area, config)
+        if solidity < min_solidity:
+            contour_stages[i] = ('shape', f"sol:{solidity:.2f}<{min_solidity:.2f}")
+            continue
+
         contour_mask = np.zeros(candidate_mask.shape, dtype=np.uint8)
         cv2.drawContours(contour_mask, [contour], -1, 255, thickness=cv2.FILLED)
 
@@ -462,6 +521,7 @@ def _process_image(
                 area_px=area,
                 bbox=bbox,
                 is_large=is_large,
+                solidity=solidity,
                 color_fraction=color_fraction,
                 color_score=color_score,
                 laplacian_var=laplacian_var,
@@ -544,6 +604,30 @@ def write_contours_json(result: ImageResult, path: Path) -> None:
         json.dump(data, out, indent=2)
 
 
+def write_scores_txt(result: ImageResult, path: Path) -> None:
+    """
+    Per-image, human-readable score breakdown for every CHOSEN flake (i.e.
+    result.flakes -- already passed min_final_score, sorted best-first by
+    _process_image). One block per flake with every score component, not
+    just final_score, so a quick look at the .txt is enough to see WHY a
+    flake ranked where it did without opening results.json. Purely a
+    convenience export alongside results.json/contours -- carries no
+    information results.json doesn't already have."""
+    lines = [f"{result.image_path}  ({len(result.flakes)} chosen flake(s))", ""]
+    for rank, f in enumerate(result.flakes, start=1):
+        lines.append(f"Flake {rank} (contour_index={f.contour_index}){'  [LARGE]' if f.is_large else ''}")
+        lines.append(f"  final_score:       {f.final_score:.4f}")
+        lines.append(f"  area_px:           {f.area_px:.0f}")
+        lines.append(f"  bbox:              {tuple(f.bbox)}")
+        lines.append(f"  solidity:          {f.solidity:.4f}")
+        lines.append(f"  color_fraction:    {f.color_fraction:.4f}  (color_score: {f.color_score:.4f})")
+        lines.append(f"  texture_score:     {f.texture_score:.4f}  (laplacian_var: {f.laplacian_var:.2f}, intensity_std: {f.intensity_std:.2f})")
+        lines.append(f"  isolation_score:   {f.isolation_score:.4f}  (neighbor_coverage: {f.neighbor_coverage:.4f})")
+        lines.append("")
+    with open(path, 'w') as out:
+        out.write("\n".join(lines))
+
+
 # --------------------------------------------------------------------------- #
 # Public entry point                                                           #
 # --------------------------------------------------------------------------- #
@@ -574,6 +658,7 @@ def detect_flakes(
     annotated_dir = output_folder / 'annotated'
     annotated_dir.mkdir(parents=True, exist_ok=True)
     contours_dir = output_folder / 'contours'
+    scores_dir = output_folder / 'scores'
 
     image_paths = sorted(
         p for p in input_folder.iterdir()
@@ -593,6 +678,8 @@ def detect_flakes(
             if result.flakes:
                 contours_dir.mkdir(parents=True, exist_ok=True)
                 write_contours_json(result, contours_dir / f"{img_path.stem}.json")
+                scores_dir.mkdir(parents=True, exist_ok=True)
+                write_scores_txt(result, scores_dir / f"{img_path.stem}.txt")
             parts = []
             if result.flakes:
                 large = sum(1 for f in result.flakes if f.is_large)
@@ -615,5 +702,6 @@ def detect_flakes(
     print(f"Annotated images -> {annotated_dir}")
     print(f"Metrics          -> {output_folder / 'results.json'}")
     print(f"Contours         -> {contours_dir}")
+    print(f"Scores (txt)     -> {scores_dir}")
 
     return results

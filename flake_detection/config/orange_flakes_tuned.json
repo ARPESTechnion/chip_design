@@ -76,6 +76,11 @@
   "min_flake_area": 3000,
   "max_flake_area": 25000,
   "large_flake_alert_area": 25000,
+  "min_solidity": 0.4,
+  "min_solidity_strict": 0.72,
+  "solidity_relief_area_lo": 1500.0,
+  "solidity_relief_area_hi": 6500.0,
+  "reject_border_touching": true,
 
   "contour_erosion_px": 3,
   "max_laplacian_var": 100.0,
