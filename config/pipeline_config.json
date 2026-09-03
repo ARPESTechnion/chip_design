@@ -4,5 +4,7 @@
   "grid_preperation_config_path": "grid_preperation/config/example_config.json",
   "contact_placement_config_path": "contact_placement/config/example_config.json",
   "_comment_input_folder": "Folder of raw chip images to run the pipeline over. --input_folder on the command line overrides this.",
-  "input_folder": "flakes/all"
+  "input_folder": "flakes/all",
+  "_comment_interactive": "Master switch for every stage's own interactive UI (e.g. flake_detection's post-detection review window). False forces them all off regardless of each stage's own config file; True lets each stage's own flag (e.g. flake_detection's interactive_review) decide individually.",
+  "interactive": false
 }

@@ -65,9 +65,18 @@ images — it doesn't itself contain any detection/export tuning:
 {
   "flake_detection_config_path": "flake_detection/config/orange_flakes_tuned.json",
   "grid_preperation_config_path": "grid_preperation/config/example_config.json",
-  "input_folder": "flakes/all"
+  "input_folder": "flakes/all",
+  "interactive": false
 }
 ```
+
+**`interactive`** — master switch for every stage's own interactive UI
+(currently `flake_detection`'s review window; more stages may grow one
+later). `False` forces them all off for this run regardless of what any
+individual stage's own config file says. `True` doesn't force any of them
+*on* by itself — each stage's own flag (e.g. `flake_detection`'s
+`interactive_review`) still decides whether that specific stage pops one.
+See **Interactive review** below.
 
 ### `flake_detection`'s config (e.g. `flake_detection/config/orange_flakes_tuned.json`)
 
@@ -109,6 +118,10 @@ images — it doesn't itself contain any detection/export tuning:
   [0-1] for a flake to appear in results. Start at `0.0`, inspect
   `results.json`'s score distribution, then raise to cut false positives.
 - **`top_n`** — if set, only the top N images by best flake score are kept.
+- **`interactive_review`** — if `True`, pops an interactive review window
+  right after detection finishes, letting you manually correct its
+  automatic chosen/rejected calls before anything downstream reads them.
+  See **Interactive review** below. Default `False`.
 
 ### `grid_preperation`'s config (e.g. `grid_preperation/config/example_config.json`)
 
@@ -158,7 +171,16 @@ python all_code.py                                   # input_folder from config/
 python all_code.py --input_folder flakes/all -o out   # explicit input + output folder
 python all_code.py --input_folder flakes/all --no-placement   # export CIFs, skip template placement
 python all_code.py --input_folder flakes/all --template my_master.cif
+python all_code.py --input_folder flakes/all --interactive --detection_interactive   # pop flake_detection's review window
 ```
+
+`--interactive` and `--detection_interactive` are one-directional CLI
+overrides for the config flags of the same purpose above — each forces the
+corresponding flag **on** for this run only; they never turn one *off* if a
+config file already has it `true`. `--detection_interactive` alone does
+nothing without `--interactive` (or `"interactive": true` in
+`config/pipeline_config.json`) also being on — the master switch always has
+the final say.
 
 This runs `flake_detection` on every image, stages the ones with at least
 one qualifying flake into `<output>/selected_for_grid_preperation/`, then
@@ -203,6 +225,43 @@ border, shape, and color filters, so yellow/purple mean "close, but not
 good enough" rather than "wrong color entirely" (that's orange) or
 "unmeasurable/malformed shape" (that's blue/grey). Tune whichever config
 threshold matches the color you're seeing too much of.
+
+### Interactive review
+
+Set `"interactive_review": true` in the `flake_detection` config you run
+with (and, if going through `all_code.py`, also `"interactive": true` in
+`config/pipeline_config.json`, or pass `--interactive --detection_interactive`
+— see above) to get a manual checkpoint right after detection finishes,
+before anything downstream (`grid_preperation`, `contact_placement`) ever
+reads the results:
+
+```
+python -m flake_detection.run --input_folder flakes/all --config flake_detection/config/orange_flakes_tuned.json
+# (with interactive_review: true in that config file)
+```
+
+A maximized window opens, one image at a time. Every contour that cleared
+the **size filter** is outlined — green if currently chosen, red if
+rejected — regardless of which later stage (border, shape, color, or final
+score) actually rejected it, so you can both reject a false positive the
+pipeline accepted and rescue a near-miss it didn't. Only contours that
+failed the size filter itself are never shown (bulk dust/noise/grid-marker
+debris — the pipeline keeps no geometry for those at all).
+
+| Action | How |
+|---|---|
+| Toggle a flake | Click it (chosen ⇄ rejected) |
+| Previous / next image | `◀`/`▶` buttons, or `←`/`→` keys |
+| Save Changes | Rewrites this image's `contours/<stem>.json` (what `grid_preperation` reads) and `scores/<stem>.txt` to the currently-chosen flakes only, and rewrites `results.json` (which keeps every flake either way, chosen or not, for later inspection). Button, or `Enter` |
+| Reset Changes | Reverts the current image to whatever was last saved to disk |
+| Skip All | Ends the review (always asks "are you sure?" first) — any image whose edits were never explicitly saved is left exactly as `detect_flakes()` originally wrote it |
+
+Changes only take effect for `grid_preperation`/`contact_placement` runs
+that happen *after* you Save — `all_code.py`'s orchestrator already gets
+this ordering right (review happens before images are staged for
+`grid_preperation`), but a standalone `grid_preperation`/`contact_placement`
+run pointed at an old `flake_detection` output will only see whatever was
+last saved there.
 
 ## Running `grid_preperation` alone
 
@@ -253,7 +312,7 @@ overwrite hand-tuned values.
 all_code.py                    full-pipeline CLI
 config/pipeline_config.json    paths to each stage's own config + input_folder
 flake_detection/                image -> candidate-flake scoring
-  run.py  config.py  detector.py  config/*.json
+  run.py  config.py  detector.py  ui.py  config/*.json
 grid_preperation/                image -> CIF polygons -> placed in master template
   run.py  config.py  channel_selection.py  markers.py  calibration.py  polygons.py  cif_io.py
   BaseGrid.cif  (gitignored -- supply your own, see Setup)

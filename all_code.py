@@ -51,6 +51,7 @@ from contact_placement.config import ContactPlacementConfig
 from contact_placement.run import run as run_contact_placement
 from flake_detection.config import DetectionConfig
 from flake_detection.detector import detect_flakes
+from flake_detection.ui import maybe_review
 from grid_preperation.config import CifExportConfig
 from grid_preperation.run import run as run_grid_preperation
 
@@ -69,6 +70,20 @@ class PipelineConfig:
     input_folder: Optional[str] = None
     """Folder of raw chip images. Set here to avoid passing --input_folder
     on every run; the CLI flag, when given, overrides this."""
+
+    interactive: bool = False
+    """
+    Master switch for every stage's own interactive UI (flake_detection's
+    review window today; more stages may grow one later, e.g.
+    contact_placement's own popping UI could gain a headless-pipeline hook
+    the same way). False forces every such UI off for this run regardless
+    of what any individual stage's own config file says -- e.g.
+    DetectionConfig.interactive_review is only honored when this is also
+    True. True does NOT force a stage's UI on by itself; each stage's own
+    config flag still decides whether THAT stage pops one. Use this to
+    quickly batch-run the full pipeline headlessly without editing every
+    stage's config file back and forth.
+    """
 
     def save(self, path: str | Path) -> None:
         with open(path, 'w') as f:
@@ -120,6 +135,17 @@ def _build_parser() -> argparse.ArgumentParser:
                          'contact_placement\'s own splice step has no awareness of what it already wrote, '
                          'so a flake whose Hall/Ring assignment changes between runs ends up with BOTH '
                          'sets of contacts spliced in, not just the latest one).')
+    p.add_argument('--interactive', action='store_true',
+                    help='Force PipelineConfig.interactive on for this run (the master switch for '
+                         'every stage\'s own interactive UI) even if config/pipeline_config.json has '
+                         'it false. One-directional: does NOT turn it off if the config file already '
+                         'has it true.')
+    p.add_argument('--detection_interactive', action='store_true',
+                    help='Force flake_detection\'s own DetectionConfig.interactive_review on for this '
+                         'run even if its own config file has it false. One-directional, same as '
+                         '--interactive. Still requires --interactive (or the config file\'s '
+                         'PipelineConfig.interactive) to also be on for the review window to actually '
+                         'appear -- the master switch always has the final say.')
     return p
 
 
@@ -131,21 +157,42 @@ def run_pipeline(
     no_placement: bool = False,
     no_contacts: bool = False,
     keep_template: bool = False,
+    interactive: bool = False,
+    detection_interactive: bool = False,
 ) -> tuple[list, list[dict], list[dict]]:
     """Run flake_detection, then grid_preperation, then contact_placement.
     Returns (flake_detection_results, grid_preperation_results,
     contact_placement_results) -- the third is [] if skipped (no_placement,
-    no_contacts, or nothing was placed)."""
+    no_contacts, or nothing was placed).
+
+    interactive/detection_interactive are one-directional CLI overrides (see
+    --interactive/--detection_interactive): each forces the corresponding
+    config flag ON for this run only, never OFF -- a config file that
+    already has it on is left alone."""
     input_folder = Path(input_folder)
     output_folder = Path(output_folder) if output_folder is not None else input_folder / 'pipeline_results'
 
-    detection_config = DetectionConfig.load(pipeline_config.flake_detection_config_path)
-    print(f"=== Stage 1/3: flake_detection (config: {pipeline_config.flake_detection_config_path}) ===")
-    detection_results = detect_flakes(
-        input_folder, detection_config, output_folder / 'flake_detection_results',
-    )
+    if interactive:
+        pipeline_config.interactive = True
 
-    selected = [r for r in detection_results if r.flakes]
+    detection_config = DetectionConfig.load(pipeline_config.flake_detection_config_path)
+    if detection_interactive:
+        detection_config.interactive_review = True
+    if not pipeline_config.interactive:
+        # Master switch off -- never pop flake_detection's review window for
+        # this run, regardless of what its own config file says.
+        detection_config.interactive_review = False
+    print(f"=== Stage 1/3: flake_detection (config: {pipeline_config.flake_detection_config_path}) ===")
+    detection_folder = output_folder / 'flake_detection_results'
+    detection_results = detect_flakes(input_folder, detection_config, detection_folder)
+
+    maybe_review(detection_results, detection_folder, detection_config)
+
+    # any(f.chosen ...), not just `r.flakes` truthy -- a review pass can
+    # reject every flake in an image without emptying its flakes list (see
+    # FlakeMetrics.chosen), so a plain non-empty check would still stage
+    # that image for grid_preperation.
+    selected = [r for r in detection_results if any(f.chosen for f in r.flakes)]
     if not selected:
         print("\nNo images with qualifying flakes -- nothing to pass to grid_preperation.")
         return detection_results, [], []
@@ -249,6 +296,7 @@ def main() -> None:
         input_folder, pipeline_config, args.output_folder,
         template_override=args.template, no_placement=args.no_placement, no_contacts=args.no_contacts,
         keep_template=args.keep_template,
+        interactive=args.interactive, detection_interactive=args.detection_interactive,
     )
 
 
