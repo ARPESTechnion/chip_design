@@ -361,6 +361,35 @@ class CifExportConfig:
     written for images that actually succeed -- an alerted image has no
     marker positions to draw."""
 
+    interactive_alignment: bool = False
+    """
+    If True, grid_preperation.run.run() pauses between marker DETECTION and
+    everything that consumes it (calibration, polygon extraction, CIF
+    write, template placement) to launch an interactive Tkinter window (see
+    grid_preperation.ui): one image at a time, its two calibration
+    crosshairs drawn red (left/filename marker) and green (right marker,
+    one grid column over) on top of the reconstructed image -- DRAG either
+    cross to correct its position, including placing both from scratch on
+    an image where automatic detection failed outright.
+
+    Per-image "Save Changes" writes marker_overrides/<stem>.json (a
+    permanent override: automatic detection is skipped for that image on
+    EVERY future run, interactive or not, until that file is deleted by
+    hand); "Reset Changes" reverts to whatever was last saved there (or,
+    if never saved, back to the original starting position -- automatic
+    detection's own result, or a placeholder pair to drag into place if
+    detection failed); "Skip All" ends the review outright (confirms
+    first) -- any image whose edits were never explicitly saved proceeds
+    with whatever it already had (automatic detection's result, an
+    earlier override, or an alert if detection failed and was never
+    corrected).
+
+    When running through all_code.py's full pipeline, this flag is also
+    gated by PipelineConfig.interactive (the same master switch
+    flake_detection.interactive_review is gated by) -- set both to
+    actually see the window.
+    """
+
     # ------------------------------------------------------------------ #
     # Polygon export                                                       #
     # ------------------------------------------------------------------ #

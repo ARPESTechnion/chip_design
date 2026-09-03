@@ -131,7 +131,8 @@ class FlakeReviewUI:
         ).pack(side='left', padx=10)
         skip_row = ttk.Frame(bottom)
         skip_row.pack(side='top')
-        ttk.Button(skip_row, text="Skip All", command=self._skip_all).pack()
+        ttk.Button(skip_row, text="Save All & Continue", command=self._save_all).pack(side='left', padx=4)
+        ttk.Button(skip_row, text="Skip All", command=self._skip_all).pack(side='left', padx=4)
 
         self.status = ttk.Label(
             root,
@@ -241,17 +242,36 @@ class FlakeReviewUI:
             f.chosen = snapshot.get(f.contour_index, f.chosen)
         self._render()
 
-    def _save(self) -> None:
-        result = self.result
+    def _save_index(self, idx: int) -> None:
+        """Write contours/scores for image `idx` only -- does NOT touch
+        results.json (see _save/_save_all, which call this per image then
+        write results.json once at the end)."""
+        result = self.images[idx]
         self.contours_dir.mkdir(parents=True, exist_ok=True)
         self.scores_dir.mkdir(parents=True, exist_ok=True)
         stem = Path(result.image_path).stem
         write_contours_json(result, self.contours_dir / f"{stem}.json")
         write_scores_txt(result, self.scores_dir / f"{stem}.txt")
+        self.saved[idx] = self._chosen_snapshot(idx)
+
+    def _save(self) -> None:
+        self._save_index(self.idx)
         write_results_json(self.all_results, self.results_json_path)
-        self.saved[self.idx] = self._chosen_snapshot(self.idx)
-        self.status.config(text=f"Saved {stem}.")
+        self.status.config(text=f"Saved {Path(self.result.image_path).stem}.")
         self._render()
+
+    def _save_all(self) -> None:
+        dirty = sum(1 for i in range(len(self.images)) if self._is_dirty(i))
+        if dirty == 0:
+            msg = "Nothing has changed since the last save. Finish reviewing and continue?"
+        else:
+            msg = f"Save changes on {dirty} image(s) and finish reviewing?"
+        if not messagebox.askyesno("Save All & Continue — are you sure?", msg):
+            return
+        for i in range(len(self.images)):
+            self._save_index(i)
+        write_results_json(self.all_results, self.results_json_path)
+        self.root.destroy()
 
     def _skip_all(self) -> None:
         dirty = sum(1 for i in range(len(self.images)) if self._is_dirty(i))

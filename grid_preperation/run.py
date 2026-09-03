@@ -30,11 +30,11 @@ from pathlib import Path
 
 try:
     from .config import CifExportConfig
-    from . import calibration, channel_selection, cif_io, markers, polygons
+    from . import calibration, channel_selection, cif_io, markers, polygons, ui
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from grid_preperation.config import CifExportConfig
-    from grid_preperation import calibration, channel_selection, cif_io, markers, polygons
+    from grid_preperation import calibration, channel_selection, cif_io, markers, polygons, ui
 
 import cv2
 
@@ -77,33 +77,44 @@ def _load_config(args: argparse.Namespace) -> CifExportConfig:
     return config
 
 
-def _process_image(
+def _detect_markers_for_image(
     img_path: Path,
     config: CifExportConfig,
     detection,
-    cif_dir: Path,
-    working_template_path: Path | None,
-    palette: cif_io.LayerPalette,
     reconstructed_dir: Path,
     flakes_dir: Path,
+    cif_dir: Path,
     otsu_mask_dir: Path,
     marker_centers_dir: Path,
-) -> dict:
-    """Run the full pipeline on one image. Returns a result dict for the
-    summary JSON — never raises; alert conditions are reported, not thrown."""
+    overrides_dir: Path,
+) -> markers.MarkerStageResult:
+    """
+    Phase A: channel selection + marker positioning only -- no calibration,
+    polygon extraction, CIF writing, or template placement yet. Split out
+    from the old single-pass _process_image so
+    CifExportConfig.interactive_alignment can insert a manual marker
+    correction step (grid_preperation.ui) between this and _finish_image,
+    for every image, before anything gets written or spliced.
+
+    A saved override (markers.load_marker_override) always takes precedence
+    over automatic detection -- lets a correction made in an earlier
+    interactive session skip detection entirely on every later run, headless
+    or not.
+    """
     # Clear this image's own prior output FIRST, before attempting anything
-    # -- every early-return alert branch below skips the code that (re)writes
-    # flakes/<stem>.json and cif/<stem>.cif, so without this, an image that
-    # succeeded on an EARLIER run (e.g. using a since-fixed but wrong cached
-    # reconstruction) but now correctly alerts would leave that old, stale,
-    # WRONG output sitting on disk untouched -- confirmed as a real bug:
-    # contact_placement.layout reads every flakes/*.json in the folder
-    # unconditionally, so it happily placed a ring using a stale flakes/
-    # WB.json from before a cache-collision fix, even though THIS run's own
-    # grid_preperation correctly alerted on WB and produced nothing for it.
-    # Deleting first, unconditionally, makes flakes/*.json and cif/*.cif
-    # always reflect only the MOST RECENT run's own actual success/failure
-    # for that image -- never a mix of this run's and a previous run's.
+    # -- every early-return alert branch below (here and in _finish_image)
+    # skips the code that (re)writes flakes/<stem>.json and cif/<stem>.cif,
+    # so without this, an image that succeeded on an EARLIER run (e.g. using
+    # a since-fixed but wrong cached reconstruction) but now correctly
+    # alerts would leave that old, stale, WRONG output sitting on disk
+    # untouched -- confirmed as a real bug: contact_placement.layout reads
+    # every flakes/*.json in the folder unconditionally, so it happily
+    # placed a ring using a stale flakes/WB.json from before a
+    # cache-collision fix, even though THIS run's own grid_preperation
+    # correctly alerted on WB and produced nothing for it. Deleting first,
+    # unconditionally, makes flakes/*.json and cif/*.cif always reflect only
+    # the MOST RECENT run's own actual success/failure for that image --
+    # never a mix of this run's and a previous run's.
     flakes_dir.mkdir(parents=True, exist_ok=True)
     (flakes_dir / f"{img_path.stem}.json").unlink(missing_ok=True)
     (cif_dir / f"{img_path.stem}.cif").unlink(missing_ok=True)
@@ -117,33 +128,79 @@ def _process_image(
 
     image_bgr = cv2.imread(str(img_path))
     if image_bgr is None:
-        return {'image': img_path.name, 'status': 'alert', 'reason': 'could not read image'}
+        return markers.MarkerStageResult(img_path, None, None, 'failed', 'could not read image')
 
     try:
         chan_sel = channel_selection.select_and_reconstruct(
             image_bgr, img_path, config, detection, debug_dir=reconstructed_dir,
         )
     except Exception as e:  # noqa: BLE001 - MATLAB/ONNX/clustering failure is an alert, not a crash
-        return {'image': img_path.name, 'status': 'alert', 'reason': f'channel selection: {e}'}
+        return markers.MarkerStageResult(img_path, None, None, 'failed', f'channel selection: {e}')
 
-    try:
-        marker_pair = markers.find_top_markers(
-            chan_sel.reconstructed_bgr, config, detection,
-            otsu_mask_dir=otsu_mask_dir, image_stem=img_path.stem,
-        )
-    except markers.MarkerDetectionError as e:
-        return {'image': img_path.name, 'status': 'alert', 'reason': f'marker detection: {e}'}
+    override = markers.load_marker_override(overrides_dir, img_path.stem)
+    if override is not None and override.dropped:
+        # Already dropped in an earlier session -- no point re-running
+        # detection. chan_sel is still returned (so a later interactive
+        # review can still show/un-drop this image), but marker_pair stays
+        # None since Phase B will skip it outright regardless.
+        return markers.MarkerStageResult(img_path, chan_sel, None, 'dropped')
+    if override is not None and override.marker_pair is not None:
+        marker_pair, source, error = override.marker_pair, 'override', None
+    else:
+        try:
+            marker_pair = markers.find_top_markers(
+                chan_sel.reconstructed_bgr, config, detection,
+                otsu_mask_dir=otsu_mask_dir, image_stem=img_path.stem,
+            )
+            source, error = 'auto', None
+        except markers.MarkerDetectionError as e:
+            marker_pair, source, error = None, 'failed', f'marker detection: {e}'
 
-    if config.draw_marker_centers:
+    if config.draw_marker_centers and marker_pair is not None:
         marker_centers_dir.mkdir(parents=True, exist_ok=True)
         annotated = markers.draw_marker_centers(chan_sel.reconstructed_bgr, marker_pair)
         cv2.imwrite(str(marker_centers_dir / f"{img_path.stem}.png"), annotated)
+
+    return markers.MarkerStageResult(img_path, chan_sel, marker_pair, source, error)
+
+
+def _finish_image(
+    stage: markers.MarkerStageResult,
+    config: CifExportConfig,
+    detection,
+    cif_dir: Path,
+    working_template_path: Path | None,
+    palette: cif_io.LayerPalette,
+    flakes_dir: Path,
+    overrides_dir: Path,
+) -> dict:
+    """
+    Phase B: calibration onward -- everything the old _process_image did
+    after marker detection, unchanged, just now taking an already-resolved
+    MarkerStageResult instead of detecting inline. Returns a result dict for
+    the summary JSON — never raises; alert conditions are reported, not
+    thrown.
+
+    Always re-checks markers.load_marker_override itself (rather than
+    trusting stage.marker_pair as-is) so a correction (or a drop decision)
+    saved DURING this same run's own interactive review -- which happens
+    after Phase A already ran for every image -- is picked up too, not just
+    one saved in an earlier, separate run.
+    """
+    img_path = stage.img_path
+    override = markers.load_marker_override(overrides_dir, img_path.stem)
+    if override is not None and override.dropped:
+        return {'image': img_path.name, 'status': 'alert', 'reason': 'dropped by user during alignment review'}
+    marker_pair = override.marker_pair if (override is not None and override.marker_pair is not None) else stage.marker_pair
+    if marker_pair is None:
+        return {'image': img_path.name, 'status': 'alert', 'reason': stage.error or 'marker detection failed'}
 
     try:
         cal = calibration.calibrate(img_path, marker_pair, config)
     except calibration.CalibrationError as e:
         return {'image': img_path.name, 'status': 'alert', 'reason': f'calibration: {e}'}
 
+    chan_sel = stage.chan_sel
     polys = polygons.extract_polygons(
         chan_sel.reconstructed_bgr, cal, config, detection, chan_sel.channels, chan_sel.palette,
     )
@@ -218,6 +275,7 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
     flakes_dir = output_folder / 'flakes'
     otsu_mask_dir = output_folder / 'otsu_mask'
     marker_centers_dir = output_folder / 'marker_centers'
+    overrides_dir = output_folder / 'marker_overrides'
 
     detection = config.load_detection_config()
     reserved_layers: set[int] = set(range(101, 101 + config.channels_n_clusters))
@@ -245,18 +303,37 @@ def run(input_folder: Path, config: CifExportConfig, output_folder: Path | None 
         return []
 
     print(f"Processing {len(image_paths)} images...")
+
+    # Phase A: channel selection + marker detection for EVERY image first --
+    # nothing is calibrated, extracted, written, or spliced yet. This is
+    # what lets interactive_alignment insert a manual correction step for
+    # every image's marker positions before Phase B (below) ever touches
+    # calibration/CIF output -- see markers.MarkerStageResult and
+    # grid_preperation.ui.
+    stage_results = [
+        _detect_markers_for_image(
+            img_path, config, detection, reconstructed_dir, flakes_dir, cif_dir,
+            otsu_mask_dir, marker_centers_dir, overrides_dir,
+        )
+        for img_path in image_paths
+    ]
+
+    ui.maybe_review_alignment(stage_results, overrides_dir, config)
+
+    # Phase B: calibration onward, per image, using each image's final
+    # marker position (auto-detected, manually overridden just now, or
+    # still failed).
     results = []
-    for img_path in image_paths:
-        result = _process_image(
-            img_path, config, detection, cif_dir, working_template_path, palette, reconstructed_dir,
-            flakes_dir, otsu_mask_dir, marker_centers_dir,
+    for stage in stage_results:
+        result = _finish_image(
+            stage, config, detection, cif_dir, working_template_path, palette, flakes_dir, overrides_dir,
         )
         results.append(result)
         if result['status'] == 'ok':
             placed_note = f", placed at {result['grid_id']}" if result['placed'] else ""
-            print(f"  {img_path.name}: {result['num_polygons']} polygon(s){placed_note}")
+            print(f"  {stage.img_path.name}: {result['num_polygons']} polygon(s){placed_note}")
         else:
-            print(f"  {img_path.name}: ALERT - {result['reason']}")
+            print(f"  {stage.img_path.name}: ALERT - {result['reason']}")
 
     with open(output_folder / 'cif_export_results.json', 'w') as f:
         json.dump(results, f, indent=2)
