@@ -386,6 +386,35 @@ class DetectionConfig:
     """If set, return only the top N images by best flake score."""
 
     # ------------------------------------------------------------------ #
+    # Interactive review (post-processing)                                #
+    # ------------------------------------------------------------------ #
+
+    interactive_review: bool = False
+    """
+    If True, flake_detection.run launches an interactive Tkinter review
+    window immediately after detection finishes (see flake_detection.ui):
+    one chip image at a time, EVERY contour that cleared the size filter
+    drawn green (chosen) or red (rejected for touching the border, low
+    solidity, wrong color, or a low final score); click a flake to toggle
+    it. This lets a human both reject a false positive AND rescue a
+    near-miss the pipeline rejected at any stage -- only contours that
+    failed the size filter itself never reach this stage (bulk dust/noise/
+    grid-marker debris, with no geometry kept for them at all).
+
+    Per-image "Save Changes" rewrites that image's own contours/<stem>.json
+    (what grid_preperation reads) and scores/<stem>.txt to the currently-
+    chosen flakes only, and rewrites results.json (which keeps every flake
+    regardless of chosen, for later inspection). "Reset Changes" reverts the
+    current image to whatever was last saved to disk. "Skip All" ends the
+    review outright -- any image never explicitly saved is left exactly as
+    detect_flakes() originally wrote it (i.e. its original chosen flags).
+
+    When running through all_code.py's full pipeline, this flag is also
+    gated by PipelineConfig.interactive (a master switch covering every
+    stage's own interactive UI) -- set both to actually see the window.
+    """
+
+    # ------------------------------------------------------------------ #
     # Serialization helpers                                               #
     # ------------------------------------------------------------------ #
 

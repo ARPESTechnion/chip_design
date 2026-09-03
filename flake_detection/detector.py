@@ -78,6 +78,14 @@ class FlakeMetrics:
     # Combined (Stage 7)
     final_score: float
 
+    # Interactive review (see flake_detection.ui) — always True as written by
+    # _process_image (only candidates clearing min_final_score become a
+    # FlakeMetrics at all); a human reviewer can flip it to False afterward
+    # to reject a false positive without re-running detection. contours.json
+    # and scores.txt are filtered to chosen flakes only; results.json keeps
+    # every flake either way so a rejection is still visible for tuning.
+    chosen: bool = True
+
 
 @dataclass
 class DarkSpotInfo:
@@ -460,14 +468,28 @@ def _process_image(
 
         num_size_candidates += 1
 
+        # From here on, EVERY contour that cleared the size filter gets the
+        # full pipeline run on it -- border/shape/color/score are no longer
+        # early-exits. This is what lets flake_detection.ui show a human
+        # reviewer every size-passing candidate regardless of why the
+        # pipeline itself rejected it (reject a false positive that DID
+        # score well, or rescue a near-miss that didn't) -- only the size
+        # filter (and the even-smaller _MIN_DISPLAY_AREA noise floor above)
+        # still removes a contour from view entirely, since those are
+        # dust/noise/grid-marker debris in bulk, not plausible flakes.
+        # Non-interactive behavior is unchanged either way:
+        # write_contours_json/write_scores_txt still filter to chosen only,
+        # and best_score below still only considers chosen candidates.
+
         # Stage 3b: border filter — a contour clipped by the image frame has
         # an unmeasurable true area/shape (and may well continue beyond the
-        # capture entirely), so it's rejected outright rather than scored.
+        # capture entirely), so it fails outright rather than being scored
+        # on its (partial) geometry.
+        border_ok = True
         if config.reject_border_touching:
             bx, by, bw, bh = bbox
             if bx <= 0 or by <= 0 or bx + bw >= img_w or by + bh >= img_h:
-                contour_stages[i] = ('border', 'border')
-                continue
+                border_ok = False
 
         # Stage 3c: shape filter — reject irregular/spiky/multi-lobed
         # contours via solidity (contour area / convex-hull area). A real
@@ -478,18 +500,14 @@ def _process_image(
         hull_area = float(cv2.contourArea(cv2.convexHull(contour)))
         solidity = area / hull_area if hull_area > 0 else 0.0
         min_solidity = _min_solidity_for_area(area, config)
-        if solidity < min_solidity:
-            contour_stages[i] = ('shape', f"sol:{solidity:.2f}<{min_solidity:.2f}")
-            continue
+        shape_ok = solidity >= min_solidity
 
         contour_mask = np.zeros(candidate_mask.shape, dtype=np.uint8)
         cv2.drawContours(contour_mask, [contour], -1, 255, thickness=cv2.FILLED)
 
         # Stage 4: Color fraction
         color_fraction, color_score = _compute_color_fraction(contour_mask, target_color_mask)
-        if color_fraction < config.min_color_fraction:
-            contour_stages[i] = ('color', f"cf:{color_fraction:.2f}")
-            continue
+        color_ok = color_fraction >= config.min_color_fraction
 
         # Stage 5: Texture
         laplacian_var, intensity_std, texture_score = _compute_texture_score(
@@ -507,30 +525,25 @@ def _process_image(
             + config.texture_score_weight * texture_score
             + config.isolation_score_weight * isolation_score
         )
+        score_ok = final_score >= config.min_final_score
 
         is_large = config.large_flake_alert_area > 0 and area >= config.large_flake_alert_area
+        chosen = border_ok and shape_ok and color_ok and score_ok
 
-        if final_score >= config.min_final_score:
+        # Annotation label follows the same hierarchy as before: the FIRST
+        # stage (in pipeline order) a contour fails is what's shown/colored,
+        # even though every stage was actually computed above.
+        if not border_ok:
+            contour_stages[i] = ('border', 'border')
+        elif not shape_ok:
+            contour_stages[i] = ('shape', f"sol:{solidity:.2f}<{min_solidity:.2f}")
+        elif not color_ok:
+            contour_stages[i] = ('color', f"cf:{color_fraction:.2f}")
+        elif chosen:
             contour_stages[i] = (
                 'passed',
                 f"{'L ' if is_large else ''}{final_score:.2f} cf:{color_fraction:.2f}",
             )
-            qualifying.append(FlakeMetrics(
-                contour_index=i,
-                contour_px=contour.reshape(-1, 2).tolist(),
-                area_px=area,
-                bbox=bbox,
-                is_large=is_large,
-                solidity=solidity,
-                color_fraction=color_fraction,
-                color_score=color_score,
-                laplacian_var=laplacian_var,
-                intensity_std=intensity_std,
-                texture_score=texture_score,
-                neighbor_coverage=neighbor_coverage,
-                isolation_score=isolation_score,
-                final_score=final_score,
-            ))
         else:
             # Attribute failure to the weakest weighted sub-score
             if texture_score <= isolation_score:
@@ -538,8 +551,26 @@ def _process_image(
             else:
                 contour_stages[i] = ('isolation', f"i:{isolation_score:.2f} cf:{color_fraction:.2f}")
 
+        qualifying.append(FlakeMetrics(
+            contour_index=i,
+            contour_px=contour.reshape(-1, 2).tolist(),
+            area_px=area,
+            bbox=bbox,
+            is_large=is_large,
+            solidity=solidity,
+            color_fraction=color_fraction,
+            color_score=color_score,
+            laplacian_var=laplacian_var,
+            intensity_std=intensity_std,
+            texture_score=texture_score,
+            neighbor_coverage=neighbor_coverage,
+            isolation_score=isolation_score,
+            final_score=final_score,
+            chosen=chosen,
+        ))
+
     qualifying.sort(key=lambda f: f.final_score, reverse=True)
-    best_score = qualifying[0].final_score if qualifying else 0.0
+    best_score = max((f.final_score for f in qualifying if f.chosen), default=0.0)
 
     dark_spots = _detect_dark_spots(image_gray, config)
 
@@ -560,12 +591,19 @@ def _process_image(
 # JSON output                                                                  #
 # --------------------------------------------------------------------------- #
 
-def _write_results_json(results: list[ImageResult], path: Path) -> None:
+def write_results_json(results: list[ImageResult], path: Path) -> None:
     """
     Serialize results to JSON. Raw metric values are included so you can
     inspect real score distributions and tune thresholds. contour_px is
     deliberately excluded here (see write_contours_json) -- this file stays
     compact and human-scannable; per-flake geometry lives in its own file.
+
+    Every flake is included regardless of its `chosen` flag (unlike
+    write_contours_json/write_scores_txt, which are chosen-only) -- this is
+    the one output that still shows a human-rejected flake next to its full
+    metrics. Public (not `_write_results_json`) because flake_detection.ui
+    calls it again after every interactive Save Changes, to keep this file
+    in sync with the per-image files it also rewrites.
     """
     data = [
         {
@@ -586,7 +624,7 @@ def _write_results_json(results: list[ImageResult], path: Path) -> None:
 
 def write_contours_json(result: ImageResult, path: Path) -> None:
     """
-    Per-image companion to results.json: each qualifying flake's real pixel
+    Per-image companion to results.json: each CHOSEN flake's real pixel
     contour + score, for downstream stages that need to match a flake back
     to its own geometry (e.g. grid_preperation, which finds its own regions
     independently on a reconstructed image and needs to know which one
@@ -595,10 +633,15 @@ def write_contours_json(result: ImageResult, path: Path) -> None:
     the same pixel dimensions (grid_preperation never resizes), so contour_px
     here and any pixel-space contour grid_preperation finds are directly
     comparable with no coordinate transform.
+
+    Filtered to f.chosen so that a human rejection made in flake_detection.ui
+    (Save Changes) takes a rejected flake out of every downstream stage's
+    view with no further changes needed there -- grid_preperation already
+    treats every entry in this file as a real flake.
     """
     data = [
         {'contour_px': f.contour_px, 'bbox': list(f.bbox), 'final_score': f.final_score}
-        for f in result.flakes
+        for f in result.flakes if f.chosen
     ]
     with open(path, 'w') as out:
         json.dump(data, out, indent=2)
@@ -612,9 +655,12 @@ def write_scores_txt(result: ImageResult, path: Path) -> None:
     just final_score, so a quick look at the .txt is enough to see WHY a
     flake ranked where it did without opening results.json. Purely a
     convenience export alongside results.json/contours -- carries no
-    information results.json doesn't already have."""
-    lines = [f"{result.image_path}  ({len(result.flakes)} chosen flake(s))", ""]
-    for rank, f in enumerate(result.flakes, start=1):
+    information results.json doesn't already have. Filtered to f.chosen,
+    same as write_contours_json -- a flake rejected in flake_detection.ui
+    drops out of this ranking too."""
+    chosen_flakes = [f for f in result.flakes if f.chosen]
+    lines = [f"{result.image_path}  ({len(chosen_flakes)} chosen flake(s))", ""]
+    for rank, f in enumerate(chosen_flakes, start=1):
         lines.append(f"Flake {rank} (contour_index={f.contour_index}){'  [LARGE]' if f.is_large else ''}")
         lines.append(f"  final_score:       {f.final_score:.4f}")
         lines.append(f"  area_px:           {f.area_px:.0f}")
@@ -673,18 +719,23 @@ def detect_flakes(
     results: list[ImageResult] = []
     for img_path in image_paths:
         result = _process_image(img_path, config, annotated_dir)
-        if result is not None and (result.flakes or result.dark_spots):
+        # result.flakes now holds EVERY scored candidate (see _process_image),
+        # not just chosen ones -- gate/summarize on chosen so non-interactive
+        # behavior (which images get an entry at all, and what's printed) is
+        # unchanged from before FlakeMetrics.chosen existed.
+        chosen_flakes = [f for f in result.flakes if f.chosen] if result is not None else []
+        if result is not None and (chosen_flakes or result.dark_spots):
             results.append(result)
-            if result.flakes:
+            if chosen_flakes:
                 contours_dir.mkdir(parents=True, exist_ok=True)
                 write_contours_json(result, contours_dir / f"{img_path.stem}.json")
                 scores_dir.mkdir(parents=True, exist_ok=True)
                 write_scores_txt(result, scores_dir / f"{img_path.stem}.txt")
             parts = []
-            if result.flakes:
-                large = sum(1 for f in result.flakes if f.is_large)
+            if chosen_flakes:
+                large = sum(1 for f in chosen_flakes if f.is_large)
                 parts.append(
-                    f"{len(result.flakes)} flake(s) (best {result.best_score:.3f})"
+                    f"{len(chosen_flakes)} flake(s) (best {result.best_score:.3f})"
                     + (f", {large} large" if large else "")
                 )
             if result.dark_spots:
@@ -696,7 +747,7 @@ def detect_flakes(
     if config.top_n is not None:
         results = results[:config.top_n]
 
-    _write_results_json(results, output_folder / 'results.json')
+    write_results_json(results, output_folder / 'results.json')
 
     print(f"\nDone. {len(results)} image(s) with alerts.")
     print(f"Annotated images -> {annotated_dir}")
