@@ -146,6 +146,12 @@ def _build_parser() -> argparse.ArgumentParser:
                          '--interactive. Still requires --interactive (or the config file\'s '
                          'PipelineConfig.interactive) to also be on for the review window to actually '
                          'appear -- the master switch always has the final say.')
+    p.add_argument('--grid_interactive', action='store_true',
+                    help='Force grid_preperation\'s own CifExportConfig.interactive_alignment on for '
+                         'this run even if its own config file has it false. One-directional, same as '
+                         '--interactive. Still requires --interactive (or the config file\'s '
+                         'PipelineConfig.interactive) to also be on for the alignment review window to '
+                         'actually appear -- the master switch always has the final say.')
     return p
 
 
@@ -159,16 +165,18 @@ def run_pipeline(
     keep_template: bool = False,
     interactive: bool = False,
     detection_interactive: bool = False,
+    grid_interactive: bool = False,
 ) -> tuple[list, list[dict], list[dict]]:
     """Run flake_detection, then grid_preperation, then contact_placement.
     Returns (flake_detection_results, grid_preperation_results,
     contact_placement_results) -- the third is [] if skipped (no_placement,
     no_contacts, or nothing was placed).
 
-    interactive/detection_interactive are one-directional CLI overrides (see
-    --interactive/--detection_interactive): each forces the corresponding
-    config flag ON for this run only, never OFF -- a config file that
-    already has it on is left alone."""
+    interactive/detection_interactive/grid_interactive are one-directional
+    CLI overrides (see --interactive/--detection_interactive/
+    --grid_interactive): each forces the corresponding config flag ON for
+    this run only, never OFF -- a config file that already has it on is
+    left alone."""
     input_folder = Path(input_folder)
     output_folder = Path(output_folder) if output_folder is not None else input_folder / 'pipeline_results'
 
@@ -209,6 +217,12 @@ def run_pipeline(
         export_config.template_cif_path = str(template_override)
     if no_placement:
         export_config.template_cif_path = None
+    if grid_interactive:
+        export_config.interactive_alignment = True
+    if not pipeline_config.interactive:
+        # Master switch off -- never pop grid_preperation's alignment review
+        # window for this run either, same gate as detection_config above.
+        export_config.interactive_alignment = False
     # Always wired to the SAME DetectionConfig flake_detection itself just
     # ran with (pipeline_config.flake_detection_config_path), overriding
     # whatever static value grid_preperation's own config file happens to
@@ -297,6 +311,7 @@ def main() -> None:
         template_override=args.template, no_placement=args.no_placement, no_contacts=args.no_contacts,
         keep_template=args.keep_template,
         interactive=args.interactive, detection_interactive=args.detection_interactive,
+        grid_interactive=args.grid_interactive,
     )
 
 
