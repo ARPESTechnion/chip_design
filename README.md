@@ -71,12 +71,13 @@ images — it doesn't itself contain any detection/export tuning:
 ```
 
 **`interactive`** — master switch for every stage's own interactive UI
-(currently `flake_detection`'s review window; more stages may grow one
-later). `False` forces them all off for this run regardless of what any
+(`flake_detection`'s review window, `grid_preperation`'s alignment review
+window). `False` forces them all off for this run regardless of what any
 individual stage's own config file says. `True` doesn't force any of them
-*on* by itself — each stage's own flag (e.g. `flake_detection`'s
-`interactive_review`) still decides whether that specific stage pops one.
-See **Interactive review** below.
+*on* by itself — each stage's own flag (`flake_detection`'s
+`interactive_review`, `grid_preperation`'s `interactive_alignment`) still
+decides whether that specific stage pops one. See **Interactive review**
+and **Interactive alignment** below.
 
 ### `flake_detection`'s config (e.g. `flake_detection/config/orange_flakes_tuned.json`)
 
@@ -159,6 +160,10 @@ folder and every run's placements are spliced into that copy.
   automatically. Don't raise this casually — it exists because very-high-
   vertex-count polygons can break downstream CAD tooling.
 - **`output_dir`** — defaults to `<input_folder>/cif_export_results/` if unset.
+- **`interactive_alignment`** — if `True`, pauses between marker detection
+  and everything downstream to let you manually drag-correct each image's
+  two calibration crosshairs. See **Interactive alignment** below. Default
+  `False`.
 
 After changing any of these, check `<output>/cif_export_results.json` — every
 image is reported `ok` or `alert` with a concrete reason, so you can see
@@ -172,15 +177,16 @@ python all_code.py --input_folder flakes/all -o out   # explicit input + output 
 python all_code.py --input_folder flakes/all --no-placement   # export CIFs, skip template placement
 python all_code.py --input_folder flakes/all --template my_master.cif
 python all_code.py --input_folder flakes/all --interactive --detection_interactive   # pop flake_detection's review window
+python all_code.py --input_folder flakes/all --interactive --grid_interactive        # pop grid_preperation's alignment window
 ```
 
-`--interactive` and `--detection_interactive` are one-directional CLI
-overrides for the config flags of the same purpose above — each forces the
-corresponding flag **on** for this run only; they never turn one *off* if a
-config file already has it `true`. `--detection_interactive` alone does
-nothing without `--interactive` (or `"interactive": true` in
-`config/pipeline_config.json`) also being on — the master switch always has
-the final say.
+`--interactive`, `--detection_interactive`, and `--grid_interactive` are
+one-directional CLI overrides for the config flags of the same purpose
+above — each forces the corresponding flag **on** for this run only; they
+never turn one *off* if a config file already has it `true`.
+`--detection_interactive`/`--grid_interactive` alone does nothing without
+`--interactive` (or `"interactive": true` in `config/pipeline_config.json`)
+also being on — the master switch always has the final say.
 
 This runs `flake_detection` on every image, stages the ones with at least
 one qualifying flake into `<output>/selected_for_grid_preperation/`, then
@@ -287,6 +293,55 @@ Debug output worth checking when tuning: `<output>/reconstructed/` (the
 posterized image each source image got reduced to before marker/polygon
 detection — shows what `channels_model` actually selected).
 
+### Interactive alignment
+
+Set `"interactive_alignment": true` in the `grid_preperation` config you run
+with (and, if going through `all_code.py`, also `"interactive": true` in
+`config/pipeline_config.json`, or pass `--interactive --grid_interactive` —
+see above) to get a manual checkpoint between marker **detection** and
+everything that consumes it (calibration, polygon extraction, CIF write,
+template placement) — nothing gets written or spliced for ANY image until
+you've had a chance to fix every image's alignment:
+
+```
+python -m grid_preperation.run --input_folder flakes/all --config grid_preperation/config/example_config.json
+# (with interactive_alignment: true in that config file)
+```
+
+A maximized window opens, one image at a time, showing its reconstructed
+image with the two calibration crosshairs drawn — red for the left/filename
+marker, green for the right (one grid column over), same colors as the
+`draw_marker_centers` debug output. An image where automatic detection
+failed outright still opens for review, seeded with two placeholder crosses
+to place from scratch instead of just alerting.
+
+| Action | How |
+|---|---|
+| Select a cross | Click it (red or green) |
+| Move the selected cross | Drag it, or use arrow keys (1px; Shift+arrow = 10px) |
+| Deselect (arrow keys navigate images again) | Click empty canvas space |
+| Previous / next image | `◀`/`▶` buttons, or `←`/`→` keys (when nothing's selected) |
+| Drop this image from the run entirely | "Drop Image" / "Include Image" toggle |
+| Save Changes | Writes `marker_overrides/<stem>.json` — a **permanent** override: every future run, interactive or not, uses this position/drop decision and skips automatic detection for that image. Button, or `Enter` |
+| Reset Changes | Reverts the current image to whatever was last saved (or, if never saved, back to the original starting position) |
+| Save All & Continue | Saves every image's current state, then ends the review (asks "are you sure?" first) |
+| Skip All | Ends the review without saving (asks "are you sure?" first) — any image never explicitly saved is left exactly as it started |
+
+Two aids for placing a cross precisely (mouse precision alone is coarser
+than calibration wants — marker separation sets `scale_um_per_px` for the
+**whole image**): while a cross is selected, a magnifier loupe appears in
+the top-right corner showing a zoomed, full-resolution crop around it (sized
+to fit a whole real crosshair, not just its core), with a full-span 1px
+yellow guide cross through the exact position for judging fine alignment by
+eye, plus a small color-matched cross marking the position itself. A live
+readout under the title also shows both crosses' exact pixel coordinates and
+the separation/angle/implied `scale_um_per_px` they'd produce.
+
+Like flake_detection's review, changes only take effect for runs that
+happen *after* you Save — a saved override or drop decision persists across
+every later run of `grid_preperation.run`, headless or not, until its
+`marker_overrides/<stem>.json` file is deleted by hand.
+
 ## `channels_model`
 
 You normally don't run this directly — `grid_preperation` calls the
@@ -314,7 +369,7 @@ config/pipeline_config.json    paths to each stage's own config + input_folder
 flake_detection/                image -> candidate-flake scoring
   run.py  config.py  detector.py  ui.py  config/*.json
 grid_preperation/                image -> CIF polygons -> placed in master template
-  run.py  config.py  channel_selection.py  markers.py  calibration.py  polygons.py  cif_io.py
+  run.py  config.py  channel_selection.py  markers.py  calibration.py  polygons.py  cif_io.py  ui.py
   BaseGrid.cif  (gitignored -- supply your own, see Setup)
   crosshair_template.png
   data/channels_cache/           (gitignored -- disk cache, rebuilt on demand)
