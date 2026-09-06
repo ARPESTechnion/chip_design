@@ -4,9 +4,17 @@ matlabengine==26.1
 shapely==2.1.2
 Pillow==12.2.0
 
-# The ML / channels_model stack (torch, onnxruntime, etc.) is kept in its own
-# file since it pins CUDA-specific wheels -- install it too:
-#   pip install -r requirements.txt -r channels_model/requirements.txt
-# It's needed even if you only run grid_preperation (not just channels_model
-# training): grid_preperation/channel_selection.py calls the trained ONNX
-# model via onnxruntime + torch. See README.md.
+# ML / channels_model stack -- needed even if you only run grid_preperation
+# (not just channels_model training): grid_preperation/channel_selection.py
+# calls the trained ONNX model via onnxruntime + torch. See README.md.
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.6.0+cu124
+torchvision==0.21.0+cu124
+onnx
+onnxruntime-gpu
+scikit-learn
+tqdm
+
+# --extra-index-url above pins CUDA 12.4 wheels for torch/torchvision --
+# edit that line first if you're on a different CUDA version, or just
+# accept CPU-only wheels.

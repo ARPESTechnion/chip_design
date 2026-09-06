@@ -24,14 +24,26 @@ own (e.g. to re-export CIFs without re-running detection).
 ## Setup
 
 ```
-python -m venv venv
-venv\Scripts\activate                      # Windows
-pip install -r requirements.txt -r channels_model/requirements.txt
+.\setup.ps1
 ```
 
-`channels_model/requirements.txt` pins CUDA-specific `torch`/`torchvision`
-wheels — edit its `--extra-index-url` line first if you're not on CUDA 12.4,
-or just accept CPU-only wheels.
+Creates `.\venv` (reused if it already exists) and installs everything from
+the one `requirements.txt` — including the `torch`/`onnxruntime` ML stack
+`channels_model` needs, which is required even if you only run
+`grid_preperation`, not just `channels_model` training (see below).
+`.\setup.ps1 -Force` deletes and recreates an existing venv.
+
+Equivalent by hand:
+
+```
+python -m venv venv
+venv\Scripts\activate                      # Windows
+pip install -r requirements.txt
+```
+
+`requirements.txt` pins CUDA-specific `torch`/`torchvision` wheels via
+`--extra-index-url` — edit that line first if you're not on CUDA 12.4, or
+just accept CPU-only wheels.
 
 **MATLAB**: `grid_preperation` calls MATLAB's real `rgb2ind` (via the
 `matlabengine` package) to compute color clusters — a from-scratch Python
@@ -364,6 +376,7 @@ overwrite hand-tuned values.
 ## Repo layout
 
 ```
+setup.ps1                      creates venv + installs requirements.txt
 all_code.py                    full-pipeline CLI
 config/pipeline_config.json    paths to each stage's own config + input_folder
 flake_detection/                image -> candidate-flake scoring
