@@ -5,6 +5,8 @@
 *.docx
 *.csv
 
+venv
+.venv
 .claude
 flakes
 data

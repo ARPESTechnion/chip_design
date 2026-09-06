@@ -58,6 +58,9 @@
   "marker_refine_max_aspect": 1.5,
   "draw_marker_centers": true,
 
+  "_comment_interactive_alignment": "If true, grid_preperation.run pops an interactive window between marker detection and everything else: drag the red (left/filename) and green (right) crosshair crosses to correct their position on any image, including placing both from scratch where automatic detection failed. Save writes a permanent per-image override (marker_overrides/<stem>.json) that skips automatic detection on every future run. Through all_code.py this is also gated by PipelineConfig.interactive (config/pipeline_config.json) -- both must be true to actually see it.",
+  "interactive_alignment": false,
+
   "_comment_placement": "grid_pitch_um is the ONE real-world grid used both for marker-pair calibration (scale + rotation) and for placement (grid ID -> absolute position): confirmed 200um, e.g. AA to AB. X_um = placement_x_offset_um + col_idx*grid_pitch_um, Y_um = placement_y_offset_um - row_idx*grid_pitch_um.",
   "grid_pitch_um": 200.0,
   "placement_x_offset_um": -2400.0,
