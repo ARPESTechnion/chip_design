@@ -342,6 +342,24 @@ class ContactPlacementConfig:
     <output>/flakes/<image>.json is already a real flake candidate."""
 
     # ------------------------------------------------------------------ #
+    # Chip geometry constraints                                           #
+    # ------------------------------------------------------------------ #
+
+    chip_border_margin_um: float = 400.0
+    """
+    No contact/cutting-mask geometry may be placed within this distance (um)
+    of the chip/die's own real edge. Applied by layout.place_all by shrinking
+    ChipBounds (see geometry.ChipBounds / cif_export.chip_bounds_from_cif) by
+    this margin on all four sides before passing it to place_hall/place_ring
+    -- both already reject any placement that doesn't fit entirely within
+    whatever bounds they're given (geometry.within_bounds), so this is the
+    only change needed to keep contacts away from the border, not a
+    separate check. No effect if chip_bounds_from_cif itself returns None
+    (no working template found, or it has no B/P content to derive an
+    extent from) -- never silently invents a boundary to shrink.
+    """
+
+    # ------------------------------------------------------------------ #
     # User-tunable run parameters (the "popping UI" sets these)           #
     # ------------------------------------------------------------------ #
 

@@ -9,12 +9,20 @@ CifExportConfig.interactive_alignment is True.
 
 One reconstructed image at a time, with the two calibration crosshairs drawn
 red (left_px -- the filename/grid marker) and green (right_px -- one grid
-column over), same colors as markers.draw_marker_centers's own debug output.
-DRAG either cross to correct its position -- including an image where
-automatic detection failed outright, which starts with two placeholder
-crosses positioned for you to drag onto the real markers from scratch. A
-"Drop Image" toggle excludes the image from this run entirely (regardless of
-any position) -- for an image with no usable markers at all.
+step over, see MarkerPair.direction), same colors as
+markers.draw_marker_centers's own debug output. DRAG either cross to correct
+its position -- including an image where automatic detection failed
+outright, which starts with two placeholder crosses positioned for you to
+drag onto the real markers from scratch. A "Drop Image" toggle excludes the
+image from this run entirely (regardless of any position) -- for an image
+with no usable markers at all. A "Vertical Layout" toggle flips
+MarkerPair.direction between the default 'col+1' (green one column right of
+red, same row) and 'row+1' (green one row BELOW red -- i.e. green sits
+below red) for a real image where the two crosshairs are genuinely stacked
+one below the other rather than side by side (automatic detection can never
+produce this on its own -- find_top_markers's own validation requires a
+horizontal pair, see markers._select_pair -- so it's a manual-only
+correction, same as a position override).
 
 Per-image "Save Changes" writes marker_overrides/<stem>.json (see
 markers.write_marker_override) -- a PERMANENT override: every future run of
@@ -86,7 +94,10 @@ _NUDGE_STEP_PX = 1
 _NUDGE_STEP_PX_FAST = 10  # with Shift held
 
 Point = tuple[float, float]
-State = tuple[Point, Point, bool]  # (left_px, right_px, dropped)
+State = tuple[Point, Point, bool, str]  # (left_px, right_px, dropped, direction)
+
+_VERTICAL_DIRECTION = 'row+1'  # green one row BELOW red -- i.e. green below red, see module docstring
+_DEFAULT_DIRECTION = 'col+1'
 
 _SOURCE_LABELS = {
     'auto': 'auto-detected',
@@ -129,13 +140,16 @@ class AlignmentReviewUI:
         for stage in self.stages:
             base_pos = (stage.marker_pair.left_px, stage.marker_pair.right_px) if stage.marker_pair \
                 else _seed_positions(stage.chan_sel)
-            base: State = (base_pos[0], base_pos[1], False)
+            base: State = (base_pos[0], base_pos[1], False, _DEFAULT_DIRECTION)
             self._original.append(base)
             override = load_marker_override(self.overrides_dir, stage.img_path.stem)
             if override is not None:
-                pos = (override.marker_pair.left_px, override.marker_pair.right_px) \
-                    if override.marker_pair else base_pos
-                saved: State | None = (pos[0], pos[1], override.dropped)
+                if override.marker_pair is not None:
+                    pos = (override.marker_pair.left_px, override.marker_pair.right_px)
+                    direction = override.marker_pair.direction
+                else:
+                    pos, direction = base_pos, _DEFAULT_DIRECTION
+                saved: State | None = (pos[0], pos[1], override.dropped, direction)
             else:
                 saved = None
             self._saved.append(saved)
@@ -202,6 +216,8 @@ class AlignmentReviewUI:
             side='left', padx=10)
         self.drop_btn = ttk.Button(action_row, text="Drop Image", command=self._toggle_drop)
         self.drop_btn.pack(side='left', padx=10)
+        self.direction_btn = ttk.Button(action_row, text="Vertical Layout", command=self._toggle_direction)
+        self.direction_btn.pack(side='left', padx=10)
         skip_row = ttk.Frame(bottom)
         skip_row.pack(side='top')
         ttk.Button(skip_row, text="Save All & Continue", command=self._save_all).pack(side='left', padx=4)
@@ -233,7 +249,7 @@ class AlignmentReviewUI:
 
     def _render(self) -> None:
         stage = self.stages[self.idx]
-        left, right, dropped = self._current[self.idx]
+        left, right, dropped, direction = self._current[self.idx]
         raw_bgr = stage.chan_sel.reconstructed_bgr  # magnifier crops from this -- see below
         image_bgr = raw_bgr.copy()
         for pos, color in ((left, _RED), (right, _GREEN)):
@@ -243,8 +259,13 @@ class AlignmentReviewUI:
             )
         if dropped:
             cv2.putText(
-                image_bgr, "DROPPED — excluded from this run", (20, 40),
+                image_bgr, "DROPPED - excluded from this run", (20, 40),
                 cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0, 0, 255), 3, cv2.LINE_AA,
+            )
+        if direction != _DEFAULT_DIRECTION:
+            cv2.putText(
+                image_bgr, "VERTICAL LAYOUT - green below red", (20, 80 if dropped else 40),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.1, _MAGNIFIER_GUIDE_COLOR, 3, cv2.LINE_AA,
             )
 
         h, w = image_bgr.shape[:2]
@@ -282,9 +303,14 @@ class AlignmentReviewUI:
 
         name = stage.img_path.name
         status_bit = "DROPPED" if dropped else _SOURCE_LABELS[stage.source]
+        if direction != _DEFAULT_DIRECTION:
+            status_bit += ", vertical layout"
         self.title_label.config(text=f"[{self.idx + 1}/{len(self.stages)}] {name}  ({status_bit})")
         self.dirty_label.config(text="unsaved changes" if self._is_dirty(self.idx) else "")
         self.drop_btn.config(text="Include Image" if dropped else "Drop Image")
+        self.direction_btn.config(
+            text="Horizontal Layout (default)" if direction != _DEFAULT_DIRECTION else "Vertical Layout (green below red)"
+        )
 
         if self._selected == 'left':
             self.selection_label.config(text="Selected: LEFT marker (red) — arrow keys nudge it", foreground='#b00000')
@@ -347,7 +373,7 @@ class AlignmentReviewUI:
 
     def _on_press(self, event: tk.Event) -> None:
         px, py = self._to_image_px(event)
-        left, right, _ = self._current[self.idx]
+        left, right, _, _ = self._current[self.idx]
         grab_r = _GRAB_RADIUS_SCREEN_PX / self._scale
         dl = math.hypot(px - left[0], py - left[1])
         dr = math.hypot(px - right[0], py - right[1])
@@ -366,11 +392,11 @@ class AlignmentReviewUI:
         if self._dragging is None:
             return
         px, py = self._to_image_px(event)
-        left, right, dropped = self._current[self.idx]
+        left, right, dropped, direction = self._current[self.idx]
         if self._dragging == 'left':
-            self._current[self.idx] = ((px, py), right, dropped)
+            self._current[self.idx] = ((px, py), right, dropped, direction)
         else:
-            self._current[self.idx] = (left, (px, py), dropped)
+            self._current[self.idx] = (left, (px, py), dropped, direction)
         self._render()
 
     def _on_release(self, event: tk.Event) -> None:
@@ -380,12 +406,12 @@ class AlignmentReviewUI:
     # -- keyboard nudge -----------------------------------------------------
 
     def _nudge(self, dx: int, dy: int) -> None:
-        left, right, dropped = self._current[self.idx]
+        left, right, dropped, direction = self._current[self.idx]
         if self._selected == 'left':
             left = (left[0] + dx, left[1] + dy)
         else:
             right = (right[0] + dx, right[1] + dy)
-        self._current[self.idx] = (left, right, dropped)
+        self._current[self.idx] = (left, right, dropped, direction)
         self._render()
 
     @staticmethod
@@ -426,14 +452,24 @@ class AlignmentReviewUI:
         self._render()
 
     def _toggle_drop(self) -> None:
-        left, right, dropped = self._current[self.idx]
-        self._current[self.idx] = (left, right, not dropped)
+        left, right, dropped, direction = self._current[self.idx]
+        self._current[self.idx] = (left, right, not dropped, direction)
+        self._render()
+
+    def _toggle_direction(self) -> None:
+        left, right, dropped, direction = self._current[self.idx]
+        new_direction = _DEFAULT_DIRECTION if direction != _DEFAULT_DIRECTION else _VERTICAL_DIRECTION
+        self._current[self.idx] = (left, right, dropped, new_direction)
         self._render()
 
     def _save_index(self, i: int) -> None:
         stage = self.stages[i]
-        left, right, dropped = self._current[i]
-        write_marker_override(self.overrides_dir, stage.img_path.stem, MarkerPair(left_px=left, right_px=right), dropped=dropped)
+        left, right, dropped, direction = self._current[i]
+        write_marker_override(
+            self.overrides_dir, stage.img_path.stem,
+            MarkerPair(left_px=left, right_px=right, direction=direction),
+            dropped=dropped,
+        )
         self._saved[i] = self._current[i]
 
     def _save(self) -> None:
