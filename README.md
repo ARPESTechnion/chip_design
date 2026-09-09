@@ -51,6 +51,17 @@ reimplementation wasn't reliable enough. You need a local MATLAB install
 with the **Image Processing Toolbox**. Results are disk-cached per image, so
 MATLAB is only actually invoked the first time a given image is processed.
 
+`matlabengine` is version-locked 1:1 to a specific MATLAB release (e.g. a
+local R2026a needs exactly `matlabengine==26.1`), so `requirements.txt`
+deliberately does **not** pin it — `setup.ps1` detects your local MATLAB
+release (scanning `Program Files\MATLAB\R*`) and installs the matching
+`matlabengine` version itself. `setup.ps1` cannot install MATLAB itself (a
+licensed product) or confirm the Image Processing Toolbox is actually
+licensed (only that its files are present on disk); if it can't find a local
+MATLAB, or the version it installs doesn't match, install it by hand:
+`venv\Scripts\python.exe -m pip install matlabengine==<version>` — release
+`R20YYa` → `YY.1`, `R20YYb` → `YY.2` (e.g. `R2026a` → `26.1`).
+
 **Trained model**: download it from
 **https://drive.google.com/drive/folders/1UgtzAjijtjCXCGo_lJOhxZYN9KE9eSsn?usp=drive_link**
 and place the files at `channels_model/outputs/` (you should end up with
