@@ -69,7 +69,16 @@ _template_core_offset_cache: tuple[float, float] | None = None
 @dataclass
 class MarkerPair:
     left_px: tuple[float, float]   # (x, y), the filename's grid marker
-    right_px: tuple[float, float]  # (x, y), one grid column to the right
+    right_px: tuple[float, float]  # (x, y), one grid step over -- see `direction`
+    direction: str = 'col+1'
+    """Which grid step `right_px` represents relative to `left_px` -- see
+    calibration.second_marker_id / calibration._DIRECTION_STEPS for the full
+    set ('col+1' default: same row, one column over). find_top_markers()
+    below always produces 'col+1' (automatic detection's own validation
+    requires a horizontal pair, see _select_pair); a non-default value only
+    ever comes from a human-set override (grid_preperation.ui's marker-
+    direction toggle, for a real image where the two crosshairs are
+    genuinely stacked one below the other rather than side by side)."""
 
 
 class MarkerDetectionError(Exception):
@@ -115,14 +124,21 @@ def load_marker_override(overrides_dir: Path, stem: str) -> Optional[MarkerOverr
     an earlier interactive session skips automatic detection entirely on
     later runs) and its finish stage (so a correction saved DURING the
     current run's own interactive review, after detection already ran, is
-    still picked up -- see that module's own docstring)."""
+    still picked up -- see that module's own docstring).
+
+    `direction` (see MarkerPair) defaults to 'col+1' if the saved file
+    predates that field -- exactly matching what an old override with no
+    stored direction actually meant at the time it was saved."""
     path = Path(overrides_dir) / f"{stem}.json"
     if not path.exists():
         return None
     data = json.loads(path.read_text())
     marker_pair = None
     if 'left_px' in data and 'right_px' in data:
-        marker_pair = MarkerPair(left_px=tuple(data['left_px']), right_px=tuple(data['right_px']))
+        marker_pair = MarkerPair(
+            left_px=tuple(data['left_px']), right_px=tuple(data['right_px']),
+            direction=data.get('direction', 'col+1'),
+        )
     return MarkerOverride(marker_pair=marker_pair, dropped=bool(data.get('dropped', False)))
 
 
@@ -136,7 +152,8 @@ def write_marker_override(
     overriding automatic detection for it (and/or dropping it from every
     future run entirely) until this file is deleted by hand -- see
     load_marker_override. marker_pair may be None (a dropped image with no
-    position ever saved)."""
+    position ever saved); its own `.direction` (see MarkerPair) is persisted
+    alongside left_px/right_px."""
     overrides_dir = Path(overrides_dir)
     overrides_dir.mkdir(parents=True, exist_ok=True)
     path = overrides_dir / f"{stem}.json"
@@ -144,6 +161,7 @@ def write_marker_override(
     if marker_pair is not None:
         data['left_px'] = list(marker_pair.left_px)
         data['right_px'] = list(marker_pair.right_px)
+        data['direction'] = marker_pair.direction
     path.write_text(json.dumps(data, indent=2))
 
 

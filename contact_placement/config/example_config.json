@@ -17,6 +17,9 @@
   "_comment_flake_filter": "min_flake_score is flake_detection's OWN final_score (not re-derived -- grid_preperation just transforms flake_detection's real contour+score through its own calibration, see CifExportConfig.flake_detection_output_dir). No separate marker filter needed -- flake_detection already excludes marker/grid-dot regions before scoring.",
   "min_flake_score": 0.3,
 
+  "_comment_chip_border_margin_um": "No contact/cutting-mask geometry may be placed within this many um of the chip/die's real edge (derived from the working template's own B/P content, see cif_export.chip_bounds_from_cif) -- shrinks that boundary inward on all four sides before Hall/Ring placement.",
+  "chip_border_margin_um": 400.0,
+
   "_comment_user_tunable": "These are the 'popping UI' parameters from the spec -- set here for headless/CLI runs, adjustable in the UI before committing to export.",
   "num_halls_to_try": 9999,
   "min_flake_length_for_hall": 9.0,
