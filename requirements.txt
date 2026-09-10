@@ -1,11 +1,27 @@
 opencv-python==5.0.0.93
 numpy==2.5.1
-matlabengine==26.1
+# matlabengine is intentionally NOT pinned here -- it's version-locked 1:1 to
+# a specific local MATLAB release (e.g. R2026a needs exactly matlabengine==26.1;
+# a different release needs a different matlabengine version), so a single
+# hardcoded pin in this shared file would silently be wrong for anyone not on
+# that one release. setup.ps1 detects your local MATLAB release and installs
+# the matching matlabengine version itself; installing this file directly
+# (not via setup.ps1) skips matlabengine entirely -- install it by hand
+# afterward, see README.md's Setup section.
 shapely==2.1.2
+Pillow==12.2.0
 
-# The ML / channels_model stack (torch, onnxruntime, etc.) is kept in its own
-# file since it pins CUDA-specific wheels -- install it too:
-#   pip install -r requirements.txt -r channels_model/requirements.txt
-# It's needed even if you only run grid_preperation (not just channels_model
-# training): grid_preperation/channel_selection.py calls the trained ONNX
-# model via onnxruntime + torch. See README.md.
+# ML / channels_model stack -- needed even if you only run grid_preperation
+# (not just channels_model training): grid_preperation/channel_selection.py
+# calls the trained ONNX model via onnxruntime + torch. See README.md.
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.6.0+cu124
+torchvision==0.21.0+cu124
+onnx
+onnxruntime-gpu
+scikit-learn
+tqdm
+
+# --extra-index-url above pins CUDA 12.4 wheels for torch/torchvision --
+# edit that line first if you're on a different CUDA version, or just
+# accept CPU-only wheels.

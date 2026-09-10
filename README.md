@@ -24,20 +24,43 @@ own (e.g. to re-export CIFs without re-running detection).
 ## Setup
 
 ```
-python -m venv venv
-venv\Scripts\activate                      # Windows
-pip install -r requirements.txt -r channels_model/requirements.txt
+.\setup.ps1
 ```
 
-`channels_model/requirements.txt` pins CUDA-specific `torch`/`torchvision`
-wheels — edit its `--extra-index-url` line first if you're not on CUDA 12.4,
-or just accept CPU-only wheels.
+Creates `.\venv` (reused if it already exists) and installs everything from
+the one `requirements.txt` — including the `torch`/`onnxruntime` ML stack
+`channels_model` needs, which is required even if you only run
+`grid_preperation`, not just `channels_model` training (see below).
+`.\setup.ps1 -Force` deletes and recreates an existing venv.
+
+Equivalent by hand:
+
+```
+python -m venv venv
+venv\Scripts\activate                      # Windows
+pip install -r requirements.txt
+```
+
+`requirements.txt` pins CUDA-specific `torch`/`torchvision` wheels via
+`--extra-index-url` — edit that line first if you're not on CUDA 12.4, or
+just accept CPU-only wheels.
 
 **MATLAB**: `grid_preperation` calls MATLAB's real `rgb2ind` (via the
 `matlabengine` package) to compute color clusters — a from-scratch Python
 reimplementation wasn't reliable enough. You need a local MATLAB install
 with the **Image Processing Toolbox**. Results are disk-cached per image, so
 MATLAB is only actually invoked the first time a given image is processed.
+
+`matlabengine` is version-locked 1:1 to a specific MATLAB release (e.g. a
+local R2026a needs exactly `matlabengine==26.1`), so `requirements.txt`
+deliberately does **not** pin it — `setup.ps1` detects your local MATLAB
+release (scanning `Program Files\MATLAB\R*`) and installs the matching
+`matlabengine` version itself. `setup.ps1` cannot install MATLAB itself (a
+licensed product) or confirm the Image Processing Toolbox is actually
+licensed (only that its files are present on disk); if it can't find a local
+MATLAB, or the version it installs doesn't match, install it by hand:
+`venv\Scripts\python.exe -m pip install matlabengine==<version>` — release
+`R20YYa` → `YY.1`, `R20YYb` → `YY.2` (e.g. `R2026a` → `26.1`).
 
 **Trained model**: download it from
 **https://drive.google.com/drive/folders/1UgtzAjijtjCXCGo_lJOhxZYN9KE9eSsn?usp=drive_link**
@@ -65,9 +88,19 @@ images — it doesn't itself contain any detection/export tuning:
 {
   "flake_detection_config_path": "flake_detection/config/orange_flakes_tuned.json",
   "grid_preperation_config_path": "grid_preperation/config/example_config.json",
-  "input_folder": "flakes/all"
+  "input_folder": "flakes/all",
+  "interactive": false
 }
 ```
+
+**`interactive`** — master switch for every stage's own interactive UI
+(`flake_detection`'s review window, `grid_preperation`'s alignment review
+window). `False` forces them all off for this run regardless of what any
+individual stage's own config file says. `True` doesn't force any of them
+*on* by itself — each stage's own flag (`flake_detection`'s
+`interactive_review`, `grid_preperation`'s `interactive_alignment`) still
+decides whether that specific stage pops one. See **Interactive review**
+and **Interactive alignment** below.
 
 ### `flake_detection`'s config (e.g. `flake_detection/config/orange_flakes_tuned.json`)
 
@@ -109,6 +142,10 @@ images — it doesn't itself contain any detection/export tuning:
   [0-1] for a flake to appear in results. Start at `0.0`, inspect
   `results.json`'s score distribution, then raise to cut false positives.
 - **`top_n`** — if set, only the top N images by best flake score are kept.
+- **`interactive_review`** — if `True`, pops an interactive review window
+  right after detection finishes, letting you manually correct its
+  automatic chosen/rejected calls before anything downstream reads them.
+  See **Interactive review** below. Default `False`.
 
 ### `grid_preperation`'s config (e.g. `grid_preperation/config/example_config.json`)
 
@@ -146,6 +183,10 @@ folder and every run's placements are spliced into that copy.
   automatically. Don't raise this casually — it exists because very-high-
   vertex-count polygons can break downstream CAD tooling.
 - **`output_dir`** — defaults to `<input_folder>/cif_export_results/` if unset.
+- **`interactive_alignment`** — if `True`, pauses between marker detection
+  and everything downstream to let you manually drag-correct each image's
+  two calibration crosshairs. See **Interactive alignment** below. Default
+  `False`.
 
 After changing any of these, check `<output>/cif_export_results.json` — every
 image is reported `ok` or `alert` with a concrete reason, so you can see
@@ -158,7 +199,17 @@ python all_code.py                                   # input_folder from config/
 python all_code.py --input_folder flakes/all -o out   # explicit input + output folder
 python all_code.py --input_folder flakes/all --no-placement   # export CIFs, skip template placement
 python all_code.py --input_folder flakes/all --template my_master.cif
+python all_code.py --input_folder flakes/all --interactive --detection_interactive   # pop flake_detection's review window
+python all_code.py --input_folder flakes/all --interactive --grid_interactive        # pop grid_preperation's alignment window
 ```
+
+`--interactive`, `--detection_interactive`, and `--grid_interactive` are
+one-directional CLI overrides for the config flags of the same purpose
+above — each forces the corresponding flag **on** for this run only; they
+never turn one *off* if a config file already has it `true`.
+`--detection_interactive`/`--grid_interactive` alone does nothing without
+`--interactive` (or `"interactive": true` in `config/pipeline_config.json`)
+also being on — the master switch always has the final say.
 
 This runs `flake_detection` on every image, stages the ones with at least
 one qualifying flake into `<output>/selected_for_grid_preperation/`, then
@@ -204,6 +255,43 @@ good enough" rather than "wrong color entirely" (that's orange) or
 "unmeasurable/malformed shape" (that's blue/grey). Tune whichever config
 threshold matches the color you're seeing too much of.
 
+### Interactive review
+
+Set `"interactive_review": true` in the `flake_detection` config you run
+with (and, if going through `all_code.py`, also `"interactive": true` in
+`config/pipeline_config.json`, or pass `--interactive --detection_interactive`
+— see above) to get a manual checkpoint right after detection finishes,
+before anything downstream (`grid_preperation`, `contact_placement`) ever
+reads the results:
+
+```
+python -m flake_detection.run --input_folder flakes/all --config flake_detection/config/orange_flakes_tuned.json
+# (with interactive_review: true in that config file)
+```
+
+A maximized window opens, one image at a time. Every contour that cleared
+the **size filter** is outlined — green if currently chosen, red if
+rejected — regardless of which later stage (border, shape, color, or final
+score) actually rejected it, so you can both reject a false positive the
+pipeline accepted and rescue a near-miss it didn't. Only contours that
+failed the size filter itself are never shown (bulk dust/noise/grid-marker
+debris — the pipeline keeps no geometry for those at all).
+
+| Action | How |
+|---|---|
+| Toggle a flake | Click it (chosen ⇄ rejected) |
+| Previous / next image | `◀`/`▶` buttons, or `←`/`→` keys |
+| Save Changes | Rewrites this image's `contours/<stem>.json` (what `grid_preperation` reads) and `scores/<stem>.txt` to the currently-chosen flakes only, and rewrites `results.json` (which keeps every flake either way, chosen or not, for later inspection). Button, or `Enter` |
+| Reset Changes | Reverts the current image to whatever was last saved to disk |
+| Skip All | Ends the review (always asks "are you sure?" first) — any image whose edits were never explicitly saved is left exactly as `detect_flakes()` originally wrote it |
+
+Changes only take effect for `grid_preperation`/`contact_placement` runs
+that happen *after* you Save — `all_code.py`'s orchestrator already gets
+this ordering right (review happens before images are staged for
+`grid_preperation`), but a standalone `grid_preperation`/`contact_placement`
+run pointed at an old `flake_detection` output will only see whatever was
+last saved there.
+
 ## Running `grid_preperation` alone
 
 Expects a folder of already-selected images (e.g. `flake_detection`'s
@@ -228,6 +316,55 @@ Debug output worth checking when tuning: `<output>/reconstructed/` (the
 posterized image each source image got reduced to before marker/polygon
 detection — shows what `channels_model` actually selected).
 
+### Interactive alignment
+
+Set `"interactive_alignment": true` in the `grid_preperation` config you run
+with (and, if going through `all_code.py`, also `"interactive": true` in
+`config/pipeline_config.json`, or pass `--interactive --grid_interactive` —
+see above) to get a manual checkpoint between marker **detection** and
+everything that consumes it (calibration, polygon extraction, CIF write,
+template placement) — nothing gets written or spliced for ANY image until
+you've had a chance to fix every image's alignment:
+
+```
+python -m grid_preperation.run --input_folder flakes/all --config grid_preperation/config/example_config.json
+# (with interactive_alignment: true in that config file)
+```
+
+A maximized window opens, one image at a time, showing its reconstructed
+image with the two calibration crosshairs drawn — red for the left/filename
+marker, green for the right (one grid column over), same colors as the
+`draw_marker_centers` debug output. An image where automatic detection
+failed outright still opens for review, seeded with two placeholder crosses
+to place from scratch instead of just alerting.
+
+| Action | How |
+|---|---|
+| Select a cross | Click it (red or green) |
+| Move the selected cross | Drag it, or use arrow keys (1px; Shift+arrow = 10px) |
+| Deselect (arrow keys navigate images again) | Click empty canvas space |
+| Previous / next image | `◀`/`▶` buttons, or `←`/`→` keys (when nothing's selected) |
+| Drop this image from the run entirely | "Drop Image" / "Include Image" toggle |
+| Save Changes | Writes `marker_overrides/<stem>.json` — a **permanent** override: every future run, interactive or not, uses this position/drop decision and skips automatic detection for that image. Button, or `Enter` |
+| Reset Changes | Reverts the current image to whatever was last saved (or, if never saved, back to the original starting position) |
+| Save All & Continue | Saves every image's current state, then ends the review (asks "are you sure?" first) |
+| Skip All | Ends the review without saving (asks "are you sure?" first) — any image never explicitly saved is left exactly as it started |
+
+Two aids for placing a cross precisely (mouse precision alone is coarser
+than calibration wants — marker separation sets `scale_um_per_px` for the
+**whole image**): while a cross is selected, a magnifier loupe appears in
+the top-right corner showing a zoomed, full-resolution crop around it (sized
+to fit a whole real crosshair, not just its core), with a full-span 1px
+yellow guide cross through the exact position for judging fine alignment by
+eye, plus a small color-matched cross marking the position itself. A live
+readout under the title also shows both crosses' exact pixel coordinates and
+the separation/angle/implied `scale_um_per_px` they'd produce.
+
+Like flake_detection's review, changes only take effect for runs that
+happen *after* you Save — a saved override or drop decision persists across
+every later run of `grid_preperation.run`, headless or not, until its
+`marker_overrides/<stem>.json` file is deleted by hand.
+
 ## `channels_model`
 
 You normally don't run this directly — `grid_preperation` calls the
@@ -250,12 +387,13 @@ overwrite hand-tuned values.
 ## Repo layout
 
 ```
+setup.ps1                      creates venv + installs requirements.txt
 all_code.py                    full-pipeline CLI
 config/pipeline_config.json    paths to each stage's own config + input_folder
 flake_detection/                image -> candidate-flake scoring
-  run.py  config.py  detector.py  config/*.json
+  run.py  config.py  detector.py  ui.py  config/*.json
 grid_preperation/                image -> CIF polygons -> placed in master template
-  run.py  config.py  channel_selection.py  markers.py  calibration.py  polygons.py  cif_io.py
+  run.py  config.py  channel_selection.py  markers.py  calibration.py  polygons.py  cif_io.py  ui.py
   BaseGrid.cif  (gitignored -- supply your own, see Setup)
   crosshair_template.png
   data/channels_cache/           (gitignored -- disk cache, rebuilt on demand)

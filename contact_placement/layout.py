@@ -110,6 +110,15 @@ def place_all(config: ContactPlacementConfig) -> list[PlacementResult]:
     template = find_working_template(grid_dir)
     if template is not None:
         chip_bounds = chip_bounds_from_cif(template)
+        if chip_bounds is not None:
+            # Shrink inward by chip_border_margin_um on all four sides --
+            # within_bounds (used by both place_hall and place_ring) already
+            # rejects anything not entirely inside whatever bounds it's
+            # given, so this is the only change needed to keep contacts off
+            # a border strip near the real chip edge.
+            minx, miny, maxx, maxy = chip_bounds
+            m = config.chip_border_margin_um
+            chip_bounds = (minx + m, miny + m, maxx - m, maxy - m)
 
     candidates = _load_candidates(grid_dir, config.min_flake_score)
     results = {id(c): PlacementResult(candidate=c, mode=None, result=None) for c in candidates}

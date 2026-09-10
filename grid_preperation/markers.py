@@ -48,9 +48,11 @@ result). See _find_candidates and find_top_markers for the full pipeline.
 
 from __future__ import annotations
 
+import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, Optional
 
 import cv2
 import numpy as np
@@ -67,12 +69,100 @@ _template_core_offset_cache: tuple[float, float] | None = None
 @dataclass
 class MarkerPair:
     left_px: tuple[float, float]   # (x, y), the filename's grid marker
-    right_px: tuple[float, float]  # (x, y), one grid column to the right
+    right_px: tuple[float, float]  # (x, y), one grid step over -- see `direction`
+    direction: str = 'col+1'
+    """Which grid step `right_px` represents relative to `left_px` -- see
+    calibration.second_marker_id / calibration._DIRECTION_STEPS for the full
+    set ('col+1' default: same row, one column over). find_top_markers()
+    below always produces 'col+1' (automatic detection's own validation
+    requires a horizontal pair, see _select_pair); a non-default value only
+    ever comes from a human-set override (grid_preperation.ui's marker-
+    direction toggle, for a real image where the two crosshairs are
+    genuinely stacked one below the other rather than side by side)."""
 
 
 class MarkerDetectionError(Exception):
     """Raised when the top-2 crosshair markers can't be reliably located —
     callers should alert and skip the image, never guess."""
+
+
+@dataclass
+class MarkerStageResult:
+    """
+    Phase-A (detection-only) outcome for one image, produced by
+    grid_preperation.run._detect_markers_for_image. Consumed by Phase B
+    (grid_preperation.run._finish_image) and, when
+    CifExportConfig.interactive_alignment is True, by
+    grid_preperation.ui's manual-correction review window in between the
+    two -- see that module's own docstring for why marker_pair here is
+    never trusted directly by Phase B (which always re-checks the override
+    file on disk instead).
+    """
+    img_path: Path
+    chan_sel: Optional[Any]          # channel_selection's own reconstruct result; None only if channel selection itself failed (nothing to show/calibrate)
+    marker_pair: Optional[MarkerPair]  # None if no override existed yet AND (automatic detection failed OR the image is dropped)
+    source: str                      # 'auto' | 'override' | 'failed' | 'dropped'
+    error: Optional[str] = None      # set only when source == 'failed'
+
+
+@dataclass
+class MarkerOverride:
+    """A persisted per-image correction from grid_preperation.ui (see
+    write_marker_override/load_marker_override) -- a corrected MarkerPair to
+    use instead of automatic detection, a decision to drop the image from
+    this run entirely (dropped=True, regardless of any position), or both at
+    once (a position was saved before the image was later dropped -- kept
+    around so un-dropping it later doesn't lose that position)."""
+    marker_pair: Optional[MarkerPair]  # None only if dropped and no position was ever saved
+    dropped: bool = False
+
+
+def load_marker_override(overrides_dir: Path, stem: str) -> Optional[MarkerOverride]:
+    """A previously human-corrected MarkerOverride for this image (see
+    write_marker_override), or None if it was never corrected. Checked by
+    BOTH grid_preperation.run's detection stage (so a correction saved in
+    an earlier interactive session skips automatic detection entirely on
+    later runs) and its finish stage (so a correction saved DURING the
+    current run's own interactive review, after detection already ran, is
+    still picked up -- see that module's own docstring).
+
+    `direction` (see MarkerPair) defaults to 'col+1' if the saved file
+    predates that field -- exactly matching what an old override with no
+    stored direction actually meant at the time it was saved."""
+    path = Path(overrides_dir) / f"{stem}.json"
+    if not path.exists():
+        return None
+    data = json.loads(path.read_text())
+    marker_pair = None
+    if 'left_px' in data and 'right_px' in data:
+        marker_pair = MarkerPair(
+            left_px=tuple(data['left_px']), right_px=tuple(data['right_px']),
+            direction=data.get('direction', 'col+1'),
+        )
+    return MarkerOverride(marker_pair=marker_pair, dropped=bool(data.get('dropped', False)))
+
+
+def write_marker_override(
+    overrides_dir: Path,
+    stem: str,
+    marker_pair: Optional[MarkerPair],
+    dropped: bool = False,
+) -> None:
+    """Persist a human-corrected MarkerOverride for this image, permanently
+    overriding automatic detection for it (and/or dropping it from every
+    future run entirely) until this file is deleted by hand -- see
+    load_marker_override. marker_pair may be None (a dropped image with no
+    position ever saved); its own `.direction` (see MarkerPair) is persisted
+    alongside left_px/right_px."""
+    overrides_dir = Path(overrides_dir)
+    overrides_dir.mkdir(parents=True, exist_ok=True)
+    path = overrides_dir / f"{stem}.json"
+    data: dict = {'dropped': dropped}
+    if marker_pair is not None:
+        data['left_px'] = list(marker_pair.left_px)
+        data['right_px'] = list(marker_pair.right_px)
+        data['direction'] = marker_pair.direction
+    path.write_text(json.dumps(data, indent=2))
 
 
 def _load_template() -> np.ndarray:

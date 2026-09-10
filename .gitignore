@@ -5,6 +5,10 @@
 *.docx
 *.csv
 
+PaperMaterials
+paper
+venv
+.venv
 .claude
 flakes
 data

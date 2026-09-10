@@ -4,11 +4,15 @@ Filename-driven, 2-marker pixel<->um calibration.
 No OCR anywhere: the left (filename-derived) marker's grid ID is decoded via
 the placement grid formula (see config.grid_pitch_um / placement_x_offset_um
 / placement_y_offset_um) to anchor the image's absolute position. The right
-marker's grid ID is inferred as the next column letter — same row, one grid
-step over. Scale and rotation both come from the two detected marker pixel
-positions: the real-world distance between them is exactly config.grid_pitch_um
-(one shared grid — confirmed by the user that adjacent markers, e.g. AA to
-AB, are 200um apart, and the master template uses that same grid pitch).
+marker's grid ID is inferred from `MarkerPair.direction` -- by default the
+next column letter, same row, one grid step over ('col+1'), but see
+second_marker_id for the other supported directions (e.g. a vertically-
+arranged pair, set via grid_preperation.ui's marker-direction toggle for a
+real image where the two crosshairs are stacked rather than side by side).
+Scale and rotation both come from the two detected marker pixel positions:
+the real-world distance between them is exactly config.grid_pitch_um (one
+shared grid — confirmed by the user that adjacent markers, e.g. AA to AB,
+are 200um apart, and the master template uses that same grid pitch).
 
 This intentionally does NOT use any burned-in scale-bar overlay that might be
 present in an image — an earlier version of this module did, which was a
@@ -19,6 +23,7 @@ supplied via config.grid_pitch_um — never assumed from image content.
 
 from __future__ import annotations
 
+import cmath
 import math
 from dataclasses import dataclass
 from pathlib import Path
@@ -60,15 +65,44 @@ def left_id_from_filename(image_path: str | Path) -> str:
     return stem
 
 
-def right_id_from_left(left_id: str) -> str:
-    """Same row, next column letter."""
-    row, col = left_id[0], left_id[1]
-    if col == 'Y':
+_DIRECTION_STEPS: dict[str, tuple[int, int]] = {
+    'col+1': (0, 1),    # default: right marker one column over, same row (the original assumption)
+    'col-1': (0, -1),   # right marker one column to the LEFT, same row
+    'row+1': (1, 0),    # right marker one row BELOW the left marker (left marker above)
+    'row-1': (-1, 0),   # right marker one row ABOVE the left marker -- i.e. the left/filename
+                        # marker sits BELOW the right one; row index increases downward (see
+                        # _placement_um), so "one row above" is index - 1
+}
+"""(row_step, col_step) applied to the left marker's own grid indices to
+reach the right marker's, per MarkerPair.direction. Only these 4 axis-
+aligned single-step directions are supported -- a real crosshair pair is
+always adjacent on the grid along one axis, never diagonal."""
+
+
+def second_marker_id(first_id: str, direction: str = 'col+1') -> str:
+    """
+    The second (right_px) marker's grid ID, one grid step from `first_id`
+    (the first/left_px marker's own ID) in `direction` -- generalizes the
+    original hardcoded "always one column to the right, same row"
+    assumption (still the default) to also support a vertically-arranged
+    pair. See _DIRECTION_STEPS for the full set and grid_preperation.ui's
+    marker-direction toggle for where a non-default value comes from in
+    practice (a real image where automatic detection's own horizontal-
+    alignment requirement can never be met, because the two crosshairs are
+    genuinely stacked one below the other, not side by side).
+    """
+    if direction not in _DIRECTION_STEPS:
         raise CalibrationError(
-            f"left marker {left_id!r} is at the rightmost grid column (Y); "
-            "the 'next column to the right' assumption breaks at this edge"
+            f"unknown marker direction {direction!r} (expected one of {sorted(_DIRECTION_STEPS)})"
         )
-    return row + chr(ord(col) + 1)
+    row_idx, col_idx = _grid_id_to_indices(first_id)
+    row_step, col_step = _DIRECTION_STEPS[direction]
+    new_row, new_col = row_idx + row_step, col_idx + col_step
+    if not (0 <= new_row < _ALPHABET_SIZE and 0 <= new_col < _ALPHABET_SIZE):
+        raise CalibrationError(
+            f"marker {first_id!r} plus direction {direction!r} steps outside the A-Y grid"
+        )
+    return chr(ord('A') + new_row) + chr(ord('A') + new_col)
 
 
 @dataclass
@@ -82,22 +116,28 @@ class Calibration:
     scale_um_per_px: float
 
     def pixel_to_um(self, x_px: float, y_px: float) -> tuple[float, float]:
-        """Transform an image-pixel coordinate to absolute (X_um, Y_um)."""
+        """
+        Transform an image-pixel coordinate to absolute (X_um, Y_um).
+
+        Image-pixel Y increases downward while um-space Y increases upward
+        (see _placement_um's row convention), so this is a rotation+scale
+        applied AFTER flipping the pixel offset's Y component -- not a pure
+        rotation+scale alone, which could never capture that axis flip (a
+        single complex multiplication is always orientation-preserving).
+        `rotation_rad`/`scale_um_per_px` are derived in calibrate() via the
+        exact inverse of this same flip-then-rotate-then-scale construction,
+        from whichever grid direction the right marker actually represents
+        (see MarkerPair.direction / second_marker_id) -- this method itself
+        doesn't need to know that direction, it's already baked into these
+        two numbers.
+        """
         dx_px = x_px - self.left_px[0]
         dy_px = y_px - self.left_px[1]
 
-        cos_t, sin_t = math.cos(self.rotation_rad), math.sin(self.rotation_rad)
-        # Rotate the pixel offset by -rotation_rad to align it with the grid.
-        grid_dx_px = dx_px * cos_t + dy_px * sin_t
-        grid_dy_px = -dx_px * sin_t + dy_px * cos_t
+        k = cmath.rect(self.scale_um_per_px, self.rotation_rad)
+        z_um = k * complex(dx_px, -dy_px)
 
-        # +x (grid-aligned) -> +X_um; +y (grid-aligned, i.e. downward in the
-        # image) -> -Y_um, matching the placement formula's row convention
-        # (Y_um decreases as row index / image row increases).
-        d_x_um = grid_dx_px * self.scale_um_per_px
-        d_y_um = -grid_dy_px * self.scale_um_per_px
-
-        return self.left_um[0] + d_x_um, self.left_um[1] + d_y_um
+        return self.left_um[0] + z_um.real, self.left_um[1] + z_um.imag
 
 
 def calibrate(
@@ -111,8 +151,9 @@ def calibrate(
     violation (bad filename, grid edge, etc.) — callers should alert & skip.
     """
     left_id = left_id_from_filename(image_path)
-    right_id = right_id_from_left(left_id)
+    right_id = second_marker_id(left_id, markers.direction)
     left_um = _placement_um(left_id, config)
+    right_um = _placement_um(right_id, config)
 
     dx_px = markers.right_px[0] - markers.left_px[0]
     dy_px = markers.right_px[1] - markers.left_px[1]
@@ -120,8 +161,17 @@ def calibrate(
     if pixel_distance == 0:
         raise CalibrationError("left and right marker pixel positions are identical")
 
-    rotation_rad = math.atan2(dy_px, dx_px)
-    scale_um_per_px = config.grid_pitch_um / pixel_distance
+    # Solve for the (scale, rotation) that maps the left->right PIXEL vector
+    # (Y-flipped first, see Calibration.pixel_to_um's own docstring) onto the
+    # left->right UM vector implied by right_id -- generalizes the old
+    # col+1-only atan2/grid_pitch_um formula to any MarkerPair.direction; it
+    # reduces to exactly that formula when direction == 'col+1' (the target
+    # UM vector is then (grid_pitch_um, 0), same as before).
+    z_px_flipped = complex(dx_px, -dy_px)
+    z_target_um = complex(right_um[0] - left_um[0], right_um[1] - left_um[1])
+    k = z_target_um / z_px_flipped
+    scale_um_per_px = abs(k)
+    rotation_rad = cmath.phase(k)
 
     calibration = Calibration(
         left_id=left_id,
@@ -135,14 +185,13 @@ def calibrate(
 
     # Self-consistency check: transforming the two marker pixels back through
     # the calibration should reproduce left_um exactly and place the right
-    # marker grid_pitch_um away along +X — regression guard against
-    # implementation bugs in pixel_to_um, not an independent verification.
+    # marker at exactly right_um — regression guard against implementation
+    # bugs in pixel_to_um, not an independent verification.
     check_left = calibration.pixel_to_um(*markers.left_px)
     check_right = calibration.pixel_to_um(*markers.right_px)
     if math.hypot(check_left[0] - left_um[0], check_left[1] - left_um[1]) > 1e-6:
         raise CalibrationError("internal error: left marker did not map back to left_um")
-    expected_right = (left_um[0] + config.grid_pitch_um, left_um[1])
-    if math.hypot(check_right[0] - expected_right[0], check_right[1] - expected_right[1]) > 1e-6:
-        raise CalibrationError("internal error: right marker did not map back to expected offset")
+    if math.hypot(check_right[0] - right_um[0], check_right[1] - right_um[1]) > 1e-6:
+        raise CalibrationError("internal error: right marker did not map back to right_um")
 
     return calibration

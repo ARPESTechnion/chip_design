@@ -101,5 +101,8 @@
   "isolation_score_weight": 0.33,
 
   "min_final_score": 0.5,
-  "top_n": null
+  "top_n": null,
+
+  "_comment_interactive_review": "If true, flake_detection.run pops an interactive review window right after detection: chosen flakes drawn green, click to reject (red) / re-accept, per-image Save/Reset, Skip All to finish. Through all_code.py this is also gated by PipelineConfig.interactive (config/pipeline_config.json) -- both must be true to actually see it.",
+  "interactive_review": false
 }

@@ -31,12 +31,14 @@ from pathlib import Path
 try:
     from .config import DetectionConfig
     from .detector import detect_flakes
+    from .ui import maybe_review
 except ImportError:
     # Running as `python flake_detection/run.py` rather than `python -m flake_detection.run`.
     # Add the project root to sys.path so absolute imports resolve correctly.
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from flake_detection.config import DetectionConfig
     from flake_detection.detector import detect_flakes
+    from flake_detection.ui import maybe_review
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -122,7 +124,10 @@ def main() -> None:
         config.save(args.save_config)
         print(f"Config saved to {args.save_config}")
 
-    results = detect_flakes(args.input_folder, config, args.output_folder)
+    output_folder = args.output_folder or (args.input_folder / 'flake_detection_results')
+    results = detect_flakes(args.input_folder, config, output_folder)
+
+    maybe_review(results, output_folder, config)
 
     # Print a summary of the top results
     if results:
