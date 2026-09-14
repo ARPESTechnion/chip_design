@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\WT.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=309)
+  final_score:       0.8952
+  area_px:           11076
+  bbox:              (1144, 356, 157, 131)
+  solidity:          0.8697
+  color_fraction:    0.9162  (color_score: 0.9162)
+  texture_score:     0.8796  (laplacian_var: 7.44, intensity_std: 6.04)
+  isolation_score:   0.8820  (neighbor_coverage: 0.0094)
+
+Flake 2 (contour_index=356)
+  final_score:       0.6150
+  area_px:           4404
+  bbox:              (1477, 171, 100, 75)
+  solidity:          0.9226
+  color_fraction:    0.4877  (color_score: 0.4877)
+  texture_score:     0.7253  (laplacian_var: 11.49, intensity_std: 15.25)
+  isolation_score:   0.6870  (neighbor_coverage: 0.0250)

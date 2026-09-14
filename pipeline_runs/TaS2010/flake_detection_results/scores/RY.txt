@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\RY.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=125)
+  final_score:       0.6446
+  area_px:           5108
+  bbox:              (1794, 1091, 76, 128)
+  solidity:          0.9373
+  color_fraction:    0.3580  (color_score: 0.3580)
+  texture_score:     0.9348  (laplacian_var: 6.39, intensity_std: 2.64)
+  isolation_score:   0.7860  (neighbor_coverage: 0.0171)

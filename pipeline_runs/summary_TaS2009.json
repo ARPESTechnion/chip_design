@@ -1,0 +1,17 @@
+{
+  "output_folder": "pipeline_runs\\TaS2009",
+  "images_total_in_input_folder": 77,
+  "images_with_any_candidate": 77,
+  "flakes_detected_chosen": 34,
+  "flakes_candidates_total": 1043,
+  "images_with_flakes": 31,
+  "images_staged_for_grid_prep": 31,
+  "images_ok_grid_prep": 29,
+  "images_placed": 29,
+  "flakes_exported_to_grid_prep": 32,
+  "flakes_considered_for_contacts": 32,
+  "flakes_with_contacts": 8,
+  "flakes_with_hall": 2,
+  "flakes_with_ring": 6,
+  "dataset": "TaS2009"
+}

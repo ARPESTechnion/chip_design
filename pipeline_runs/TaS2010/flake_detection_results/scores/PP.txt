@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\PP.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=77)
+  final_score:       0.7725
+  area_px:           4333
+  bbox:              (1105, 1061, 67, 105)
+  solidity:          0.8066
+  color_fraction:    0.6969  (color_score: 0.6969)
+  texture_score:     0.7907  (laplacian_var: 10.10, intensity_std: 11.26)
+  isolation_score:   0.8391  (neighbor_coverage: 0.0129)

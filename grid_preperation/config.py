@@ -160,6 +160,36 @@ class CifExportConfig:
     image newly fixed) -- default True. Set False to fall back to only the
     original two strategies, e.g. to isolate/compare behavior."""
 
+    non_substrate_mask_open_px: int = 0
+    """Optional light morphological opening (kernel size, px) applied to
+    markers._non_substrate_mask before whole-template correlation. 0 (the
+    default) means no change to every existing dataset's own mask. See
+    _non_substrate_mask's own docstring for why this isn't just always-on:
+    the original crosshair's arms are documented as the least color-stable,
+    thinnest (1-2px) part of a real image, and an opening aggressive enough
+    to matter risks eroding those away outright -- never actually needed
+    (or tested) on Ta2009/TS34001/flakes/all/TaS2011. Added for TaS2005,
+    whose own thicker-stroke marker tolerates it fine and whose own
+    substrate has real background speckle noise that otherwise drags
+    whole-template correlation below crosshair_whole_match_threshold."""
+
+    marker_template_path: Optional[str] = None
+    """Filename (resolved relative to this module's own directory, same as
+    the original hardcoded crosshair_template.png) of the reference crop
+    used for whole-shape correlation matching
+    (markers._find_whole_template_candidates / markers._template_core_offset).
+    None (the default) uses "crosshair_template.png" -- the original small
+    plain-cross template every dataset so far has shared. Override per-dataset
+    when a different marker design or scale is used: matchTemplate's
+    normalized correlation is shape- AND scale-sensitive, so a mismatched
+    template will not correlate well even on a perfectly real marker, even
+    though the separate core+arm-evidence strategy (crosshair_core_min_extent
+    etc.) is already scale-adaptive per-image and may still work unchanged
+    against a same-topology ("+"-shaped core and arms) marker of a different
+    size. Added for TaS2005's larger, tick-flanked reference-corner marker
+    (visually distinct from its own dataset's plain grid crosshairs) --
+    see grid_preperation/config/TaS2005.json."""
+
     crosshair_core_min_area: int = 200
     crosshair_core_max_area: int = 5000
     crosshair_core_min_extent: float = 0.75

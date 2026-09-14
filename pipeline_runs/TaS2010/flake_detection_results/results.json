@@ -1,0 +1,4634 @@
+[
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\PE.png",
+    "num_candidates": 2,
+    "best_score": 0.9153084135250233,
+    "flakes": [
+      {
+        "contour_index": 276,
+        "area_px": 5076.5,
+        "bbox": [
+          961,
+          476,
+          56,
+          117
+        ],
+        "is_large": false,
+        "solidity": 0.9225806451612903,
+        "color_fraction": 0.9241815048822516,
+        "color_score": 0.9241815048822516,
+        "laplacian_var": 7.722942680088409,
+        "intensity_std": 3.512765545422969,
+        "texture_score": 0.9164167460983018,
+        "neighbor_coverage": 0.007529507529507529,
+        "isolation_score": 0.9058811558811559,
+        "final_score": 0.9153084135250233,
+        "chosen": true
+      },
+      {
+        "contour_index": 89,
+        "area_px": 5933.0,
+        "bbox": [
+          290,
+          1226,
+          227,
+          162
+        ],
+        "is_large": false,
+        "solidity": 0.3795419651995906,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 28.500270737170606,
+        "intensity_std": 28.11430770728011,
+        "texture_score": 0.46428430144211597,
+        "neighbor_coverage": 0.01790736454366709,
+        "isolation_score": 0.7761579432041614,
+        "final_score": 0.40332003757008783,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\SV.png",
+    "num_candidates": 3,
+    "best_score": 0.9097143837402013,
+    "flakes": [
+      {
+        "contour_index": 157,
+        "area_px": 3648.0,
+        "bbox": [
+          971,
+          945,
+          81,
+          91
+        ],
+        "is_large": false,
+        "solidity": 0.9724110355857657,
+        "color_fraction": 0.8953952621772691,
+        "color_score": 0.8953952621772691,
+        "laplacian_var": 7.576636920430726,
+        "intensity_std": 4.178571693666221,
+        "texture_score": 0.9070148769132838,
+        "neighbor_coverage": 0.005969339302672636,
+        "isolation_score": 0.925383258716592,
+        "final_score": 0.9097143837402013,
+        "chosen": true
+      },
+      {
+        "contour_index": 234,
+        "area_px": 3385.0,
+        "bbox": [
+          145,
+          657,
+          102,
+          66
+        ],
+        "is_large": false,
+        "solidity": 0.7780714860360878,
+        "color_fraction": 0.38741534988713316,
+        "color_score": 0.38741534988713316,
+        "laplacian_var": 8.020147376646733,
+        "intensity_std": 6.887344549338769,
+        "texture_score": 0.8646092422533316,
+        "neighbor_coverage": 0.039974912523932135,
+        "isolation_score": 0.5003135934508482,
+        "final_score": 0.5280134257858589,
+        "chosen": true
+      },
+      {
+        "contour_index": 78,
+        "area_px": 4625.5,
+        "bbox": [
+          357,
+          1283,
+          129,
+          167
+        ],
+        "is_large": false,
+        "solidity": 0.5058231723987096,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 50.0358762411469,
+        "intensity_std": 32.03699983131661,
+        "texture_score": 0.3193014975656632,
+        "neighbor_coverage": 0.029783437922972805,
+        "isolation_score": 0.6277070259628399,
+        "final_score": 0.3149431098982686,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\QD.png",
+    "num_candidates": 2,
+    "best_score": 0.9091444697190394,
+    "flakes": [
+      {
+        "contour_index": 211,
+        "area_px": 6182.0,
+        "bbox": [
+          1098,
+          902,
+          109,
+          92
+        ],
+        "is_large": false,
+        "solidity": 0.92850705917693,
+        "color_fraction": 0.925193737150087,
+        "color_score": 0.925193737150087,
+        "laplacian_var": 8.07060225163482,
+        "intensity_std": 4.0317370233475565,
+        "texture_score": 0.9072415356432475,
+        "neighbor_coverage": 0.008476266453928998,
+        "isolation_score": 0.8940466693258875,
+        "final_score": 0.9091444697190394,
+        "chosen": true
+      },
+      {
+        "contour_index": 75,
+        "area_px": 4594.5,
+        "bbox": [
+          384,
+          1306,
+          183,
+          103
+        ],
+        "is_large": false,
+        "solidity": 0.49724025974025976,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 44.154289155772844,
+        "intensity_std": 30.676782679603413,
+        "texture_score": 0.36323110318285745,
+        "neighbor_coverage": 0.023644048313792066,
+        "isolation_score": 0.7044493960775992,
+        "final_score": 0.3544259790676112,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\WT.png",
+    "num_candidates": 3,
+    "best_score": 0.8951689314357588,
+    "flakes": [
+      {
+        "contour_index": 309,
+        "area_px": 11075.5,
+        "bbox": [
+          1144,
+          356,
+          157,
+          131
+        ],
+        "is_large": false,
+        "solidity": 0.8696898311739301,
+        "color_fraction": 0.916165014164306,
+        "color_score": 0.916165014164306,
+        "laplacian_var": 7.43617656962631,
+        "intensity_std": 6.043726029894925,
+        "texture_score": 0.8795994032730708,
+        "neighbor_coverage": 0.009443390976915555,
+        "isolation_score": 0.8819576127885556,
+        "final_score": 0.8951689314357588,
+        "chosen": true
+      },
+      {
+        "contour_index": 356,
+        "area_px": 4403.5,
+        "bbox": [
+          1477,
+          171,
+          100,
+          75
+        ],
+        "is_large": false,
+        "solidity": 0.9225853760737481,
+        "color_fraction": 0.487740225314778,
+        "color_score": 0.487740225314778,
+        "laplacian_var": 11.488167586146549,
+        "intensity_std": 15.252984174383725,
+        "texture_score": 0.7252525670396579,
+        "neighbor_coverage": 0.025037037037037038,
+        "isolation_score": 0.687037037037037,
+        "final_score": 0.6149614183486576,
+        "chosen": true
+      },
+      {
+        "contour_index": 97,
+        "area_px": 4288.5,
+        "bbox": [
+          352,
+          1216,
+          123,
+          164
+        ],
+        "is_large": false,
+        "solidity": 0.46269622916329506,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 56.806371883000125,
+        "intensity_std": 35.39477669234937,
+        "texture_score": 0.24185286208275902,
+        "neighbor_coverage": 0.02064995856570136,
+        "isolation_score": 0.7418755179287331,
+        "final_score": 0.34512077958804505,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\HH.png",
+    "num_candidates": 2,
+    "best_score": 0.8815819003628951,
+    "flakes": [
+      {
+        "contour_index": 254,
+        "area_px": 4786.0,
+        "bbox": [
+          912,
+          411,
+          78,
+          94
+        ],
+        "is_large": false,
+        "solidity": 0.9433330048290135,
+        "color_fraction": 0.8383941308335031,
+        "color_score": 0.8383941308335031,
+        "laplacian_var": 10.39008639657251,
+        "intensity_std": 3.915143683296695,
+        "texture_score": 0.8997124991642595,
+        "neighbor_coverage": 0.006743650360671637,
+        "isolation_score": 0.9157043704916046,
+        "final_score": 0.8815819003628951,
+        "chosen": true
+      },
+      {
+        "contour_index": 72,
+        "area_px": 4287.5,
+        "bbox": [
+          328,
+          1206,
+          137,
+          170
+        ],
+        "is_large": false,
+        "solidity": 0.41688949389858526,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 31.28918313719826,
+        "intensity_std": 31.178317150477227,
+        "texture_score": 0.40716851019404854,
+        "neighbor_coverage": 0.01607785888077859,
+        "isolation_score": 0.7990267639902676,
+        "final_score": 0.4010444076349168,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\VN.png",
+    "num_candidates": 2,
+    "best_score": 0.8725515128216343,
+    "flakes": [
+      {
+        "contour_index": 338,
+        "area_px": 3263.0,
+        "bbox": [
+          1282,
+          509,
+          94,
+          66
+        ],
+        "is_large": false,
+        "solidity": 0.8268085645508678,
+        "color_fraction": 0.8386619301361753,
+        "color_score": 0.8386619301361753,
+        "laplacian_var": 7.454872360708989,
+        "intensity_std": 2.8943366288092975,
+        "texture_score": 0.9267654611250246,
+        "neighbor_coverage": 0.009653270291568164,
+        "isolation_score": 0.879334121355398,
+        "final_score": 0.8725515128216343,
+        "chosen": true
+      },
+      {
+        "contour_index": 75,
+        "area_px": 4035.5,
+        "bbox": [
+          258,
+          1200,
+          217,
+          154
+        ],
+        "is_large": false,
+        "solidity": 0.2967715840564789,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 44.93275883045145,
+        "intensity_std": 35.057747900493695,
+        "texture_score": 0.29440274617078876,
+        "neighbor_coverage": 0.01176677904788504,
+        "isolation_score": 0.8529152619014371,
+        "final_score": 0.4000466539947326,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\TT.png",
+    "num_candidates": 3,
+    "best_score": 0.8717531907113778,
+    "flakes": [
+      {
+        "contour_index": 243,
+        "area_px": 5787.5,
+        "bbox": [
+          186,
+          540,
+          125,
+          95
+        ],
+        "is_large": false,
+        "solidity": 0.8608508106500075,
+        "color_fraction": 0.7800571716832017,
+        "color_score": 0.7800571716832017,
+        "laplacian_var": 8.811614124649944,
+        "intensity_std": 6.348316021897206,
+        "texture_score": 0.8695288031729421,
+        "neighbor_coverage": 0.0028350877192982456,
+        "isolation_score": 0.964561403508772,
+        "final_score": 0.8717531907113778,
+        "chosen": true
+      },
+      {
+        "contour_index": 72,
+        "area_px": 16272.5,
+        "bbox": [
+          849,
+          1209,
+          205,
+          157
+        ],
+        "is_large": false,
+        "solidity": 0.7856366928183464,
+        "color_fraction": 0.7246481850576796,
+        "color_score": 0.7246481850576796,
+        "laplacian_var": 9.161969589387281,
+        "intensity_std": 6.704399028658304,
+        "texture_score": 0.8627861362125764,
+        "neighbor_coverage": 0.02561924982307148,
+        "isolation_score": 0.6797593772116065,
+        "final_score": 0.7343202521502297,
+        "chosen": true
+      },
+      {
+        "contour_index": 71,
+        "area_px": 4117.0,
+        "bbox": [
+          377,
+          1211,
+          129,
+          159
+        ],
+        "is_large": false,
+        "solidity": 0.42827421200457716,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 64.1826185014328,
+        "intensity_std": 35.99654962578532,
+        "texture_score": 0.203321281607489,
+        "neighbor_coverage": 0.03175531828449775,
+        "isolation_score": 0.6030585214437781,
+        "final_score": 0.28188766489900907,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\SP.png",
+    "num_candidates": 2,
+    "best_score": 0.8717418223772453,
+    "flakes": [
+      {
+        "contour_index": 330,
+        "area_px": 4256.0,
+        "bbox": [
+          1327,
+          404,
+          96,
+          77
+        ],
+        "is_large": false,
+        "solidity": 0.9087221095334685,
+        "color_fraction": 0.8478609013955617,
+        "color_score": 0.8478609013955617,
+        "laplacian_var": 7.10031105507863,
+        "intensity_std": 2.3862657578081556,
+        "texture_score": 0.9358047694125632,
+        "neighbor_coverage": 0.010912698412698412,
+        "isolation_score": 0.8635912698412699,
+        "final_score": 0.8717418223772453,
+        "chosen": true
+      },
+      {
+        "contour_index": 50,
+        "area_px": 4300.5,
+        "bbox": [
+          307,
+          1256,
+          138,
+          157
+        ],
+        "is_large": false,
+        "solidity": 0.3963594470046083,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 50.38760450610451,
+        "intensity_std": 35.16022066006292,
+        "texture_score": 0.27104627207463816,
+        "neighbor_coverage": 0.020445726793353894,
+        "isolation_score": 0.7444284150830763,
+        "final_score": 0.3519806204481582,
+        "chosen": false
+      }
+    ],
+    "dark_spots": [
+      {
+        "bbox": [
+          1212,
+          492,
+          25,
+          22
+        ],
+        "area_px": 292.5,
+        "mean_brightness": 32.18769230769231
+      }
+    ]
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\FK.png",
+    "num_candidates": 2,
+    "best_score": 0.8585323144836168,
+    "flakes": [
+      {
+        "contour_index": 107,
+        "area_px": 3017.5,
+        "bbox": [
+          1085,
+          872,
+          124,
+          64
+        ],
+        "is_large": false,
+        "solidity": 0.6463532183784941,
+        "color_fraction": 0.7876777251184834,
+        "color_score": 0.7876777251184834,
+        "laplacian_var": 7.513176323472256,
+        "intensity_std": 3.0751970452744333,
+        "texture_score": 0.9238193390269945,
+        "neighbor_coverage": 0.008260528673835126,
+        "isolation_score": 0.896743391577061,
+        "final_score": 0.8585323144836168,
+        "chosen": true
+      },
+      {
+        "contour_index": 45,
+        "area_px": 6115.0,
+        "bbox": [
+          269,
+          1242,
+          217,
+          155
+        ],
+        "is_large": false,
+        "solidity": 0.4159439512974866,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 27.81369779967039,
+        "intensity_std": 30.05255735167437,
+        "texture_score": 0.43795684852620287,
+        "neighbor_coverage": 0.017204985306142,
+        "isolation_score": 0.784937683673225,
+        "final_score": 0.4015664431745306,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\CX.png",
+    "num_candidates": 2,
+    "best_score": 0.8373120879167142,
+    "flakes": [
+      {
+        "contour_index": 393,
+        "area_px": 3533.0,
+        "bbox": [
+          870,
+          421,
+          99,
+          62
+        ],
+        "is_large": false,
+        "solidity": 0.9346560846560846,
+        "color_fraction": 0.8392124692370796,
+        "color_score": 0.8392124692370796,
+        "laplacian_var": 7.909944266483079,
+        "intensity_std": 10.346878682931631,
+        "texture_score": 0.8131570426900931,
+        "neighbor_coverage": 0.012200861663227255,
+        "isolation_score": 0.8474892292096593,
+        "final_score": 0.8373120879167142,
+        "chosen": true
+      },
+      {
+        "contour_index": 90,
+        "area_px": 3009.5,
+        "bbox": [
+          281,
+          1333,
+          192,
+          103
+        ],
+        "is_large": false,
+        "solidity": 0.32188887106262365,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 70.77362547516404,
+        "intensity_std": 40.57778929047585,
+        "texture_score": 0.11690549809934386,
+        "neighbor_coverage": 0.05523216230936819,
+        "isolation_score": 0.30959797113289766,
+        "final_score": 0.14722028807302784,
+        "chosen": false
+      }
+    ],
+    "dark_spots": [
+      {
+        "bbox": [
+          1189,
+          1215,
+          19,
+          25
+        ],
+        "area_px": 291.5,
+        "mean_brightness": 32.661490683229815
+      }
+    ]
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\AU.png",
+    "num_candidates": 2,
+    "best_score": 0.8291104883906972,
+    "flakes": [
+      {
+        "contour_index": 216,
+        "area_px": 3354.0,
+        "bbox": [
+          1043,
+          790,
+          66,
+          85
+        ],
+        "is_large": false,
+        "solidity": 0.9745750399535087,
+        "color_fraction": 0.6071221771858715,
+        "color_score": 0.6071221771858715,
+        "laplacian_var": 6.855870461472841,
+        "intensity_std": 1.5628745752937647,
+        "texture_score": 0.9491333995247021,
+        "neighbor_coverage": 0.00071301247771836,
+        "isolation_score": 0.9910873440285205,
+        "final_score": 0.8291104883906972,
+        "chosen": true
+      },
+      {
+        "contour_index": 67,
+        "area_px": 4639.0,
+        "bbox": [
+          311,
+          1227,
+          137,
+          157
+        ],
+        "is_large": false,
+        "solidity": 0.4806008806008806,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 33.779859408365915,
+        "intensity_std": 30.234196311378128,
+        "texture_score": 0.4113676176958644,
+        "neighbor_coverage": 0.015653227238077338,
+        "isolation_score": 0.8043346595240333,
+        "final_score": 0.4040073873487862,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\SM.png",
+    "num_candidates": 2,
+    "best_score": 0.8202758831887091,
+    "flakes": [
+      {
+        "contour_index": 123,
+        "area_px": 3525.5,
+        "bbox": [
+          1181,
+          1061,
+          100,
+          60
+        ],
+        "is_large": false,
+        "solidity": 0.941388518024032,
+        "color_fraction": 0.6896929824561403,
+        "color_score": 0.6896929824561403,
+        "laplacian_var": 7.111535743534732,
+        "intensity_std": 2.748471510750874,
+        "texture_score": 0.9303267843645979,
+        "neighbor_coverage": 0.008333333333333333,
+        "isolation_score": 0.8958333333333334,
+        "final_score": 0.8202758831887091,
+        "chosen": true
+      },
+      {
+        "contour_index": 70,
+        "area_px": 3722.5,
+        "bbox": [
+          397,
+          1296,
+          128,
+          106
+        ],
+        "is_large": false,
+        "solidity": 0.5668062428625809,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 44.0733189194867,
+        "intensity_std": 33.384936777031335,
+        "texture_score": 0.3229326726665832,
+        "neighbor_coverage": 0.03251932651991614,
+        "isolation_score": 0.5935084185010483,
+        "final_score": 0.301989901933736,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\KU.png",
+    "num_candidates": 2,
+    "best_score": 0.8197097119737585,
+    "flakes": [
+      {
+        "contour_index": 152,
+        "area_px": 3382.0,
+        "bbox": [
+          813,
+          666,
+          92,
+          64
+        ],
+        "is_large": false,
+        "solidity": 0.9202721088435374,
+        "color_fraction": 0.7942938659058488,
+        "color_score": 0.7942938659058488,
+        "laplacian_var": 7.237212853200869,
+        "intensity_std": 2.0557798227797224,
+        "texture_score": 0.9402144512455007,
+        "neighbor_coverage": 0.017210144927536232,
+        "isolation_score": 0.7848731884057971,
+        "final_score": 0.8197097119737585,
+        "chosen": true
+      },
+      {
+        "contour_index": 25,
+        "area_px": 3536.5,
+        "bbox": [
+          377,
+          1259,
+          134,
+          111
+        ],
+        "is_large": false,
+        "solidity": 0.5334087481146305,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 54.657313988721484,
+        "intensity_std": 34.32047671950404,
+        "texture_score": 0.2665635932525534,
+        "neighbor_coverage": 0.033414011025951325,
+        "isolation_score": 0.5823248621756085,
+        "final_score": 0.2862426635207541,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\QI.png",
+    "num_candidates": 5,
+    "best_score": 0.8173714979358562,
+    "flakes": [
+      {
+        "contour_index": 542,
+        "area_px": 3346.5,
+        "bbox": [
+          1202,
+          23,
+          79,
+          100
+        ],
+        "is_large": false,
+        "solidity": 0.9568263045032166,
+        "color_fraction": 0.8339600809950825,
+        "color_score": 0.8339600809950825,
+        "laplacian_var": 6.780013742209142,
+        "intensity_std": 3.4706644076675777,
+        "texture_score": 0.9208199789161498,
+        "neighbor_coverage": 0.02007530604908138,
+        "isolation_score": 0.7490586743864828,
+        "final_score": 0.8173714979358562,
+        "chosen": true
+      },
+      {
+        "contour_index": 47,
+        "area_px": 3048.5,
+        "bbox": [
+          291,
+          1315,
+          165,
+          113
+        ],
+        "is_large": false,
+        "solidity": 0.3442104668887258,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 68.14259370626553,
+        "intensity_std": 39.601935251296545,
+        "texture_score": 0.13340059640548968,
+        "neighbor_coverage": 0.02648642109719954,
+        "isolation_score": 0.6689197362850058,
+        "final_score": 0.29424801379510024,
+        "chosen": false
+      },
+      {
+        "contour_index": 28,
+        "area_px": 7738.5,
+        "bbox": [
+          1365,
+          1381,
+          117,
+          137
+        ],
+        "is_large": false,
+        "solidity": 0.6841267736374486,
+        "color_fraction": 0.0007503751875937969,
+        "color_score": 0.0007503751875937969,
+        "laplacian_var": 8.296395840939033,
+        "intensity_std": 12.887586290983352,
+        "texture_score": 0.7735006222714936,
+        "neighbor_coverage": 0.06652226515240214,
+        "isolation_score": 0.16847168559497328,
+        "final_score": 0.22238894876732557,
+        "chosen": false
+      },
+      {
+        "contour_index": 54,
+        "area_px": 4070.0,
+        "bbox": [
+          1598,
+          1277,
+          99,
+          87
+        ],
+        "is_large": false,
+        "solidity": 0.6820847997318585,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 8.145296226143415,
+        "intensity_std": 4.134052848387443,
+        "texture_score": 0.9054080223696146,
+        "neighbor_coverage": 0.07944063882761201,
+        "isolation_score": 0.006992014654849887,
+        "final_score": 0.18387841033586289,
+        "chosen": false
+      },
+      {
+        "contour_index": 61,
+        "area_px": 3353.5,
+        "bbox": [
+          1484,
+          1243,
+          111,
+          116
+        ],
+        "is_large": false,
+        "solidity": 0.4622329427980703,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 95.6575215685989,
+        "intensity_std": 48.05337088432646,
+        "texture_score": 0.017369913725604435,
+        "neighbor_coverage": 0.13366815090953021,
+        "isolation_score": 0.0,
+        "final_score": 0.0034739827451208873,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\OF.png",
+    "num_candidates": 3,
+    "best_score": 0.8150990496149236,
+    "flakes": [
+      {
+        "contour_index": 198,
+        "area_px": 4585.0,
+        "bbox": [
+          1086,
+          358,
+          90,
+          121
+        ],
+        "is_large": false,
+        "solidity": 0.7351880060931613,
+        "color_fraction": 0.805093664491686,
+        "color_score": 0.805093664491686,
+        "laplacian_var": 8.368802439615365,
+        "intensity_std": 4.913964929728372,
+        "texture_score": 0.892815316295613,
+        "neighbor_coverage": 0.017100295888174678,
+        "isolation_score": 0.7862463013978165,
+        "final_score": 0.8150990496149236,
+        "chosen": true
+      },
+      {
+        "contour_index": 57,
+        "area_px": 3076.0,
+        "bbox": [
+          1923,
+          1080,
+          95,
+          47
+        ],
+        "is_large": false,
+        "solidity": 0.949089787102746,
+        "color_fraction": 0.07086861084979618,
+        "color_score": 0.07086861084979618,
+        "laplacian_var": 6.478636112471048,
+        "intensity_std": 2.58041288697857,
+        "texture_score": 0.9353792622454372,
+        "neighbor_coverage": 0.010444874274661509,
+        "isolation_score": 0.8694390715667312,
+        "final_score": 0.5631989254156984,
+        "chosen": false
+      },
+      {
+        "contour_index": 26,
+        "area_px": 4014.0,
+        "bbox": [
+          329,
+          1282,
+          155,
+          127
+        ],
+        "is_large": false,
+        "solidity": 0.36587366694011486,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 56.563653799714665,
+        "intensity_std": 36.54428308320778,
+        "texture_score": 0.22558113855302464,
+        "neighbor_coverage": 0.02047244094488189,
+        "isolation_score": 0.7440944881889764,
+        "final_score": 0.3427540229861955,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\OJ.png",
+    "num_candidates": 3,
+    "best_score": 0.8132623484977387,
+    "flakes": [
+      {
+        "contour_index": 192,
+        "area_px": 6811.0,
+        "bbox": [
+          1536,
+          1033,
+          138,
+          79
+        ],
+        "is_large": false,
+        "solidity": 0.8933630640083945,
+        "color_fraction": 0.8196275071633238,
+        "color_score": 0.8196275071633238,
+        "laplacian_var": 8.374259071938129,
+        "intensity_std": 3.3323044631394367,
+        "texture_score": 0.916518396765156,
+        "neighbor_coverage": 0.01957846674412442,
+        "isolation_score": 0.7552691656984447,
+        "final_score": 0.8132623484977387,
+        "chosen": true
+      },
+      {
+        "contour_index": 48,
+        "area_px": 3846.5,
+        "bbox": [
+          875,
+          1341,
+          119,
+          77
+        ],
+        "is_large": false,
+        "solidity": 0.7482735142495867,
+        "color_fraction": 0.41629185407296354,
+        "color_score": 0.41629185407296354,
+        "laplacian_var": 12.15141484340614,
+        "intensity_std": 8.490688841913748,
+        "texture_score": 0.8240340079976692,
+        "neighbor_coverage": 0.009725102162076952,
+        "isolation_score": 0.8784362229740381,
+        "final_score": 0.6826980324183345,
+        "chosen": true
+      },
+      {
+        "contour_index": 93,
+        "area_px": 3859.5,
+        "bbox": [
+          334,
+          1254,
+          150,
+          130
+        ],
+        "is_large": false,
+        "solidity": 0.4677614834565507,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 48.80889297105482,
+        "intensity_std": 33.75243136953385,
+        "texture_score": 0.29847795757277296,
+        "neighbor_coverage": 0.023344729344729344,
+        "isolation_score": 0.7081908831908832,
+        "final_score": 0.3429719447909079,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\YM.png",
+    "num_candidates": 2,
+    "best_score": 0.8103465182240175,
+    "flakes": [
+      {
+        "contour_index": 167,
+        "area_px": 3104.5,
+        "bbox": [
+          1507,
+          401,
+          95,
+          70
+        ],
+        "is_large": false,
+        "solidity": 0.8258845437616388,
+        "color_fraction": 0.662111801242236,
+        "color_score": 0.662111801242236,
+        "laplacian_var": 8.354579904196953,
+        "intensity_std": 8.558619438700825,
+        "texture_score": 0.8382023888026998,
+        "neighbor_coverage": 0.004427736006683375,
+        "isolation_score": 0.9446532999164579,
+        "final_score": 0.8103465182240175,
+        "chosen": true
+      },
+      {
+        "contour_index": 184,
+        "area_px": 4006.0,
+        "bbox": [
+          519,
+          321,
+          93,
+          67
+        ],
+        "is_large": false,
+        "solidity": 0.8659749243406831,
+        "color_fraction": 0.36857349746560464,
+        "color_score": 0.36857349746560464,
+        "laplacian_var": 6.914250047570941,
+        "intensity_std": 2.23833232887061,
+        "texture_score": 0.9387680148766571,
+        "neighbor_coverage": 0.026480500722195474,
+        "isolation_score": 0.6689937409725566,
+        "final_score": 0.6027804983505959,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\RA.png",
+    "num_candidates": 3,
+    "best_score": 0.7928655241683242,
+    "flakes": [
+      {
+        "contour_index": 28,
+        "area_px": 3340.0,
+        "bbox": [
+          515,
+          1462,
+          76,
+          60
+        ],
+        "is_large": false,
+        "solidity": 0.9678354100260794,
+        "color_fraction": 0.8519163763066202,
+        "color_score": 0.8519163763066202,
+        "laplacian_var": 7.489744179871264,
+        "intensity_std": 3.988945904584122,
+        "texture_score": 0.9102068347117531,
+        "neighbor_coverage": 0.025988478659334905,
+        "isolation_score": 0.6751440167583137,
+        "final_score": 0.7928655241683242,
+        "chosen": true
+      },
+      {
+        "contour_index": 364,
+        "area_px": 8371.5,
+        "bbox": [
+          0,
+          0,
+          111,
+          122
+        ],
+        "is_large": false,
+        "solidity": 0.787683477606323,
+        "color_fraction": 0.5037646241167613,
+        "color_score": 0.5037646241167613,
+        "laplacian_var": 150.40706346200272,
+        "intensity_std": 13.840128497591888,
+        "texture_score": 0.3923980725361217,
+        "neighbor_coverage": 0.037143701078127304,
+        "isolation_score": 0.5357037365234087,
+        "final_score": 0.4942669587632924,
+        "chosen": false
+      },
+      {
+        "contour_index": 97,
+        "area_px": 3853.0,
+        "bbox": [
+          272,
+          1250,
+          207,
+          112
+        ],
+        "is_large": false,
+        "solidity": 0.3658721868768398,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 51.474046584406935,
+        "intensity_std": 36.105908726100324,
+        "texture_score": 0.25251518277086743,
+        "neighbor_coverage": 0.025323978222528947,
+        "isolation_score": 0.6834502722183882,
+        "final_score": 0.32388314544152874,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\DQ.png",
+    "num_candidates": 2,
+    "best_score": 0.7904869970753097,
+    "flakes": [
+      {
+        "contour_index": 405,
+        "area_px": 4146.5,
+        "bbox": [
+          912,
+          635,
+          97,
+          60
+        ],
+        "is_large": false,
+        "solidity": 0.9634061338289963,
+        "color_fraction": 0.8627726952850105,
+        "color_score": 0.8627726952850105,
+        "laplacian_var": 7.0355574415730135,
+        "intensity_std": 2.7000547650193716,
+        "texture_score": 0.9313569487584175,
+        "neighbor_coverage": 0.028178694158075602,
+        "isolation_score": 0.6477663230240549,
+        "final_score": 0.7904869970753097,
+        "chosen": true
+      },
+      {
+        "contour_index": 102,
+        "area_px": 3122.0,
+        "bbox": [
+          415,
+          1284,
+          118,
+          104
+        ],
+        "is_large": false,
+        "solidity": 0.5217245989304813,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 80.13097155126141,
+        "intensity_std": 41.361358437199826,
+        "texture_score": 0.07947611379495437,
+        "neighbor_coverage": 0.06407540199913081,
+        "isolation_score": 0.1990574750108649,
+        "final_score": 0.09551821276333684,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\SA.png",
+    "num_candidates": 2,
+    "best_score": 0.7903418119546377,
+    "flakes": [
+      {
+        "contour_index": 124,
+        "area_px": 3474.5,
+        "bbox": [
+          954,
+          1150,
+          83,
+          81
+        ],
+        "is_large": false,
+        "solidity": 0.8722229195431154,
+        "color_fraction": 0.8461324429604897,
+        "color_score": 0.8461324429604897,
+        "laplacian_var": 9.4788260861678,
+        "intensity_std": 5.47007790034362,
+        "texture_score": 0.8800335271501745,
+        "neighbor_coverage": 0.02482357413191862,
+        "isolation_score": 0.6897053233510173,
+        "final_score": 0.7903418119546377,
+        "chosen": true
+      },
+      {
+        "contour_index": 469,
+        "area_px": 3513.0,
+        "bbox": [
+          532,
+          342,
+          78,
+          61
+        ],
+        "is_large": false,
+        "solidity": 0.9641827912721285,
+        "color_fraction": 0.8903617785142226,
+        "color_score": 0.8903617785142226,
+        "laplacian_var": 7.915481487841196,
+        "intensity_std": 4.102429787561495,
+        "texture_score": 0.9068016272352128,
+        "neighbor_coverage": 0.031946195880622114,
+        "isolation_score": 0.6006725514922235,
+        "final_score": 0.777774057449621,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\GV.png",
+    "num_candidates": 4,
+    "best_score": 0.7880970707609598,
+    "flakes": [
+      {
+        "contour_index": 322,
+        "area_px": 3808.0,
+        "bbox": [
+          702,
+          44,
+          65,
+          127
+        ],
+        "is_large": false,
+        "solidity": 0.9517620594851287,
+        "color_fraction": 0.6014713343480467,
+        "color_score": 0.6014713343480467,
+        "laplacian_var": 7.434066157508432,
+        "intensity_std": 8.860689761580751,
+        "texture_score": 0.837353388946255,
+        "neighbor_coverage": 0.003992428153501979,
+        "isolation_score": 0.9500946480812252,
+        "final_score": 0.7880970707609598,
+        "chosen": true
+      },
+      {
+        "contour_index": 268,
+        "area_px": 4342.5,
+        "bbox": [
+          184,
+          194,
+          103,
+          104
+        ],
+        "is_large": false,
+        "solidity": 0.627528901734104,
+        "color_fraction": 0.582787243337702,
+        "color_score": 0.582787243337702,
+        "laplacian_var": 9.213958406400465,
+        "intensity_std": 4.713089850403333,
+        "texture_score": 0.8924478186183481,
+        "neighbor_coverage": 0.021927640859679694,
+        "isolation_score": 0.7259044892540039,
+        "final_score": 0.701966256760352,
+        "chosen": true
+      },
+      {
+        "contour_index": 58,
+        "area_px": 4999.5,
+        "bbox": [
+          339,
+          1280,
+          195,
+          117
+        ],
+        "is_large": false,
+        "solidity": 0.4392461781760675,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 49.37869074952887,
+        "intensity_std": 31.33047405315766,
+        "texture_score": 0.33252812620451966,
+        "neighbor_coverage": 0.02058587186792315,
+        "isolation_score": 0.7426766016509607,
+        "final_score": 0.3635762659012882,
+        "chosen": false
+      },
+      {
+        "contour_index": 72,
+        "area_px": 5162.5,
+        "bbox": [
+          1545,
+          1206,
+          127,
+          112
+        ],
+        "is_large": false,
+        "solidity": 0.553055868016498,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 57.377371081920785,
+        "intensity_std": 40.61397636879308,
+        "texture_score": 0.17049051567231688,
+        "neighbor_coverage": 0.0271137982752156,
+        "isolation_score": 0.661077521559805,
+        "final_score": 0.2985291117583854,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\KK.png",
+    "num_candidates": 2,
+    "best_score": 0.7832339599878964,
+    "flakes": [
+      {
+        "contour_index": 59,
+        "area_px": 7341.5,
+        "bbox": [
+          892,
+          1052,
+          116,
+          132
+        ],
+        "is_large": false,
+        "solidity": 0.8382143061026431,
+        "color_fraction": 0.8643122676579925,
+        "color_score": 0.8643122676579925,
+        "laplacian_var": 7.757405354892443,
+        "intensity_std": 8.713394531607781,
+        "texture_score": 0.8382694606063135,
+        "neighbor_coverage": 0.026028967839312668,
+        "isolation_score": 0.6746379020085916,
+        "final_score": 0.7832339599878964,
+        "chosen": true
+      },
+      {
+        "contour_index": 24,
+        "area_px": 3689.0,
+        "bbox": [
+          352,
+          1286,
+          130,
+          106
+        ],
+        "is_large": false,
+        "solidity": 0.5692022835982101,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 49.12122225330026,
+        "intensity_std": 33.20819869082255,
+        "texture_score": 0.30539213062446074,
+        "neighbor_coverage": 0.024576681180454765,
+        "isolation_score": 0.6927914852443154,
+        "final_score": 0.3381950202226184,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\GU.png",
+    "num_candidates": 3,
+    "best_score": 0.7831732925482878,
+    "flakes": [
+      {
+        "contour_index": 378,
+        "area_px": 3622.0,
+        "bbox": [
+          1748,
+          7,
+          74,
+          123
+        ],
+        "is_large": false,
+        "solidity": 0.9439666406046391,
+        "color_fraction": 0.5379291988288528,
+        "color_score": 0.5379291988288528,
+        "laplacian_var": 6.303436104631448,
+        "intensity_std": 6.700319110607993,
+        "texture_score": 0.8742814689223544,
+        "neighbor_coverage": 0.0013709361535448493,
+        "isolation_score": 0.9828632980806894,
+        "final_score": 0.7831732925482878,
+        "chosen": true
+      },
+      {
+        "contour_index": 319,
+        "area_px": 3009.0,
+        "bbox": [
+          1231,
+          153,
+          65,
+          104
+        ],
+        "is_large": false,
+        "solidity": 0.8065942903096099,
+        "color_fraction": 0.8151688973868706,
+        "color_score": 0.8151688973868706,
+        "laplacian_var": 7.797335948282376,
+        "intensity_std": 2.9552570872384023,
+        "texture_score": 0.9244817998982945,
+        "neighbor_coverage": 0.026742274819197897,
+        "isolation_score": 0.6657215647600263,
+        "final_score": 0.7772525448384178,
+        "chosen": true
+      },
+      {
+        "contour_index": 76,
+        "area_px": 5648.5,
+        "bbox": [
+          218,
+          1188,
+          226,
+          168
+        ],
+        "is_large": false,
+        "solidity": 0.36392629340892985,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 36.64015522552734,
+        "intensity_std": 28.44357692297897,
+        "texture_score": 0.4267857252532061,
+        "neighbor_coverage": 0.015947050461975833,
+        "isolation_score": 0.800661869225302,
+        "final_score": 0.40562189274076205,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\LM.png",
+    "num_candidates": 2,
+    "best_score": 0.7764519962898258,
+    "flakes": [
+      {
+        "contour_index": 228,
+        "area_px": 5455.5,
+        "bbox": [
+          1096,
+          328,
+          101,
+          86
+        ],
+        "is_large": false,
+        "solidity": 0.9619148373446178,
+        "color_fraction": 0.7724014336917563,
+        "color_score": 0.7724014336917563,
+        "laplacian_var": 7.587685986788614,
+        "intensity_std": 6.66972694050848,
+        "texture_score": 0.8696033519452182,
+        "neighbor_coverage": 0.021285849515184075,
+        "isolation_score": 0.7339268810601991,
+        "final_score": 0.7764519962898258,
+        "chosen": true
+      },
+      {
+        "contour_index": 39,
+        "area_px": 5907.5,
+        "bbox": [
+          348,
+          1221,
+          233,
+          167
+        ],
+        "is_large": false,
+        "solidity": 0.35564853556485354,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 38.72264843546707,
+        "intensity_std": 28.961613649406715,
+        "texture_score": 0.410685201517031,
+        "neighbor_coverage": 0.014605927851880873,
+        "isolation_score": 0.8174259018514891,
+        "final_score": 0.40910740104400184,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\PP.png",
+    "num_candidates": 2,
+    "best_score": 0.7725493338876428,
+    "flakes": [
+      {
+        "contour_index": 77,
+        "area_px": 4333.0,
+        "bbox": [
+          1105,
+          1061,
+          67,
+          105
+        ],
+        "is_large": false,
+        "solidity": 0.8065897244973939,
+        "color_fraction": 0.6969494544644845,
+        "color_score": 0.6969494544644845,
+        "laplacian_var": 10.095667664336702,
+        "intensity_std": 11.264392588051578,
+        "texture_score": 0.7906514405218796,
+        "neighbor_coverage": 0.01287214720050541,
+        "isolation_score": 0.8390981599936824,
+        "final_score": 0.7725493338876428,
+        "chosen": true
+      },
+      {
+        "contour_index": 55,
+        "area_px": 5260.0,
+        "bbox": [
+          266,
+          1229,
+          223,
+          155
+        ],
+        "is_large": false,
+        "solidity": 0.2920194309507287,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 24.94043669755322,
+        "intensity_std": 28.55359203760211,
+        "texture_score": 0.47193437264575544,
+        "neighbor_coverage": 0.01094545713379794,
+        "isolation_score": 0.8631817858275257,
+        "final_score": 0.43965958886016143,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\UB.png",
+    "num_candidates": 3,
+    "best_score": 0.772404741925122,
+    "flakes": [
+      {
+        "contour_index": 276,
+        "area_px": 3243.5,
+        "bbox": [
+          1136,
+          373,
+          129,
+          89
+        ],
+        "is_large": false,
+        "solidity": 0.8220757825370676,
+        "color_fraction": 0.5453739284658587,
+        "color_score": 0.5453739284658587,
+        "laplacian_var": 7.425778130962654,
+        "intensity_std": 2.5740721404548026,
+        "texture_score": 0.9316858053693273,
+        "neighbor_coverage": 0.006416398107017391,
+        "isolation_score": 0.9197950236622826,
+        "final_score": 0.772404741925122,
+        "chosen": true
+      },
+      {
+        "contour_index": 181,
+        "area_px": 4472.0,
+        "bbox": [
+          1263,
+          616,
+          123,
+          72
+        ],
+        "is_large": false,
+        "solidity": 0.8979018170866379,
+        "color_fraction": 0.6906053373833804,
+        "color_score": 0.6906053373833804,
+        "laplacian_var": 8.149983132343765,
+        "intensity_std": 13.048907747685751,
+        "texture_score": 0.7716664512553387,
+        "neighbor_coverage": 0.027225735220315166,
+        "isolation_score": 0.6596783097460605,
+        "final_score": 0.6944467491028441,
+        "chosen": true
+      },
+      {
+        "contour_index": 81,
+        "area_px": 5752.5,
+        "bbox": [
+          301,
+          1215,
+          214,
+          164
+        ],
+        "is_large": false,
+        "solidity": 0.4032314594139913,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 33.21947029939691,
+        "intensity_std": 28.43201759896771,
+        "texture_score": 0.44064185481789675,
+        "neighbor_coverage": 0.026813758550920126,
+        "isolation_score": 0.6648280181134985,
+        "final_score": 0.3540595782089787,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\TV.png",
+    "num_candidates": 4,
+    "best_score": 0.7712045035187527,
+    "flakes": [
+      {
+        "contour_index": 276,
+        "area_px": 3021.5,
+        "bbox": [
+          909,
+          765,
+          60,
+          90
+        ],
+        "is_large": false,
+        "solidity": 0.8906411201179072,
+        "color_fraction": 0.7054881940012763,
+        "color_score": 0.7054881940012763,
+        "laplacian_var": 7.307120380861735,
+        "intensity_std": 3.1896486966085513,
+        "texture_score": 0.9229267880274248,
+        "neighbor_coverage": 0.01911522633744856,
+        "isolation_score": 0.761059670781893,
+        "final_score": 0.7712045035187527,
+        "chosen": true
+      },
+      {
+        "contour_index": 359,
+        "area_px": 6544.0,
+        "bbox": [
+          1611,
+          505,
+          106,
+          103
+        ],
+        "is_large": false,
+        "solidity": 0.8546428105001959,
+        "color_fraction": 0.723876153617148,
+        "color_score": 0.723876153617148,
+        "laplacian_var": 9.49370023011587,
+        "intensity_std": 9.723555047374047,
+        "texture_score": 0.8161718733689258,
+        "neighbor_coverage": 0.023793531578840243,
+        "isolation_score": 0.702580855264497,
+        "final_score": 0.7338171782264431,
+        "chosen": true
+      },
+      {
+        "contour_index": 48,
+        "area_px": 7059.0,
+        "bbox": [
+          1232,
+          1413,
+          132,
+          123
+        ],
+        "is_large": false,
+        "solidity": 0.6958793375394322,
+        "color_fraction": 0.6277162771627717,
+        "color_score": 0.6277162771627717,
+        "laplacian_var": 11.118748555088983,
+        "intensity_std": 14.162996531311759,
+        "texture_score": 0.7430800578099677,
+        "neighbor_coverage": 0.0227683337439435,
+        "isolation_score": 0.7153958282007062,
+        "final_score": 0.6858608537073847,
+        "chosen": false
+      },
+      {
+        "contour_index": 116,
+        "area_px": 4685.0,
+        "bbox": [
+          339,
+          1246,
+          130,
+          127
+        ],
+        "is_large": false,
+        "solidity": 0.587460815047022,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 42.582050400768814,
+        "intensity_std": 34.2807715881047,
+        "texture_score": 0.3154602245753543,
+        "neighbor_coverage": 0.030015478834376472,
+        "isolation_score": 0.6248065145702941,
+        "final_score": 0.3130146507431885,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\JM.png",
+    "num_candidates": 3,
+    "best_score": 0.7678889045301984,
+    "flakes": [
+      {
+        "contour_index": 267,
+        "area_px": 3385.0,
+        "bbox": [
+          1229,
+          505,
+          92,
+          90
+        ],
+        "is_large": false,
+        "solidity": 0.7269408353913884,
+        "color_fraction": 0.5558714813761729,
+        "color_score": 0.5558714813761729,
+        "laplacian_var": 9.817739762395961,
+        "intensity_std": 6.879770878491618,
+        "texture_score": 0.857532477773042,
+        "neighbor_coverage": 0.005193236714975845,
+        "isolation_score": 0.9350845410628019,
+        "final_score": 0.7678889045301984,
+        "chosen": true
+      },
+      {
+        "contour_index": 338,
+        "area_px": 3480.0,
+        "bbox": [
+          1256,
+          220,
+          101,
+          76
+        ],
+        "is_large": false,
+        "solidity": 0.7255290315855312,
+        "color_fraction": 0.27568163040484717,
+        "color_score": 0.27568163040484717,
+        "laplacian_var": 11.046265340752944,
+        "intensity_std": 9.711884541676904,
+        "texture_score": 0.8101366705118347,
+        "neighbor_coverage": 0.011102426032076892,
+        "isolation_score": 0.8612196745990388,
+        "final_score": 0.6167878561039214,
+        "chosen": false
+      },
+      {
+        "contour_index": 78,
+        "area_px": 4335.5,
+        "bbox": [
+          262,
+          1288,
+          188,
+          102
+        ],
+        "is_large": false,
+        "solidity": 0.45973172154180586,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 41.952280105256754,
+        "intensity_std": 30.966182424988062,
+        "texture_score": 0.36769814320415206,
+        "neighbor_coverage": 0.01861122699670885,
+        "isolation_score": 0.7673596625411394,
+        "final_score": 0.3804834936572862,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\TC.png",
+    "num_candidates": 2,
+    "best_score": 0.7580034164583127,
+    "flakes": [
+      {
+        "contour_index": 368,
+        "area_px": 3631.5,
+        "bbox": [
+          824,
+          581,
+          100,
+          56
+        ],
+        "is_large": false,
+        "solidity": 0.964798087141339,
+        "color_fraction": 0.9086782376502003,
+        "color_score": 0.9086782376502003,
+        "laplacian_var": 7.6909463730043095,
+        "intensity_std": 7.542871188952023,
+        "texture_score": 0.8560931466737024,
+        "neighbor_coverage": 0.035337301587301584,
+        "isolation_score": 0.5582837301587302,
+        "final_score": 0.7580034164583127,
+        "chosen": true
+      },
+      {
+        "contour_index": 110,
+        "area_px": 4318.0,
+        "bbox": [
+          337,
+          1218,
+          215,
+          137
+        ],
+        "is_large": false,
+        "solidity": 0.34377612356196013,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 67.67533420171767,
+        "intensity_std": 36.173149767138376,
+        "texture_score": 0.18670141668605364,
+        "neighbor_coverage": 0.01678643505158528,
+        "isolation_score": 0.790169561855184,
+        "final_score": 0.35340810807928436,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\OG.png",
+    "num_candidates": 2,
+    "best_score": 0.7568377566747617,
+    "flakes": [
+      {
+        "contour_index": 92,
+        "area_px": 3735.5,
+        "bbox": [
+          765,
+          1079,
+          104,
+          49
+        ],
+        "is_large": false,
+        "solidity": 0.8882415883961479,
+        "color_fraction": 0.5531531531531532,
+        "color_score": 0.5531531531531532,
+        "laplacian_var": 7.373086656983359,
+        "intensity_std": 7.261993554905145,
+        "texture_score": 0.8615777500484894,
+        "neighbor_coverage": 0.007347810919239491,
+        "isolation_score": 0.9081523635095063,
+        "final_score": 0.7568377566747617,
+        "chosen": true
+      },
+      {
+        "contour_index": 53,
+        "area_px": 4379.5,
+        "bbox": [
+          311,
+          1284,
+          160,
+          126
+        ],
+        "is_large": false,
+        "solidity": 0.48625992338866375,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 42.25315880173573,
+        "intensity_std": 30.937679735279524,
+        "texture_score": 0.3669221687638643,
+        "neighbor_coverage": 0.018022486772486773,
+        "isolation_score": 0.7747189153439153,
+        "final_score": 0.38327199989033905,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\RE.png",
+    "num_candidates": 2,
+    "best_score": 0.7568321296227135,
+    "flakes": [
+      {
+        "contour_index": 427,
+        "area_px": 4111.5,
+        "bbox": [
+          977,
+          59,
+          79,
+          82
+        ],
+        "is_large": false,
+        "solidity": 0.9254924029262802,
+        "color_fraction": 0.8531220435193945,
+        "color_score": 0.8531220435193945,
+        "laplacian_var": 7.181580759629095,
+        "intensity_std": 3.676772980300913,
+        "texture_score": 0.91612208225697,
+        "neighbor_coverage": 0.03352822084728766,
+        "isolation_score": 0.5808972394089043,
+        "final_score": 0.7568321296227135,
+        "chosen": true
+      },
+      {
+        "contour_index": 64,
+        "area_px": 4455.5,
+        "bbox": [
+          154,
+          1390,
+          103,
+          87
+        ],
+        "is_large": false,
+        "solidity": 0.7457527826596367,
+        "color_fraction": 0.7397230636088273,
+        "color_score": 0.7397230636088273,
+        "laplacian_var": 8.583017342151734,
+        "intensity_std": 7.461493611973607,
+        "texture_score": 0.8537455264517889,
+        "neighbor_coverage": 0.12906093309443448,
+        "isolation_score": 0.0,
+        "final_score": 0.4666383307338888,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\PI.png",
+    "num_candidates": 2,
+    "best_score": 0.7568194097845173,
+    "flakes": [
+      {
+        "contour_index": 122,
+        "area_px": 3251.5,
+        "bbox": [
+          1215,
+          1107,
+          77,
+          96
+        ],
+        "is_large": false,
+        "solidity": 0.9564641859096926,
+        "color_fraction": 0.6127494787012213,
+        "color_score": 0.6127494787012213,
+        "laplacian_var": 7.178414436557099,
+        "intensity_std": 3.687994974353436,
+        "texture_score": 0.9159664176384701,
+        "neighbor_coverage": 0.014294733044733044,
+        "isolation_score": 0.821315836940837,
+        "final_score": 0.7568194097845173,
+        "chosen": true
+      },
+      {
+        "contour_index": 98,
+        "area_px": 4094.5,
+        "bbox": [
+          247,
+          1207,
+          176,
+          107
+        ],
+        "is_large": false,
+        "solidity": 0.39037993993421366,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 14.272122182638192,
+        "intensity_std": 17.080992042589788,
+        "texture_score": 0.6866966306306004,
+        "neighbor_coverage": 0.03509392995374304,
+        "isolation_score": 0.561325875578212,
+        "final_score": 0.36186967635740486,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\UX.png",
+    "num_candidates": 1,
+    "best_score": 0.7529806821250247,
+    "flakes": [
+      {
+        "contour_index": 167,
+        "area_px": 5131.5,
+        "bbox": [
+          1443,
+          1088,
+          80,
+          106
+        ],
+        "is_large": false,
+        "solidity": 0.8707050139984729,
+        "color_fraction": 0.8206099640083349,
+        "color_score": 0.8206099640083349,
+        "laplacian_var": 8.733284173327004,
+        "intensity_std": 11.45560763005725,
+        "texture_score": 0.7932327488558333,
+        "neighbor_coverage": 0.026781970649895178,
+        "isolation_score": 0.6652253668763103,
+        "final_score": 0.7529806821250247,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\IH.png",
+    "num_candidates": 1,
+    "best_score": 0.7497630727315819,
+    "flakes": [
+      {
+        "contour_index": 196,
+        "area_px": 8420.0,
+        "bbox": [
+          1216,
+          559,
+          95,
+          404
+        ],
+        "is_large": false,
+        "solidity": 0.5773252425520244,
+        "color_fraction": 0.5795673349190169,
+        "color_score": 0.5795673349190169,
+        "laplacian_var": 7.35922973007705,
+        "intensity_std": 4.022039682567251,
+        "texture_score": 0.910232485841183,
+        "neighbor_coverage": 0.012822071680852296,
+        "isolation_score": 0.8397241039893463,
+        "final_score": 0.7497630727315819,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\OH.png",
+    "num_candidates": 4,
+    "best_score": 0.749316045400507,
+    "flakes": [
+      {
+        "contour_index": 415,
+        "area_px": 9088.0,
+        "bbox": [
+          1637,
+          229,
+          116,
+          137
+        ],
+        "is_large": false,
+        "solidity": 0.8332263683872743,
+        "color_fraction": 0.6972398238642465,
+        "color_score": 0.6972398238642465,
+        "laplacian_var": 8.918164589478986,
+        "intensity_std": 6.8357568065816166,
+        "texture_score": 0.8617909895433598,
+        "neighbor_coverage": 0.020387616410772715,
+        "isolation_score": 0.7451547948653411,
+        "final_score": 0.749316045400507,
+        "chosen": true
+      },
+      {
+        "contour_index": 501,
+        "area_px": 3631.0,
+        "bbox": [
+          1541,
+          24,
+          95,
+          69
+        ],
+        "is_large": false,
+        "solidity": 0.7271452888755382,
+        "color_fraction": 0.46127320954907164,
+        "color_score": 0.46127320954907164,
+        "laplacian_var": 6.517107809311411,
+        "intensity_std": 3.640588826372151,
+        "texture_score": 0.9193227363671721,
+        "neighbor_coverage": 0.04615551223738358,
+        "isolation_score": 0.4230560970327053,
+        "final_score": 0.5375962699061452,
+        "chosen": true
+      },
+      {
+        "contour_index": 67,
+        "area_px": 3659.5,
+        "bbox": [
+          311,
+          1291,
+          143,
+          119
+        ],
+        "is_large": false,
+        "solidity": 0.5165502152586633,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 46.00647179487179,
+        "intensity_std": 35.44010019605814,
+        "texture_score": 0.28437260987964075,
+        "neighbor_coverage": 0.022977022977022976,
+        "isolation_score": 0.7127872127872128,
+        "final_score": 0.34198940709081327,
+        "chosen": false
+      },
+      {
+        "contour_index": 87,
+        "area_px": 3836.5,
+        "bbox": [
+          1491,
+          1229,
+          62,
+          104
+        ],
+        "is_large": false,
+        "solidity": 0.8288862482445717,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 77.87631656032525,
+        "intensity_std": 50.81981729650964,
+        "texture_score": 0.08849473375869898,
+        "neighbor_coverage": 0.03327474496829336,
+        "isolation_score": 0.5840656878963331,
+        "final_score": 0.251325221910273,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\RD.png",
+    "num_candidates": 3,
+    "best_score": 0.7475296726549185,
+    "flakes": [
+      {
+        "contour_index": 386,
+        "area_px": 4641.0,
+        "bbox": [
+          483,
+          648,
+          65,
+          137
+        ],
+        "is_large": false,
+        "solidity": 0.8112218143681175,
+        "color_fraction": 0.753125,
+        "color_score": 0.753125,
+        "laplacian_var": 9.67119348518397,
+        "intensity_std": 6.362789916507561,
+        "texture_score": 0.8658733773116507,
+        "neighbor_coverage": 0.025379000561482314,
+        "isolation_score": 0.6827624929814711,
+        "final_score": 0.7475296726549185,
+        "chosen": true
+      },
+      {
+        "contour_index": 69,
+        "area_px": 4289.0,
+        "bbox": [
+          1232,
+          1427,
+          102,
+          85
+        ],
+        "is_large": false,
+        "solidity": 0.7403763162437424,
+        "color_fraction": 0.7909274646305862,
+        "color_score": 0.7909274646305862,
+        "laplacian_var": 8.251680377675015,
+        "intensity_std": 5.3100194138211325,
+        "texture_score": 0.8873429872819829,
+        "neighbor_coverage": 0.10374974732160906,
+        "isolation_score": 0.0,
+        "final_score": 0.4938395833086311,
+        "chosen": true
+      },
+      {
+        "contour_index": 139,
+        "area_px": 3382.5,
+        "bbox": [
+          322,
+          1284,
+          129,
+          105
+        ],
+        "is_large": false,
+        "solidity": 0.5256818711632606,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 24.162977599240158,
+        "intensity_std": 29.715246251552312,
+        "texture_score": 0.4576193958297547,
+        "neighbor_coverage": 0.039342110659940116,
+        "isolation_score": 0.5082236167507486,
+        "final_score": 0.2948133258662504,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\RU.png",
+    "num_candidates": 3,
+    "best_score": 0.7445319231223324,
+    "flakes": [
+      {
+        "contour_index": 238,
+        "area_px": 7088.0,
+        "bbox": [
+          503,
+          637,
+          101,
+          106
+        ],
+        "is_large": false,
+        "solidity": 0.9432430634107393,
+        "color_fraction": 0.668047500690417,
+        "color_score": 0.668047500690417,
+        "laplacian_var": 11.048625086796156,
+        "intensity_std": 11.605563009977217,
+        "texture_score": 0.7817220545031571,
+        "neighbor_coverage": 0.015806297610893166,
+        "isolation_score": 0.8024212798638355,
+        "final_score": 0.7445319231223324,
+        "chosen": true
+      },
+      {
+        "contour_index": 92,
+        "area_px": 4092.0,
+        "bbox": [
+          379,
+          1267,
+          206,
+          122
+        ],
+        "is_large": false,
+        "solidity": 0.3724062613760466,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 46.587755685315706,
+        "intensity_std": 33.50213872160259,
+        "texture_score": 0.3111168964346983,
+        "neighbor_coverage": 0.02132297027251667,
+        "isolation_score": 0.7334628715935416,
+        "final_score": 0.3556085279243563,
+        "chosen": false
+      },
+      {
+        "contour_index": 425,
+        "area_px": 5592.0,
+        "bbox": [
+          72,
+          54,
+          112,
+          111
+        ],
+        "is_large": false,
+        "solidity": 0.779644475426978,
+        "color_fraction": 0.1989247311827957,
+        "color_score": 0.1989247311827957,
+        "laplacian_var": 7.915518103039791,
+        "intensity_std": 19.859261162862474,
+        "texture_score": 0.6704490101449038,
+        "neighbor_coverage": 0.08820505287896592,
+        "isolation_score": 0.0,
+        "final_score": 0.21365969450209904,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\KS.png",
+    "num_candidates": 3,
+    "best_score": 0.7437069843900934,
+    "flakes": [
+      {
+        "contour_index": 303,
+        "area_px": 4111.0,
+        "bbox": [
+          1080,
+          536,
+          90,
+          83
+        ],
+        "is_large": false,
+        "solidity": 0.8805826282531862,
+        "color_fraction": 0.8398299078667611,
+        "color_score": 0.8398299078667611,
+        "laplacian_var": 8.018661859865507,
+        "intensity_std": 5.711783491179321,
+        "texture_score": 0.8822486001928482,
+        "neighbor_coverage": 0.033734939759036145,
+        "isolation_score": 0.5783132530120483,
+        "final_score": 0.7437069843900934,
+        "chosen": true
+      },
+      {
+        "contour_index": 60,
+        "area_px": 3806.5,
+        "bbox": [
+          341,
+          1261,
+          123,
+          129
+        ],
+        "is_large": false,
+        "solidity": 0.5541563546367739,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 47.19128521613471,
+        "intensity_std": 32.5244765977156,
+        "texture_score": 0.3233677101697272,
+        "neighbor_coverage": 0.020279686000994376,
+        "isolation_score": 0.7465039249875702,
+        "final_score": 0.36327511202897356,
+        "chosen": false
+      },
+      {
+        "contour_index": 76,
+        "area_px": 5862.5,
+        "bbox": [
+          1496,
+          1196,
+          103,
+          115
+        ],
+        "is_large": false,
+        "solidity": 0.6533489356959769,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 86.73154004497664,
+        "intensity_std": 47.75780221903881,
+        "texture_score": 0.05307383982009344,
+        "neighbor_coverage": 0.020665071994746962,
+        "isolation_score": 0.741686600065663,
+        "final_score": 0.30728940799028387,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\WR.png",
+    "num_candidates": 2,
+    "best_score": 0.7388909608357276,
+    "flakes": [
+      {
+        "contour_index": 153,
+        "area_px": 4067.5,
+        "bbox": [
+          560,
+          1056,
+          76,
+          76
+        ],
+        "is_large": false,
+        "solidity": 0.9345203905801264,
+        "color_fraction": 0.8319789674952199,
+        "color_score": 0.8319789674952199,
+        "laplacian_var": 6.675507498802,
+        "intensity_std": 2.9631840885013743,
+        "texture_score": 0.9288502086772714,
+        "neighbor_coverage": 0.03593413357956294,
+        "isolation_score": 0.5508233302554633,
+        "final_score": 0.7388909608357276,
+        "chosen": true
+      },
+      {
+        "contour_index": 82,
+        "area_px": 3787.0,
+        "bbox": [
+          372,
+          1287,
+          133,
+          107
+        ],
+        "is_large": false,
+        "solidity": 0.5473729854737298,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 40.88820906570314,
+        "intensity_std": 32.6000751345008,
+        "texture_score": 0.3474460367196755,
+        "neighbor_coverage": 0.02802176781517657,
+        "isolation_score": 0.6497279023102929,
+        "final_score": 0.3293803682680523,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\NX.png",
+    "num_candidates": 2,
+    "best_score": 0.735916850102873,
+    "flakes": [
+      {
+        "contour_index": 167,
+        "area_px": 9077.5,
+        "bbox": [
+          375,
+          806,
+          147,
+          95
+        ],
+        "is_large": false,
+        "solidity": 0.8933228361954436,
+        "color_fraction": 0.6710143365312062,
+        "color_score": 0.6710143365312062,
+        "laplacian_var": 8.513333004247393,
+        "intensity_std": 10.173228952484948,
+        "texture_score": 0.8133482336957363,
+        "neighbor_coverage": 0.01903170624975136,
+        "isolation_score": 0.762103671878108,
+        "final_score": 0.735916850102873,
+        "chosen": true
+      },
+      {
+        "contour_index": 76,
+        "area_px": 6011.5,
+        "bbox": [
+          207,
+          1242,
+          228,
+          167
+        ],
+        "is_large": false,
+        "solidity": 0.352136601938904,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 30.034374870454855,
+        "intensity_std": 28.326354679272715,
+        "texture_score": 0.4549671803290899,
+        "neighbor_coverage": 0.02073006743161139,
+        "isolation_score": 0.7408741571048576,
+        "final_score": 0.38734309890776103,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\SY.png",
+    "num_candidates": 2,
+    "best_score": 0.730565970636895,
+    "flakes": [
+      {
+        "contour_index": 341,
+        "area_px": 5408.0,
+        "bbox": [
+          1768,
+          614,
+          77,
+          129
+        ],
+        "is_large": false,
+        "solidity": 0.9384001388165886,
+        "color_fraction": 0.6622278207666007,
+        "color_score": 0.6622278207666007,
+        "laplacian_var": 6.780684542940513,
+        "intensity_std": 2.7157057296256,
+        "texture_score": 0.9321416758838539,
+        "neighbor_coverage": 0.02415069856930322,
+        "isolation_score": 0.6981162678837097,
+        "final_score": 0.730565970636895,
+        "chosen": true
+      },
+      {
+        "contour_index": 303,
+        "area_px": 3275.5,
+        "bbox": [
+          600,
+          745,
+          112,
+          76
+        ],
+        "is_large": false,
+        "solidity": 0.6088289962825278,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 71.47431107379657,
+        "intensity_std": 34.03657859494435,
+        "texture_score": 0.20355407678064846,
+        "neighbor_coverage": 0.08872441520467836,
+        "isolation_score": 0.0,
+        "final_score": 0.04071081535612969,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\FE.png",
+    "num_candidates": 3,
+    "best_score": 0.7301532068501861,
+    "flakes": [
+      {
+        "contour_index": 94,
+        "area_px": 3853.0,
+        "bbox": [
+          567,
+          1170,
+          79,
+          95
+        ],
+        "is_large": false,
+        "solidity": 0.9110900922203831,
+        "color_fraction": 0.6557788944723618,
+        "color_score": 0.6557788944723618,
+        "laplacian_var": 7.275591849441227,
+        "intensity_std": 4.360016448205121,
+        "texture_score": 0.9054973858791582,
+        "neighbor_coverage": 0.022651565622918056,
+        "isolation_score": 0.7168554297135243,
+        "final_score": 0.7301532068501861,
+        "chosen": true
+      },
+      {
+        "contour_index": 303,
+        "area_px": 3368.5,
+        "bbox": [
+          1865,
+          481,
+          82,
+          132
+        ],
+        "is_large": false,
+        "solidity": 0.5848597968573661,
+        "color_fraction": 0.10480472042708626,
+        "color_score": 0.10480472042708626,
+        "laplacian_var": 9.434305596866945,
+        "intensity_std": 6.463695997065303,
+        "texture_score": 0.8653073376565527,
+        "neighbor_coverage": 0.013786236347211957,
+        "isolation_score": 0.8276720456598505,
+        "final_score": 0.5460521739660853,
+        "chosen": false
+      },
+      {
+        "contour_index": 84,
+        "area_px": 4980.5,
+        "bbox": [
+          221,
+          1214,
+          215,
+          156
+        ],
+        "is_large": false,
+        "solidity": 0.3556229917886469,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 36.43170174892817,
+        "intensity_std": 30.463812509673385,
+        "texture_score": 0.39731600535918654,
+        "neighbor_coverage": 0.040800371032929175,
+        "isolation_score": 0.48999536208838534,
+        "final_score": 0.27546134590719146,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\BI.png",
+    "num_candidates": 1,
+    "best_score": 0.7292453094677047,
+    "flakes": [
+      {
+        "contour_index": 266,
+        "area_px": 3392.0,
+        "bbox": [
+          876,
+          291,
+          123,
+          76
+        ],
+        "is_large": false,
+        "solidity": 0.6123849070229284,
+        "color_fraction": 0.4983127109111361,
+        "color_score": 0.4983127109111361,
+        "laplacian_var": 10.39233318923094,
+        "intensity_std": 6.206474749648381,
+        "texture_score": 0.8653335459983506,
+        "neighbor_coverage": 0.008629296819283983,
+        "isolation_score": 0.8921337897589502,
+        "final_score": 0.7292453094677047,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\QR.png",
+    "num_candidates": 3,
+    "best_score": 0.7254156240246578,
+    "flakes": [
+      {
+        "contour_index": 361,
+        "area_px": 4371.0,
+        "bbox": [
+          702,
+          381,
+          50,
+          293
+        ],
+        "is_large": false,
+        "solidity": 0.5426780060835558,
+        "color_fraction": 0.6014135789248233,
+        "color_score": 0.6014135789248233,
+        "laplacian_var": 6.917626327551886,
+        "intensity_std": 2.876579193057476,
+        "texture_score": 0.9291808067939303,
+        "neighbor_coverage": 0.02019719378081153,
+        "isolation_score": 0.747535077739856,
+        "final_score": 0.7254156240246578,
+        "chosen": true
+      },
+      {
+        "contour_index": 383,
+        "area_px": 3741.5,
+        "bbox": [
+          1610,
+          277,
+          94,
+          81
+        ],
+        "is_large": false,
+        "solidity": 0.6284538506760728,
+        "color_fraction": 0.14928789420142421,
+        "color_score": 0.14928789420142421,
+        "laplacian_var": 9.230752676638918,
+        "intensity_std": 12.040792574088815,
+        "texture_score": 0.7824651006821122,
+        "neighbor_coverage": 0.0375186060765257,
+        "isolation_score": 0.5310174240434288,
+        "final_score": 0.4286151474343637,
+        "chosen": false
+      },
+      {
+        "contour_index": 104,
+        "area_px": 4338.0,
+        "bbox": [
+          306,
+          1218,
+          216,
+          157
+        ],
+        "is_large": false,
+        "solidity": 0.3125923257070798,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 44.80688888931401,
+        "intensity_std": 29.73237814139752,
+        "texture_score": 0.3747867723217812,
+        "neighbor_coverage": 0.013544861209404733,
+        "isolation_score": 0.8306892348824408,
+        "final_score": 0.4072330484173326,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\MC.png",
+    "num_candidates": 2,
+    "best_score": 0.724010098079356,
+    "flakes": [
+      {
+        "contour_index": 188,
+        "area_px": 3152.5,
+        "bbox": [
+          1516,
+          965,
+          85,
+          56
+        ],
+        "is_large": false,
+        "solidity": 0.9499773994274522,
+        "color_fraction": 0.4606879606879607,
+        "color_score": 0.4606879606879607,
+        "laplacian_var": 8.525972022950114,
+        "intensity_std": 9.294694829277438,
+        "texture_score": 0.826475689469038,
+        "neighbor_coverage": 0.005112044817927171,
+        "isolation_score": 0.9360994397759104,
+        "final_score": 0.724010098079356,
+        "chosen": true
+      },
+      {
+        "contour_index": 263,
+        "area_px": 3506.5,
+        "bbox": [
+          1373,
+          772,
+          83,
+          61
+        ],
+        "is_large": false,
+        "solidity": 0.9142223960370226,
+        "color_fraction": 0.7653061224489796,
+        "color_score": 0.7653061224489796,
+        "laplacian_var": 7.854409999188378,
+        "intensity_std": 12.459016601797796,
+        "texture_score": 0.7816971109762796,
+        "neighbor_coverage": 0.03445475892641605,
+        "isolation_score": 0.5693155134197994,
+        "final_score": 0.6901880765427675,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\LR.png",
+    "num_candidates": 3,
+    "best_score": 0.7228852906315697,
+    "flakes": [
+      {
+        "contour_index": 145,
+        "area_px": 6611.0,
+        "bbox": [
+          972,
+          1044,
+          115,
+          131
+        ],
+        "is_large": false,
+        "solidity": 0.8096754439681567,
+        "color_fraction": 0.8254786450662739,
+        "color_score": 0.8254786450662739,
+        "laplacian_var": 7.3166722189905355,
+        "intensity_std": 2.8985062359244322,
+        "texture_score": 0.9272557175851713,
+        "neighbor_coverage": 0.03855146218239481,
+        "isolation_score": 0.5181067227200649,
+        "final_score": 0.7228852906315697,
+        "chosen": true
+      },
+      {
+        "contour_index": 114,
+        "area_px": 3095.0,
+        "bbox": [
+          1058,
+          1140,
+          56,
+          84
+        ],
+        "is_large": false,
+        "solidity": 0.9129793510324484,
+        "color_fraction": 0.7323767935121647,
+        "color_score": 0.7323767935121647,
+        "laplacian_var": 7.326805148063355,
+        "intensity_std": 2.531166621077864,
+        "texture_score": 0.9327252800915786,
+        "neighbor_coverage": 0.1379440665154951,
+        "isolation_score": 0.0,
+        "final_score": 0.4794957734231816,
+        "chosen": true
+      },
+      {
+        "contour_index": 95,
+        "area_px": 6231.5,
+        "bbox": [
+          260,
+          1196,
+          228,
+          176
+        ],
+        "is_large": false,
+        "solidity": 0.3468399521331367,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 30.551080863121808,
+        "intensity_std": 27.841407449491594,
+        "texture_score": 0.46017456480513885,
+        "neighbor_coverage": 0.022326488054762228,
+        "isolation_score": 0.7209188993154722,
+        "final_score": 0.38040247268721666,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\PK.png",
+    "num_candidates": 1,
+    "best_score": 0.7227652448115307,
+    "flakes": [
+      {
+        "contour_index": 375,
+        "area_px": 11024.5,
+        "bbox": [
+          899,
+          468,
+          156,
+          117
+        ],
+        "is_large": false,
+        "solidity": 0.8512798733639628,
+        "color_fraction": 0.7296576256113828,
+        "color_score": 0.7296576256113828,
+        "laplacian_var": 9.945097724420874,
+        "intensity_std": 13.626977971923122,
+        "texture_score": 0.7558149395234697,
+        "neighbor_coverage": 0.02405215866754328,
+        "isolation_score": 0.699348016655709,
+        "final_score": 0.7227652448115307,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\UT.png",
+    "num_candidates": 1,
+    "best_score": 0.7217451660792198,
+    "flakes": [
+      {
+        "contour_index": 383,
+        "area_px": 16458.5,
+        "bbox": [
+          853,
+          73,
+          207,
+          158
+        ],
+        "is_large": false,
+        "solidity": 0.7938502351380683,
+        "color_fraction": 0.6649949250701535,
+        "color_score": 0.6649949250701535,
+        "laplacian_var": 9.515097047066497,
+        "intensity_std": 5.972294477999338,
+        "texture_score": 0.872355194641744,
+        "neighbor_coverage": 0.023744768575438075,
+        "isolation_score": 0.703190392807024,
+        "final_score": 0.7217451660792198,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\NN.png",
+    "num_candidates": 2,
+    "best_score": 0.7197566714924377,
+    "flakes": [
+      {
+        "contour_index": 113,
+        "area_px": 3142.0,
+        "bbox": [
+          1162,
+          955,
+          95,
+          67
+        ],
+        "is_large": false,
+        "solidity": 0.8399946531212404,
+        "color_fraction": 0.7199877187595947,
+        "color_score": 0.7199877187595947,
+        "laplacian_var": 7.204018002821459,
+        "intensity_std": 3.650705095456988,
+        "texture_score": 0.9164233515568594,
+        "neighbor_coverage": 0.030304617264554422,
+        "isolation_score": 0.6211922841930697,
+        "final_score": 0.7197566714924377,
+        "chosen": true
+      },
+      {
+        "contour_index": 64,
+        "area_px": 6021.5,
+        "bbox": [
+          292,
+          1215,
+          225,
+          147
+        ],
+        "is_large": false,
+        "solidity": 0.37501946252296575,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 38.31211532385167,
+        "intensity_std": 30.20389526015978,
+        "texture_score": 0.39369310980219663,
+        "neighbor_coverage": 0.02681447887797094,
+        "isolation_score": 0.6648190140253633,
+        "final_score": 0.3446662275705847,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\EX.png",
+    "num_candidates": 3,
+    "best_score": 0.7188188917730844,
+    "flakes": [
+      {
+        "contour_index": 194,
+        "area_px": 6196.5,
+        "bbox": [
+          1019,
+          424,
+          149,
+          84
+        ],
+        "is_large": false,
+        "solidity": 0.8291295912223189,
+        "color_fraction": 0.7680864390854996,
+        "color_score": 0.7680864390854996,
+        "laplacian_var": 8.77427015608848,
+        "intensity_std": 7.244656270733575,
+        "texture_score": 0.8562330753146424,
+        "neighbor_coverage": 0.03193245978480878,
+        "isolation_score": 0.6008442526898903,
+        "final_score": 0.7188188917730844,
+        "chosen": true
+      },
+      {
+        "contour_index": 170,
+        "area_px": 3251.0,
+        "bbox": [
+          571,
+          613,
+          88,
+          64
+        ],
+        "is_large": false,
+        "solidity": 0.9031809973607445,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 11.917355956156468,
+        "intensity_std": 15.718059669809127,
+        "texture_score": 0.7165596811282372,
+        "neighbor_coverage": 0.005977746212121212,
+        "isolation_score": 0.9252781723484849,
+        "final_score": 0.5134232051650414,
+        "chosen": false
+      },
+      {
+        "contour_index": 45,
+        "area_px": 4970.0,
+        "bbox": [
+          262,
+          1209,
+          150,
+          175
+        ],
+        "is_large": false,
+        "solidity": 0.43522045623713823,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 38.03523039408369,
+        "intensity_std": 29.52305343385763,
+        "texture_score": 0.4050132769158008,
+        "neighbor_coverage": 0.020221336874723328,
+        "isolation_score": 0.7472332890659584,
+        "final_score": 0.37989597100954353,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\FG.png",
+    "num_candidates": 2,
+    "best_score": 0.7178355755855624,
+    "flakes": [
+      {
+        "contour_index": 218,
+        "area_px": 3142.0,
+        "bbox": [
+          861,
+          737,
+          65,
+          84
+        ],
+        "is_large": false,
+        "solidity": 0.9214076246334311,
+        "color_fraction": 0.5368032029565754,
+        "color_score": 0.5368032029565754,
+        "laplacian_var": 10.515544465768262,
+        "intensity_std": 14.771241954969657,
+        "texture_score": 0.7363691928123821,
+        "neighbor_coverage": 0.008831908831908831,
+        "isolation_score": 0.8896011396011396,
+        "final_score": 0.7178355755855624,
+        "chosen": true
+      },
+      {
+        "contour_index": 314,
+        "area_px": 7752.0,
+        "bbox": [
+          1406,
+          425,
+          159,
+          90
+        ],
+        "is_large": false,
+        "solidity": 0.9191913203296378,
+        "color_fraction": 0.33581618482514836,
+        "color_score": 0.33581618482514836,
+        "laplacian_var": 9.493809152939336,
+        "intensity_std": 6.749569754209527,
+        "texture_score": 0.8607812170750997,
+        "neighbor_coverage": 0.013378367885705412,
+        "isolation_score": 0.8327704014286823,
+        "final_score": 0.6395908779165522,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\YQ.png",
+    "num_candidates": 1,
+    "best_score": 0.7160477772996072,
+    "flakes": [
+      {
+        "contour_index": 164,
+        "area_px": 6278.5,
+        "bbox": [
+          382,
+          991,
+          103,
+          130
+        ],
+        "is_large": false,
+        "solidity": 0.7601089588377724,
+        "color_fraction": 0.6165078389179219,
+        "color_score": 0.6165078389179219,
+        "laplacian_var": 9.782535190836308,
+        "intensity_std": 14.272983077879333,
+        "texture_score": 0.7467751130684648,
+        "neighbor_coverage": 0.015982076176250932,
+        "isolation_score": 0.8002240477968634,
+        "final_score": 0.7160477772996072,
+        "chosen": true
+      }
+    ],
+    "dark_spots": [
+      {
+        "bbox": [
+          1264,
+          979,
+          26,
+          26
+        ],
+        "area_px": 461.5,
+        "mean_brightness": 29.88128772635815
+      }
+    ]
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\NH.png",
+    "num_candidates": 5,
+    "best_score": 0.715397872038176,
+    "flakes": [
+      {
+        "contour_index": 83,
+        "area_px": 9088.5,
+        "bbox": [
+          1720,
+          1333,
+          114,
+          137
+        ],
+        "is_large": false,
+        "solidity": 0.8434802784222738,
+        "color_fraction": 0.6156407777419701,
+        "color_score": 0.6156407777419701,
+        "laplacian_var": 8.377354799477267,
+        "intensity_std": 6.756462105460531,
+        "texture_score": 0.8651436492201829,
+        "neighbor_coverage": 0.020777433780529757,
+        "isolation_score": 0.7402820777433781,
+        "final_score": 0.715397872038176,
+        "chosen": true
+      },
+      {
+        "contour_index": 156,
+        "area_px": 3597.0,
+        "bbox": [
+          1625,
+          1129,
+          95,
+          67
+        ],
+        "is_large": false,
+        "solidity": 0.7690827453495831,
+        "color_fraction": 0.22460466362905387,
+        "color_score": 0.22460466362905387,
+        "laplacian_var": 6.909445130022303,
+        "intensity_std": 3.012574442276464,
+        "texture_score": 0.9271736028457638,
+        "neighbor_coverage": 0.032626341974338835,
+        "isolation_score": 0.5921707253207646,
+        "final_score": 0.5121448761490802,
+        "chosen": false
+      },
+      {
+        "contour_index": 375,
+        "area_px": 4060.0,
+        "bbox": [
+          609,
+          593,
+          85,
+          97
+        ],
+        "is_large": false,
+        "solidity": 0.8990256864481843,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 9.03237342933019,
+        "intensity_std": 7.848548354241502,
+        "texture_score": 0.8461422809690566,
+        "neighbor_coverage": 0.027558789838959638,
+        "isolation_score": 0.6555151270130045,
+        "final_score": 0.43143450699901315,
+        "chosen": false
+      },
+      {
+        "contour_index": 186,
+        "area_px": 4271.5,
+        "bbox": [
+          280,
+          1048,
+          108,
+          69
+        ],
+        "is_large": false,
+        "solidity": 0.8642387455741022,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 8.38542394453199,
+        "intensity_std": 11.011139320084714,
+        "texture_score": 0.8012912144206014,
+        "neighbor_coverage": 0.025869267012584244,
+        "isolation_score": 0.676634162342697,
+        "final_score": 0.4309119078211991,
+        "chosen": false
+      },
+      {
+        "contour_index": 108,
+        "area_px": 3254.0,
+        "bbox": [
+          396,
+          1277,
+          143,
+          105
+        ],
+        "is_large": false,
+        "solidity": 0.4519444444444444,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 43.99332927153593,
+        "intensity_std": 36.55225536731488,
+        "texture_score": 0.27574285240413315,
+        "neighbor_coverage": 0.05043105043105043,
+        "isolation_score": 0.36961186961186965,
+        "final_score": 0.2029933183255745,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\KJ.png",
+    "num_candidates": 2,
+    "best_score": 0.7118961210226309,
+    "flakes": [
+      {
+        "contour_index": 164,
+        "area_px": 4119.0,
+        "bbox": [
+          591,
+          303,
+          81,
+          113
+        ],
+        "is_large": false,
+        "solidity": 0.7309023156774022,
+        "color_fraction": 0.3982653539615565,
+        "color_score": 0.3982653539615565,
+        "laplacian_var": 10.080306355340477,
+        "intensity_std": 5.143777779914652,
+        "texture_score": 0.8825221078799184,
+        "neighbor_coverage": 0.004782888427595081,
+        "isolation_score": 0.9402138946550614,
+        "final_score": 0.7118961210226309,
+        "chosen": true
+      },
+      {
+        "contour_index": 36,
+        "area_px": 3046.0,
+        "bbox": [
+          393,
+          1270,
+          112,
+          107
+        ],
+        "is_large": false,
+        "solidity": 0.5360788454769447,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 52.910216721101314,
+        "intensity_std": 36.28659231512744,
+        "texture_score": 0.24406024838868312,
+        "neighbor_coverage": 0.05145749888740543,
+        "isolation_score": 0.35678126390743214,
+        "final_score": 0.1915245552407095,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\VD.png",
+    "num_candidates": 3,
+    "best_score": 0.707763778317031,
+    "flakes": [
+      {
+        "contour_index": 271,
+        "area_px": 4621.0,
+        "bbox": [
+          527,
+          190,
+          66,
+          167
+        ],
+        "is_large": false,
+        "solidity": 0.8967591694158743,
+        "color_fraction": 0.7681732972297438,
+        "color_score": 0.7681732972297438,
+        "laplacian_var": 10.11607922608756,
+        "intensity_std": 7.67070153393576,
+        "texture_score": 0.8444751600866134,
+        "neighbor_coverage": 0.03368011451843787,
+        "isolation_score": 0.5789985685195266,
+        "final_score": 0.707763778317031,
+        "chosen": true
+      },
+      {
+        "contour_index": 272,
+        "area_px": 3795.0,
+        "bbox": [
+          83,
+          190,
+          94,
+          77
+        ],
+        "is_large": false,
+        "solidity": 0.7920275487843056,
+        "color_fraction": 0.016721560678996706,
+        "color_score": 0.016721560678996706,
+        "laplacian_var": 11.739512709241833,
+        "intensity_std": 10.901681043900862,
+        "texture_score": 0.7895167335045198,
+        "neighbor_coverage": 0.01107011070110701,
+        "isolation_score": 0.8616236162361623,
+        "final_score": 0.5092414174669676,
+        "chosen": false
+      },
+      {
+        "contour_index": 34,
+        "area_px": 4715.0,
+        "bbox": [
+          236,
+          1216,
+          216,
+          162
+        ],
+        "is_large": false,
+        "solidity": 0.33023988793556297,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 41.94795564969491,
+        "intensity_std": 31.57542581694491,
+        "texture_score": 0.3585767901470467,
+        "neighbor_coverage": 0.008753393781056298,
+        "isolation_score": 0.8905825777367963,
+        "final_score": 0.4279483891241279,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\TD.png",
+    "num_candidates": 4,
+    "best_score": 0.6880837624540895,
+    "flakes": [
+      {
+        "contour_index": 372,
+        "area_px": 4445.5,
+        "bbox": [
+          646,
+          522,
+          117,
+          80
+        ],
+        "is_large": false,
+        "solidity": 0.7818325712275765,
+        "color_fraction": 0.5486186643463128,
+        "color_score": 0.5486186643463128,
+        "laplacian_var": 16.795362859320438,
+        "intensity_std": 19.306763496618927,
+        "texture_score": 0.6432170961134343,
+        "neighbor_coverage": 0.012001424501424501,
+        "isolation_score": 0.8499821937321937,
+        "final_score": 0.6880837624540895,
+        "chosen": true
+      },
+      {
+        "contour_index": 214,
+        "area_px": 3146.5,
+        "bbox": [
+          1127,
+          899,
+          69,
+          73
+        ],
+        "is_large": false,
+        "solidity": 0.8912335363262994,
+        "color_fraction": 0.3499231950844854,
+        "color_score": 0.3499231950844854,
+        "laplacian_var": 9.740592421940917,
+        "intensity_std": 18.71635199908016,
+        "texture_score": 0.680292350326034,
+        "neighbor_coverage": 0.016301590452870978,
+        "isolation_score": 0.7962301193391128,
+        "final_score": 0.5945197958346462,
+        "chosen": false
+      },
+      {
+        "contour_index": 490,
+        "area_px": 3550.0,
+        "bbox": [
+          809,
+          260,
+          93,
+          81
+        ],
+        "is_large": false,
+        "solidity": 0.780734550252914,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 10.819928464209271,
+        "intensity_std": 19.346733832413804,
+        "texture_score": 0.6665192786569558,
+        "neighbor_coverage": 0.020871129991002553,
+        "isolation_score": 0.7391108751124681,
+        "final_score": 0.4289482057763784,
+        "chosen": false
+      },
+      {
+        "contour_index": 91,
+        "area_px": 4333.5,
+        "bbox": [
+          299,
+          1252,
+          209,
+          119
+        ],
+        "is_large": false,
+        "solidity": 0.39354311401716385,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 46.80121416602253,
+        "intensity_std": 32.74664283779171,
+        "texture_score": 0.3215955007690342,
+        "neighbor_coverage": 0.046939988116458706,
+        "isolation_score": 0.4132501485442662,
+        "final_score": 0.22961915957151335,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\GE.png",
+    "num_candidates": 2,
+    "best_score": 0.685866797898872,
+    "flakes": [
+      {
+        "contour_index": 402,
+        "area_px": 4863.0,
+        "bbox": [
+          630,
+          69,
+          79,
+          123
+        ],
+        "is_large": false,
+        "solidity": 0.8633055210367477,
+        "color_fraction": 0.4947451913543526,
+        "color_score": 0.4947451913543526,
+        "laplacian_var": 7.603961834664268,
+        "intensity_std": 5.5345973275730564,
+        "texture_score": 0.886565192747747,
+        "neighbor_coverage": 0.017868863438483693,
+        "isolation_score": 0.7766392070189538,
+        "final_score": 0.685866797898872,
+        "chosen": true
+      },
+      {
+        "contour_index": 51,
+        "area_px": 4699.0,
+        "bbox": [
+          336,
+          1306,
+          168,
+          127
+        ],
+        "is_large": false,
+        "solidity": 0.42111394900748306,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 63.621143184902195,
+        "intensity_std": 35.610212445077096,
+        "texture_score": 0.2113622405842348,
+        "neighbor_coverage": 0.027449868836423457,
+        "isolation_score": 0.6568766395447068,
+        "final_score": 0.30502310393472964,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\DP.png",
+    "num_candidates": 1,
+    "best_score": 0.6845092469602555,
+    "flakes": [
+      {
+        "contour_index": 383,
+        "area_px": 3059.5,
+        "bbox": [
+          1029,
+          788,
+          69,
+          120
+        ],
+        "is_large": false,
+        "solidity": 0.7426872193227333,
+        "color_fraction": 0.8702719599874961,
+        "color_score": 0.8702719599874961,
+        "laplacian_var": 7.908861639288024,
+        "intensity_std": 4.593589212476536,
+        "texture_score": 0.8994607152556998,
+        "neighbor_coverage": 0.048698336017176595,
+        "isolation_score": 0.39127079978529256,
+        "final_score": 0.6845092469602555,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\GH.png",
+    "num_candidates": 3,
+    "best_score": 0.6837618693291619,
+    "flakes": [
+      {
+        "contour_index": 155,
+        "area_px": 3121.5,
+        "bbox": [
+          772,
+          780,
+          83,
+          99
+        ],
+        "is_large": false,
+        "solidity": 0.7809607205404053,
+        "color_fraction": 0.6901755466584539,
+        "color_score": 0.6901755466584539,
+        "laplacian_var": 7.53086710257069,
+        "intensity_std": 2.8902825057555526,
+        "texture_score": 0.9265222940033839,
+        "neighbor_coverage": 0.035522561626979296,
+        "isolation_score": 0.5559679796627588,
+        "final_score": 0.6837618693291619,
+        "chosen": true
+      },
+      {
+        "contour_index": 56,
+        "area_px": 4702.0,
+        "bbox": [
+          339,
+          1262,
+          167,
+          103
+        ],
+        "is_large": false,
+        "solidity": 0.5457288765088208,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 42.76572419500128,
+        "intensity_std": 29.892083158817332,
+        "texture_score": 0.3805558558377349,
+        "neighbor_coverage": 0.022052981415809157,
+        "isolation_score": 0.7243377323023855,
+        "final_score": 0.3658462640885012,
+        "chosen": false
+      },
+      {
+        "contour_index": 315,
+        "area_px": 3923.0,
+        "bbox": [
+          177,
+          247,
+          100,
+          65
+        ],
+        "is_large": false,
+        "solidity": 0.8570180229382851,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 14.62184097891914,
+        "intensity_std": 15.652048910611216,
+        "texture_score": 0.7067319024251553,
+        "neighbor_coverage": 0.07382905982905982,
+        "isolation_score": 0.0771367521367522,
+        "final_score": 0.17220108133973194,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\AA.png",
+    "num_candidates": 2,
+    "best_score": 0.6819511358577571,
+    "flakes": [
+      {
+        "contour_index": 107,
+        "area_px": 3579.5,
+        "bbox": [
+          760,
+          1060,
+          85,
+          100
+        ],
+        "is_large": false,
+        "solidity": 0.9191167030427526,
+        "color_fraction": 0.7012987012987013,
+        "color_score": 0.7012987012987013,
+        "laplacian_var": 7.086325883907207,
+        "intensity_std": 3.123290729963922,
+        "texture_score": 0.9248053355149124,
+        "neighbor_coverage": 0.03670588235294118,
+        "isolation_score": 0.5411764705882353,
+        "final_score": 0.6819511358577571,
+        "chosen": true
+      },
+      {
+        "contour_index": 48,
+        "area_px": 3931.5,
+        "bbox": [
+          351,
+          1275,
+          131,
+          123
+        ],
+        "is_large": false,
+        "solidity": 0.5416408348832403,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 53.550572723991856,
+        "intensity_std": 33.87944335683208,
+        "texture_score": 0.2776060587515515,
+        "neighbor_coverage": 0.03765075818697118,
+        "isolation_score": 0.5293655226628602,
+        "final_score": 0.2672674208154544,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\HA.png",
+    "num_candidates": 3,
+    "best_score": 0.6784312938208595,
+    "flakes": [
+      {
+        "contour_index": 393,
+        "area_px": 4342.5,
+        "bbox": [
+          1600,
+          189,
+          88,
+          80
+        ],
+        "is_large": false,
+        "solidity": 0.9230523966415134,
+        "color_fraction": 0.6629339305711086,
+        "color_score": 0.6629339305711086,
+        "laplacian_var": 7.960302483600496,
+        "intensity_std": 8.488525608247985,
+        "texture_score": 0.8408309059418783,
+        "neighbor_coverage": 0.03098169191919192,
+        "isolation_score": 0.612728851010101,
+        "final_score": 0.6784312938208595,
+        "chosen": true
+      },
+      {
+        "contour_index": 96,
+        "area_px": 4960.5,
+        "bbox": [
+          275,
+          1202,
+          145,
+          177
+        ],
+        "is_large": false,
+        "solidity": 0.42632461002965066,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 40.32235303099231,
+        "intensity_std": 31.086468958197017,
+        "texture_score": 0.3724135535030755,
+        "neighbor_coverage": 0.023208943473468746,
+        "isolation_score": 0.7098882065816408,
+        "final_score": 0.3584379933332714,
+        "chosen": false
+      },
+      {
+        "contour_index": 75,
+        "area_px": 3475.0,
+        "bbox": [
+          1444,
+          1269,
+          184,
+          100
+        ],
+        "is_large": false,
+        "solidity": 0.3456851529470281,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 79.09971239013713,
+        "intensity_std": 35.80642396165987,
+        "texture_score": 0.14650479101455344,
+        "neighbor_coverage": 0.01804951690821256,
+        "isolation_score": 0.774381038647343,
+        "final_score": 0.3390533736618479,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\UO.png",
+    "num_candidates": 1,
+    "best_score": 0.6721098683836592,
+    "flakes": [
+      {
+        "contour_index": 295,
+        "area_px": 6042.0,
+        "bbox": [
+          538,
+          719,
+          114,
+          80
+        ],
+        "is_large": false,
+        "solidity": 0.9321197161369947,
+        "color_fraction": 0.7448632907296554,
+        "color_score": 0.7448632907296554,
+        "laplacian_var": 10.009973130348936,
+        "intensity_std": 7.87556322560945,
+        "texture_score": 0.8418266590944625,
+        "neighbor_coverage": 0.038840155945419105,
+        "isolation_score": 0.5144980506822612,
+        "final_score": 0.6721098683836592,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\KF.png",
+    "num_candidates": 5,
+    "best_score": 0.6657272535652434,
+    "flakes": [
+      {
+        "contour_index": 85,
+        "area_px": 4828.5,
+        "bbox": [
+          1751,
+          1133,
+          104,
+          114
+        ],
+        "is_large": false,
+        "solidity": 0.8869397501836884,
+        "color_fraction": 0.7341110217216412,
+        "color_score": 0.7341110217216412,
+        "laplacian_var": 7.8730961168326035,
+        "intensity_std": 11.769628885665869,
+        "texture_score": 0.7919631822476816,
+        "neighbor_coverage": 0.037261958314589894,
+        "isolation_score": 0.5342255210676263,
+        "final_score": 0.6657272535652434,
+        "chosen": true
+      },
+      {
+        "contour_index": 131,
+        "area_px": 3935.0,
+        "bbox": [
+          1563,
+          958,
+          128,
+          81
+        ],
+        "is_large": false,
+        "solidity": 0.6790922426438865,
+        "color_fraction": 0.18181818181818182,
+        "color_score": 0.18181818181818182,
+        "laplacian_var": 9.14468220040154,
+        "intensity_std": 13.08228727732853,
+        "texture_score": 0.7671869620384659,
+        "neighbor_coverage": 0.006397890946502058,
+        "isolation_score": 0.9200263631687242,
+        "final_score": 0.5941752104024556,
+        "chosen": false
+      },
+      {
+        "contour_index": 293,
+        "area_px": 5575.5,
+        "bbox": [
+          193,
+          319,
+          103,
+          117
+        ],
+        "is_large": false,
+        "solidity": 0.7840118118540392,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 9.445390306610097,
+        "intensity_std": 7.221052528560319,
+        "texture_score": 0.8539026508451548,
+        "neighbor_coverage": 0.02851768871186347,
+        "isolation_score": 0.6435288911017066,
+        "final_score": 0.42819208660971364,
+        "chosen": false
+      },
+      {
+        "contour_index": 58,
+        "area_px": 3744.0,
+        "bbox": [
+          321,
+          1277,
+          131,
+          127
+        ],
+        "is_large": false,
+        "solidity": 0.43170942634765064,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 63.744029050135204,
+        "intensity_std": 32.11668326079998,
+        "texture_score": 0.2632736348874595,
+        "neighbor_coverage": 0.034541483841237404,
+        "isolation_score": 0.5682314519845324,
+        "final_score": 0.2799473077713049,
+        "chosen": false
+      },
+      {
+        "contour_index": 378,
+        "area_px": 3287.0,
+        "bbox": [
+          317,
+          69,
+          141,
+          115
+        ],
+        "is_large": false,
+        "solidity": 0.3713704666139419,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 79.22505104551944,
+        "intensity_std": 40.628537401699,
+        "texture_score": 0.08309979581792226,
+        "neighbor_coverage": 0.09350316658364762,
+        "isolation_score": 0.0,
+        "final_score": 0.01661995916358445,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\BO.png",
+    "num_candidates": 2,
+    "best_score": 0.6562016386887417,
+    "flakes": [
+      {
+        "contour_index": 403,
+        "area_px": 3580.5,
+        "bbox": [
+          841,
+          72,
+          60,
+          136
+        ],
+        "is_large": false,
+        "solidity": 0.708729216152019,
+        "color_fraction": 0.4969374167776298,
+        "color_score": 0.4969374167776298,
+        "laplacian_var": 9.785034379547211,
+        "intensity_std": 15.683834023020061,
+        "texture_score": 0.7256023521365103,
+        "neighbor_coverage": 0.01753875968992248,
+        "isolation_score": 0.780765503875969,
+        "final_score": 0.6562016386887417,
+        "chosen": true
+      },
+      {
+        "contour_index": 397,
+        "area_px": 4044.5,
+        "bbox": [
+          371,
+          87,
+          114,
+          126
+        ],
+        "is_large": false,
+        "solidity": 0.5346685174168815,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 69.91585826870134,
+        "intensity_std": 41.64908571301943,
+        "texture_score": 0.12033656692519462,
+        "neighbor_coverage": 0.07391019337921993,
+        "isolation_score": 0.07612258275975081,
+        "final_score": 0.05451634648893925,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\UV.png",
+    "num_candidates": 1,
+    "best_score": 0.6477764614494451,
+    "flakes": [
+      {
+        "contour_index": 395,
+        "area_px": 6817.5,
+        "bbox": [
+          1177,
+          287,
+          132,
+          133
+        ],
+        "is_large": false,
+        "solidity": 0.6596516690856313,
+        "color_fraction": 0.5531854781748835,
+        "color_score": 0.5531854781748835,
+        "laplacian_var": 10.948301371886902,
+        "intensity_std": 15.230489891793244,
+        "texture_score": 0.7277494461355538,
+        "neighbor_coverage": 0.023809523809523808,
+        "isolation_score": 0.7023809523809523,
+        "final_score": 0.6477764614494451,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\SU.png",
+    "num_candidates": 3,
+    "best_score": 0.6449081474637814,
+    "flakes": [
+      {
+        "contour_index": 295,
+        "area_px": 3552.0,
+        "bbox": [
+          1212,
+          596,
+          104,
+          66
+        ],
+        "is_large": false,
+        "solidity": 0.8069059518400727,
+        "color_fraction": 0.652409312398484,
+        "color_score": 0.652409312398484,
+        "laplacian_var": 7.713731662449612,
+        "intensity_std": 7.747510174530269,
+        "texture_score": 0.8529324207322475,
+        "neighbor_coverage": 0.03732841232841233,
+        "isolation_score": 0.5333948458948459,
+        "final_score": 0.6449081474637814,
+        "chosen": true
+      },
+      {
+        "contour_index": 135,
+        "area_px": 6834.5,
+        "bbox": [
+          1370,
+          1193,
+          183,
+          81
+        ],
+        "is_large": false,
+        "solidity": 0.5650214947089947,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 74.74749212139848,
+        "intensity_std": 48.85839456652458,
+        "texture_score": 0.10101003151440607,
+        "neighbor_coverage": 0.0220453199607217,
+        "isolation_score": 0.7244335004909788,
+        "final_score": 0.30997540649927274,
+        "chosen": false
+      },
+      {
+        "contour_index": 114,
+        "area_px": 3760.0,
+        "bbox": [
+          286,
+          1250,
+          127,
+          137
+        ],
+        "is_large": false,
+        "solidity": 0.5301374691575608,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 57.79983002127733,
+        "intensity_std": 33.435603877436904,
+        "texture_score": 0.2672666217533371,
+        "neighbor_coverage": 0.033743957187833275,
+        "isolation_score": 0.578200535152084,
+        "final_score": 0.28473353841150106,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\RY.png",
+    "num_candidates": 2,
+    "best_score": 0.6445511850259161,
+    "flakes": [
+      {
+        "contour_index": 125,
+        "area_px": 5108.5,
+        "bbox": [
+          1794,
+          1091,
+          76,
+          128
+        ],
+        "is_large": false,
+        "solidity": 0.9372534629850472,
+        "color_fraction": 0.3580129425199848,
+        "color_score": 0.3580129425199848,
+        "laplacian_var": 6.391917966948968,
+        "intensity_std": 2.6447297778882763,
+        "texture_score": 0.93476138146388,
+        "neighbor_coverage": 0.01712125365497076,
+        "isolation_score": 0.7859843293128654,
+        "final_score": 0.6445511850259161,
+        "chosen": true
+      },
+      {
+        "contour_index": 95,
+        "area_px": 3947.0,
+        "bbox": [
+          581,
+          1221,
+          156,
+          78
+        ],
+        "is_large": false,
+        "solidity": 0.46907124606334305,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 65.2852770911042,
+        "intensity_std": 32.27978853797812,
+        "texture_score": 0.2546620635659113,
+        "neighbor_coverage": 0.06642194462707283,
+        "isolation_score": 0.16972569216158961,
+        "final_score": 0.11882268957781811,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\UC.png",
+    "num_candidates": 4,
+    "best_score": 0.6412077477241437,
+    "flakes": [
+      {
+        "contour_index": 199,
+        "area_px": 4381.5,
+        "bbox": [
+          98,
+          650,
+          123,
+          72
+        ],
+        "is_large": false,
+        "solidity": 0.8535112496347521,
+        "color_fraction": 0.6079558011049724,
+        "color_score": 0.6079558011049724,
+        "laplacian_var": 8.864972311662823,
+        "intensity_std": 17.16173346033474,
+        "texture_score": 0.7071141088483276,
+        "neighbor_coverage": 0.028679478897502154,
+        "isolation_score": 0.641506513781223,
+        "final_score": 0.6412077477241437,
+        "chosen": true
+      },
+      {
+        "contour_index": 40,
+        "area_px": 3560.5,
+        "bbox": [
+          1248,
+          1363,
+          93,
+          76
+        ],
+        "is_large": false,
+        "solidity": 0.7522712867103317,
+        "color_fraction": 0.05733512786002692,
+        "color_score": 0.05733512786002692,
+        "laplacian_var": 10.577907321854282,
+        "intensity_std": 6.637578296054428,
+        "texture_score": 0.8581246962717665,
+        "neighbor_coverage": 0.00756146638998931,
+        "isolation_score": 0.9054816701251336,
+        "final_score": 0.5567516584484176,
+        "chosen": false
+      },
+      {
+        "contour_index": 39,
+        "area_px": 3810.5,
+        "bbox": [
+          1694,
+          1364,
+          62,
+          162
+        ],
+        "is_large": false,
+        "solidity": 0.8474368953630601,
+        "color_fraction": 0.12603357554497618,
+        "color_score": 0.12603357554497618,
+        "laplacian_var": 8.354507707094886,
+        "intensity_std": 6.229381860943012,
+        "texture_score": 0.8731412412574753,
+        "neighbor_coverage": 0.029231858862919322,
+        "isolation_score": 0.6346017642135084,
+        "final_score": 0.47888238415488893,
+        "chosen": false
+      },
+      {
+        "contour_index": 80,
+        "area_px": 3640.5,
+        "bbox": [
+          351,
+          1284,
+          133,
+          124
+        ],
+        "is_large": false,
+        "solidity": 0.52133753401117,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 50.56984777295121,
+        "intensity_std": 31.75662451469565,
+        "texture_score": 0.3213712411877604,
+        "neighbor_coverage": 0.026026086722181797,
+        "isolation_score": 0.6746739159727275,
+        "final_score": 0.3341438146266431,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\VQ.png",
+    "num_candidates": 2,
+    "best_score": 0.6353392070567805,
+    "flakes": [
+      {
+        "contour_index": 223,
+        "area_px": 13176.0,
+        "bbox": [
+          861,
+          598,
+          147,
+          161
+        ],
+        "is_large": false,
+        "solidity": 0.8672985781990521,
+        "color_fraction": 0.5438688035780842,
+        "color_score": 0.5438688035780842,
+        "laplacian_var": 13.682896426409586,
+        "intensity_std": 15.444726438422691,
+        "texture_score": 0.7135975177180213,
+        "neighbor_coverage": 0.024985563583611498,
+        "isolation_score": 0.6876804552048563,
+        "final_score": 0.6353392070567805,
+        "chosen": true
+      },
+      {
+        "contour_index": 69,
+        "area_px": 4197.5,
+        "bbox": [
+          270,
+          1268,
+          171,
+          107
+        ],
+        "is_large": false,
+        "solidity": 0.4893902296840387,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 37.982322577228764,
+        "intensity_std": 31.132185953411927,
+        "texture_score": 0.381087920389906,
+        "neighbor_coverage": 0.02726008513842585,
+        "isolation_score": 0.6592489357696769,
+        "final_score": 0.339917158385852,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\CK.png",
+    "num_candidates": 3,
+    "best_score": 0.6181899429557987,
+    "flakes": [
+      {
+        "contour_index": 435,
+        "area_px": 3532.0,
+        "bbox": [
+          1363,
+          71,
+          72,
+          81
+        ],
+        "is_large": false,
+        "solidity": 0.818539976825029,
+        "color_fraction": 0.5360458765701802,
+        "color_score": 0.5360458765701802,
+        "laplacian_var": 31.18121337875311,
+        "intensity_std": 28.647756158198693,
+        "texture_score": 0.4455588041120072,
+        "neighbor_coverage": 0.017068033698934986,
+        "isolation_score": 0.7866495787633127,
+        "final_score": 0.6181899429557987,
+        "chosen": true
+      },
+      {
+        "contour_index": 326,
+        "area_px": 5265.0,
+        "bbox": [
+          446,
+          512,
+          59,
+          147
+        ],
+        "is_large": false,
+        "solidity": 0.8397798867533296,
+        "color_fraction": 0.004761032777879509,
+        "color_score": 0.004761032777879509,
+        "laplacian_var": 11.58228842206483,
+        "intensity_std": 6.930858536752849,
+        "texture_score": 0.8497079682604478,
+        "neighbor_coverage": 0.02127932152145227,
+        "isolation_score": 0.7340084809818466,
+        "final_score": 0.46544939915598005,
+        "chosen": false
+      },
+      {
+        "contour_index": 72,
+        "area_px": 3823.0,
+        "bbox": [
+          231,
+          1243,
+          178,
+          98
+        ],
+        "is_large": false,
+        "solidity": 0.38824007311871633,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 8.04993182458905,
+        "intensity_std": 7.972431462484013,
+        "texture_score": 0.8482138007643836,
+        "neighbor_coverage": 0.03591811256337741,
+        "isolation_score": 0.5510235929577825,
+        "final_score": 0.3900521973359897,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\OI.png",
+    "num_candidates": 3,
+    "best_score": 0.6120121327527166,
+    "flakes": [
+      {
+        "contour_index": 340,
+        "area_px": 9397.5,
+        "bbox": [
+          512,
+          229,
+          117,
+          140
+        ],
+        "is_large": false,
+        "solidity": 0.8429763186221744,
+        "color_fraction": 0.5107554816585265,
+        "color_score": 0.5107554816585265,
+        "laplacian_var": 10.12537909806613,
+        "intensity_std": 7.966476558415817,
+        "texture_score": 0.8400013352314982,
+        "neighbor_coverage": 0.03205806539139872,
+        "isolation_score": 0.599274182607516,
+        "final_score": 0.6120121327527166,
+        "chosen": true
+      },
+      {
+        "contour_index": 416,
+        "area_px": 3953.5,
+        "bbox": [
+          416,
+          26,
+          97,
+          70
+        ],
+        "is_large": false,
+        "solidity": 0.767968142968143,
+        "color_fraction": 0.5289518690447105,
+        "color_score": 0.5289518690447105,
+        "laplacian_var": 7.573470229263103,
+        "intensity_std": 3.813454494114157,
+        "texture_score": 0.9125043016712352,
+        "neighbor_coverage": 0.0695358754606053,
+        "isolation_score": 0.13080155674243377,
+        "final_score": 0.4464022306491048,
+        "chosen": true
+      },
+      {
+        "contour_index": 57,
+        "area_px": 3126.0,
+        "bbox": [
+          356,
+          1302,
+          118,
+          116
+        ],
+        "is_large": false,
+        "solidity": 0.4980879541108987,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 71.93884842178286,
+        "intensity_std": 37.09787509664566,
+        "texture_score": 0.15577647986318363,
+        "neighbor_coverage": 0.042291707253717774,
+        "isolation_score": 0.4713536593285278,
+        "final_score": 0.21969675970404784,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\BJ.png",
+    "num_candidates": 2,
+    "best_score": 0.6101623616191174,
+    "flakes": [
+      {
+        "contour_index": 204,
+        "area_px": 9910.0,
+        "bbox": [
+          1577,
+          473,
+          102,
+          207
+        ],
+        "is_large": false,
+        "solidity": 0.6897511745258396,
+        "color_fraction": 0.4588706525986714,
+        "color_score": 0.4588706525986714,
+        "laplacian_var": 9.587328752723327,
+        "intensity_std": 12.165625644911133,
+        "texture_score": 0.7791663003154398,
+        "neighbor_coverage": 0.025843831896687822,
+        "isolation_score": 0.6769521012914022,
+        "final_score": 0.6101623616191174,
+        "chosen": true
+      },
+      {
+        "contour_index": 48,
+        "area_px": 3166.5,
+        "bbox": [
+          331,
+          1265,
+          125,
+          110
+        ],
+        "is_large": false,
+        "solidity": 0.5027387473207907,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 54.71432801192371,
+        "intensity_std": 35.184812786128596,
+        "texture_score": 0.25337049616037627,
+        "neighbor_coverage": 0.031628282828282825,
+        "isolation_score": 0.6046464646464647,
+        "final_score": 0.29253268509066116,
+        "chosen": false
+      }
+    ],
+    "dark_spots": [
+      {
+        "bbox": [
+          1609,
+          507,
+          43,
+          36
+        ],
+        "area_px": 809.5,
+        "mean_brightness": 27.359953703703702
+      },
+      {
+        "bbox": [
+          1571,
+          443,
+          42,
+          66
+        ],
+        "area_px": 1338.5,
+        "mean_brightness": 24.569808646350108
+      }
+    ]
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\KR.png",
+    "num_candidates": 2,
+    "best_score": 0.5795645137424534,
+    "flakes": [
+      {
+        "contour_index": 274,
+        "area_px": 3495.0,
+        "bbox": [
+          906,
+          611,
+          71,
+          86
+        ],
+        "is_large": false,
+        "solidity": 0.9010054137664346,
+        "color_fraction": 0.7414174972314507,
+        "color_score": 0.7414174972314507,
+        "laplacian_var": 9.734822061055826,
+        "intensity_std": 14.027372224681605,
+        "texture_score": 0.7506501283855527,
+        "neighbor_coverage": 0.05342650216544746,
+        "isolation_score": 0.3321687229319067,
+        "final_score": 0.5795645137424534,
+        "chosen": true
+      },
+      {
+        "contour_index": 45,
+        "area_px": 3795.0,
+        "bbox": [
+          357,
+          1315,
+          125,
+          113
+        ],
+        "is_large": false,
+        "solidity": 0.5553116769095698,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 38.474298003860596,
+        "intensity_std": 32.87726762853211,
+        "texture_score": 0.352943793556576,
+        "neighbor_coverage": 0.02421556886227545,
+        "isolation_score": 0.6973053892215568,
+        "final_score": 0.3495109143999379,
+        "chosen": false
+      }
+    ],
+    "dark_spots": [
+      {
+        "bbox": [
+          858,
+          188,
+          36,
+          28
+        ],
+        "area_px": 603.5,
+        "mean_brightness": 26.99078341013825
+      }
+    ]
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\SD.png",
+    "num_candidates": 4,
+    "best_score": 0.5319999370673391,
+    "flakes": [
+      {
+        "contour_index": 384,
+        "area_px": 3796.5,
+        "bbox": [
+          1201,
+          387,
+          62,
+          95
+        ],
+        "is_large": false,
+        "solidity": 0.8915110954561465,
+        "color_fraction": 0.8857142857142857,
+        "color_score": 0.8857142857142857,
+        "laplacian_var": 8.533026465052751,
+        "intensity_std": 5.153118682111019,
+        "texture_score": 0.8885711139081237,
+        "neighbor_coverage": 0.16989247311827957,
+        "isolation_score": 0.0,
+        "final_score": 0.5319999370673391,
+        "chosen": true
+      },
+      {
+        "contour_index": 436,
+        "area_px": 4427.5,
+        "bbox": [
+          1197,
+          296,
+          102,
+          85
+        ],
+        "is_large": false,
+        "solidity": 0.7635595412606708,
+        "color_fraction": 0.8142016989762579,
+        "color_score": 0.8142016989762579,
+        "laplacian_var": 8.844646714992063,
+        "intensity_std": 6.019330104238317,
+        "texture_score": 0.874331461576457,
+        "neighbor_coverage": 0.1369985902857875,
+        "isolation_score": 0.0,
+        "final_score": 0.5005469719057946,
+        "chosen": true
+      },
+      {
+        "contour_index": 53,
+        "area_px": 3043.0,
+        "bbox": [
+          724,
+          1425,
+          90,
+          81
+        ],
+        "is_large": false,
+        "solidity": 0.7422856445908037,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 10.182039093021546,
+        "intensity_std": 6.475876162146355,
+        "texture_score": 0.8621337011957185,
+        "neighbor_coverage": 0.0206983024691358,
+        "isolation_score": 0.7412712191358024,
+        "final_score": 0.4689352278934647,
+        "chosen": false
+      },
+      {
+        "contour_index": 124,
+        "area_px": 4512.5,
+        "bbox": [
+          288,
+          1238,
+          136,
+          161
+        ],
+        "is_large": false,
+        "solidity": 0.4738776581779995,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 37.68658710035156,
+        "intensity_std": 29.87968454797721,
+        "texture_score": 0.4010583833789357,
+        "neighbor_coverage": 0.0307841001324277,
+        "isolation_score": 0.6151987483446537,
+        "final_score": 0.32629117601364865,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\SE.png",
+    "num_candidates": 5,
+    "best_score": 0.5061624719468911,
+    "flakes": [
+      {
+        "contour_index": 314,
+        "area_px": 4002.5,
+        "bbox": [
+          110,
+          418,
+          69,
+          95
+        ],
+        "is_large": false,
+        "solidity": 0.868880929121893,
+        "color_fraction": 0.8380929332042595,
+        "color_score": 0.8380929332042595,
+        "laplacian_var": 9.246925759275944,
+        "intensity_std": 7.225720242463969,
+        "texture_score": 0.8546264933259367,
+        "neighbor_coverage": 0.1675226714128316,
+        "isolation_score": 0.0,
+        "final_score": 0.5061624719468911,
+        "chosen": true
+      },
+      {
+        "contour_index": 355,
+        "area_px": 4560.5,
+        "bbox": [
+          111,
+          326,
+          104,
+          87
+        ],
+        "is_large": false,
+        "solidity": 0.7706150726596823,
+        "color_fraction": 0.6866934630844087,
+        "color_score": 0.6866934630844087,
+        "laplacian_var": 9.812723211418149,
+        "intensity_std": 8.665977179068369,
+        "texture_score": 0.8307594494683019,
+        "neighbor_coverage": 0.1420940170940171,
+        "isolation_score": 0.0,
+        "final_score": 0.44082927512742387,
+        "chosen": true
+      },
+      {
+        "contour_index": 154,
+        "area_px": 3252.0,
+        "bbox": [
+          934,
+          1009,
+          60,
+          86
+        ],
+        "is_large": false,
+        "solidity": 0.9556273875991772,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 9.99999118865237,
+        "intensity_std": 4.595487622566746,
+        "texture_score": 0.8910677209068893,
+        "neighbor_coverage": 0.03710163652024117,
+        "isolation_score": 0.5362295434969854,
+        "final_score": 0.39270536158017205,
+        "chosen": false
+      },
+      {
+        "contour_index": 96,
+        "area_px": 4384.5,
+        "bbox": [
+          327,
+          1271,
+          151,
+          159
+        ],
+        "is_large": false,
+        "solidity": 0.40634847080630215,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 40.6220077008969,
+        "intensity_std": 30.195710537184013,
+        "texture_score": 0.3845763111386522,
+        "neighbor_coverage": 0.04532675246782457,
+        "isolation_score": 0.4334155941521929,
+        "final_score": 0.2502814998886076,
+        "chosen": false
+      },
+      {
+        "contour_index": 105,
+        "area_px": 4698.5,
+        "bbox": [
+          1506,
+          1237,
+          66,
+          109
+        ],
+        "is_large": false,
+        "solidity": 0.810016377898457,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 63.2026440167885,
+        "intensity_std": 49.216111380418255,
+        "texture_score": 0.147189423932846,
+        "neighbor_coverage": 0.042828900627065764,
+        "isolation_score": 0.464638742161678,
+        "final_score": 0.2152933816512404,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TaS2010\\Post Exfo\\TL.png",
+    "num_candidates": 1,
+    "best_score": 0.0,
+    "flakes": [
+      {
+        "contour_index": 122,
+        "area_px": 5007.0,
+        "bbox": [
+          290,
+          1204,
+          221,
+          163
+        ],
+        "is_large": false,
+        "solidity": 0.3438755537241166,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 39.34480074976879,
+        "intensity_std": 31.342665668947586,
+        "texture_score": 0.3724808119667111,
+        "neighbor_coverage": 0.027352894909733597,
+        "isolation_score": 0.65808881362833,
+        "final_score": 0.3377316878446743,
+        "chosen": false
+      }
+    ],
+    "dark_spots": [
+      {
+        "bbox": [
+          1907,
+          788,
+          23,
+          18
+        ],
+        "area_px": 211.0,
+        "mean_brightness": 32.77824267782427
+      }
+    ]
+  }
+]

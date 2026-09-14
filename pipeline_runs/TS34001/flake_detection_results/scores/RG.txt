@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TS34001\Post Exfo\RG.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=43)
+  final_score:       0.6417
+  area_px:           5818
+  bbox:              (1000, 610, 96, 106)
+  solidity:          0.8798
+  color_fraction:    0.6303  (color_score: 0.6303)
+  texture_score:     0.5330  (laplacian_var: 16.95, intensity_std: 26.61)
+  isolation_score:   0.7074  (neighbor_coverage: 0.0234)

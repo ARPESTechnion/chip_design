@@ -1,0 +1,1595 @@
+[
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\BB.png",
+    "num_candidates": 3,
+    "best_score": 0.9179598698498512,
+    "flakes": [
+      {
+        "contour_index": 80,
+        "area_px": 1522.5,
+        "bbox": [
+          795,
+          696,
+          68,
+          46
+        ],
+        "is_large": false,
+        "solidity": 0.9545454545454546,
+        "color_fraction": 0.878522229179712,
+        "color_score": 0.878522229179712,
+        "laplacian_var": 8.730415581597223,
+        "intensity_std": 3.9669642745499427,
+        "texture_score": 0.905573873555362,
+        "neighbor_coverage": 0.0029127593066211994,
+        "isolation_score": 0.9635905086672351,
+        "final_score": 0.9179598698498512,
+        "chosen": true
+      },
+      {
+        "contour_index": 36,
+        "area_px": 4861.0,
+        "bbox": [
+          270,
+          1262,
+          212,
+          150
+        ],
+        "is_large": false,
+        "solidity": 0.3844359207560599,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 40.37178082405078,
+        "intensity_std": 30.901062409724954,
+        "texture_score": 0.37499694055792265,
+        "neighbor_coverage": 0.009215171472647443,
+        "isolation_score": 0.884810356591907,
+        "final_score": 0.4289235307483473,
+        "chosen": false
+      },
+      {
+        "contour_index": 38,
+        "area_px": 2092.5,
+        "bbox": [
+          1555,
+          1218,
+          66,
+          63
+        ],
+        "is_large": false,
+        "solidity": 0.6943753111000498,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 107.27520207708945,
+        "intensity_std": 46.447547427703626,
+        "texture_score": 0.0,
+        "neighbor_coverage": 0.052348885682219015,
+        "isolation_score": 0.34563892897226234,
+        "final_score": 0.13825557158890495,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\LI.png",
+    "num_candidates": 5,
+    "best_score": 0.8732921472414868,
+    "flakes": [
+      {
+        "contour_index": 34,
+        "area_px": 3968.0,
+        "bbox": [
+          1064,
+          997,
+          94,
+          55
+        ],
+        "is_large": false,
+        "solidity": 0.9532732732732733,
+        "color_fraction": 0.7465167440723539,
+        "color_score": 0.7465167440723539,
+        "laplacian_var": 6.707147530015275,
+        "intensity_std": 6.649610787814192,
+        "texture_score": 0.873427248062726,
+        "neighbor_coverage": 0.0,
+        "isolation_score": 1.0,
+        "final_score": 0.8732921472414868,
+        "chosen": true
+      },
+      {
+        "contour_index": 19,
+        "area_px": 1649.0,
+        "bbox": [
+          405,
+          1218,
+          29,
+          79
+        ],
+        "is_large": false,
+        "solidity": 0.9449856733524356,
+        "color_fraction": 0.007488479262672811,
+        "color_score": 0.007488479262672811,
+        "laplacian_var": 60.23664551021929,
+        "intensity_std": 45.051005561776456,
+        "texture_score": 0.15905341795912287,
+        "neighbor_coverage": 0.02109704641350211,
+        "isolation_score": 0.7362869198312236,
+        "final_score": 0.32932084322938315,
+        "chosen": false
+      },
+      {
+        "contour_index": 95,
+        "area_px": 2019.5,
+        "bbox": [
+          1450,
+          77,
+          51,
+          77
+        ],
+        "is_large": false,
+        "solidity": 0.7734584450402144,
+        "color_fraction": 0.0037593984962406013,
+        "color_score": 0.0037593984962406013,
+        "laplacian_var": 78.29946396764615,
+        "intensity_std": 43.44452559936631,
+        "texture_score": 0.08680214412941543,
+        "neighbor_coverage": 0.021758198228786465,
+        "isolation_score": 0.7280225221401693,
+        "final_score": 0.31007319708044706,
+        "chosen": false
+      },
+      {
+        "contour_index": 20,
+        "area_px": 3130.5,
+        "bbox": [
+          1502,
+          1217,
+          85,
+          97
+        ],
+        "is_large": false,
+        "solidity": 0.6409049032654315,
+        "color_fraction": 0.01419939577039275,
+        "color_score": 0.01419939577039275,
+        "laplacian_var": 75.83888594258711,
+        "intensity_std": 50.45040390380832,
+        "texture_score": 0.09664445622965157,
+        "neighbor_coverage": 0.03513240347685466,
+        "isolation_score": 0.5608449565393168,
+        "final_score": 0.24934663216981412,
+        "chosen": false
+      },
+      {
+        "contour_index": 94,
+        "area_px": 2224.5,
+        "bbox": [
+          1531,
+          77,
+          56,
+          78
+        ],
+        "is_large": false,
+        "solidity": 0.7864592540215662,
+        "color_fraction": 0.0012875536480686696,
+        "color_score": 0.0012875536480686696,
+        "laplacian_var": 100.38558262291534,
+        "intensity_std": 43.76316663840556,
+        "texture_score": 0.0,
+        "neighbor_coverage": 0.06266605354588187,
+        "isolation_score": 0.21667433067647668,
+        "final_score": 0.08718475372981814,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\UR.png",
+    "num_candidates": 5,
+    "best_score": 0.8692952276889079,
+    "flakes": [
+      {
+        "contour_index": 58,
+        "area_px": 2956.5,
+        "bbox": [
+          859,
+          821,
+          58,
+          89
+        ],
+        "is_large": false,
+        "solidity": 0.960058451047248,
+        "color_fraction": 0.7217334636689475,
+        "color_score": 0.7217334636689475,
+        "laplacian_var": 6.401145350697616,
+        "intensity_std": 3.288217928159788,
+        "texture_score": 0.9250721496748128,
+        "neighbor_coverage": 0.000882517542726764,
+        "isolation_score": 0.9889685307159155,
+        "final_score": 0.8692952276889079,
+        "chosen": true
+      },
+      {
+        "contour_index": 37,
+        "area_px": 2686.5,
+        "bbox": [
+          1526,
+          1202,
+          64,
+          78
+        ],
+        "is_large": false,
+        "solidity": 0.7455251838490357,
+        "color_fraction": 0.03412726626377533,
+        "color_score": 0.03412726626377533,
+        "laplacian_var": 50.96518564070077,
+        "intensity_std": 37.15875206572258,
+        "texture_score": 0.2387579764513582,
+        "neighbor_coverage": 0.06127581908831909,
+        "isolation_score": 0.23405226139601143,
+        "final_score": 0.15502340635418635,
+        "chosen": false
+      },
+      {
+        "contour_index": 36,
+        "area_px": 3902.0,
+        "bbox": [
+          1617,
+          1202,
+          64,
+          87
+        ],
+        "is_large": false,
+        "solidity": 0.9152105077987569,
+        "color_fraction": 0.024365987071108902,
+        "color_score": 0.024365987071108902,
+        "laplacian_var": 58.8627063436422,
+        "intensity_std": 48.932781558299865,
+        "texture_score": 0.1645491746254312,
+        "neighbor_coverage": 0.06760855683269476,
+        "isolation_score": 0.1548930395913155,
+        "final_score": 0.104613445590056,
+        "chosen": false
+      },
+      {
+        "contour_index": 100,
+        "area_px": 4017.5,
+        "bbox": [
+          1615,
+          59,
+          66,
+          81
+        ],
+        "is_large": false,
+        "solidity": 0.9306231179059532,
+        "color_fraction": 0.0014524328249818446,
+        "color_score": 0.0014524328249818446,
+        "laplacian_var": 68.40008386354171,
+        "intensity_std": 51.05545188180337,
+        "texture_score": 0.12639966454583318,
+        "neighbor_coverage": 0.09088623794506147,
+        "isolation_score": 0.0,
+        "final_score": 0.025860906039159373,
+        "chosen": false
+      },
+      {
+        "contour_index": 98,
+        "area_px": 3244.0,
+        "bbox": [
+          1525,
+          63,
+          68,
+          77
+        ],
+        "is_large": false,
+        "solidity": 0.7076017013851019,
+        "color_fraction": 0.007344300822561692,
+        "color_score": 0.007344300822561692,
+        "laplacian_var": 90.38801237380682,
+        "intensity_std": 39.15753642388714,
+        "texture_score": 0.05108490414646567,
+        "neighbor_coverage": 0.07847655191108702,
+        "isolation_score": 0.019043101111412275,
+        "final_score": 0.02077194160288272,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\SL.png",
+    "num_candidates": 3,
+    "best_score": 0.8627991318867376,
+    "flakes": [
+      {
+        "contour_index": 71,
+        "area_px": 5489.5,
+        "bbox": [
+          653,
+          615,
+          98,
+          104
+        ],
+        "is_large": false,
+        "solidity": 0.8906465482274681,
+        "color_fraction": 0.6902733404330849,
+        "color_score": 0.6902733404330849,
+        "laplacian_var": 7.598875024427752,
+        "intensity_std": 2.410368088984715,
+        "texture_score": 0.9334489785675182,
+        "neighbor_coverage": 0.0,
+        "isolation_score": 1.0,
+        "final_score": 0.8627991318867376,
+        "chosen": true
+      },
+      {
+        "contour_index": 26,
+        "area_px": 2123.0,
+        "bbox": [
+          1439,
+          1214,
+          60,
+          74
+        ],
+        "is_large": false,
+        "solidity": 0.7447816172601298,
+        "color_fraction": 0.013888888888888888,
+        "color_score": 0.013888888888888888,
+        "laplacian_var": 80.64707523173435,
+        "intensity_std": 40.982567000640486,
+        "texture_score": 0.07741169907306263,
+        "neighbor_coverage": 0.017717717717717716,
+        "isolation_score": 0.7785285285285286,
+        "final_score": 0.3324493067815796,
+        "chosen": false
+      },
+      {
+        "contour_index": 24,
+        "area_px": 3199.5,
+        "bbox": [
+          1517,
+          1214,
+          111,
+          112
+        ],
+        "is_large": false,
+        "solidity": 0.39104131019310684,
+        "color_fraction": 0.02484113229347198,
+        "color_score": 0.02484113229347198,
+        "laplacian_var": 59.98709357329274,
+        "intensity_std": 54.953585240116695,
+        "texture_score": 0.16005162570682907,
+        "neighbor_coverage": 0.028439153439153438,
+        "isolation_score": 0.6445105820105821,
+        "final_score": 0.2997510108629875,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\SX.png",
+    "num_candidates": 5,
+    "best_score": 0.8495443281732603,
+    "flakes": [
+      {
+        "contour_index": 38,
+        "area_px": 2285.5,
+        "bbox": [
+          901,
+          1104,
+          64,
+          57
+        ],
+        "is_large": false,
+        "solidity": 0.9334286297733306,
+        "color_fraction": 0.6829679595278246,
+        "color_score": 0.6829679595278246,
+        "laplacian_var": 9.048899253327638,
+        "intensity_std": 5.467912078402503,
+        "texture_score": 0.8817857218106518,
+        "neighbor_coverage": 0.0,
+        "isolation_score": 1.0,
+        "final_score": 0.8495443281732603,
+        "chosen": true
+      },
+      {
+        "contour_index": 27,
+        "area_px": 2019.5,
+        "bbox": [
+          1493,
+          1196,
+          60,
+          73
+        ],
+        "is_large": false,
+        "solidity": 0.728666786938481,
+        "color_fraction": 0.015984955336154207,
+        "color_score": 0.015984955336154207,
+        "laplacian_var": 81.40949576904013,
+        "intensity_std": 41.41568323971636,
+        "texture_score": 0.07436201692383948,
+        "neighbor_coverage": 0.037747336377473364,
+        "isolation_score": 0.528158295281583,
+        "final_score": 0.2325297036318628,
+        "chosen": false
+      },
+      {
+        "contour_index": 154,
+        "area_px": 3863.0,
+        "bbox": [
+          1494,
+          51,
+          64,
+          82
+        ],
+        "is_large": false,
+        "solidity": 0.9015169194865811,
+        "color_fraction": 0.0055,
+        "color_score": 0.0055,
+        "laplacian_var": 77.98197361191662,
+        "intensity_std": 50.76156868225238,
+        "texture_score": 0.08807210555233357,
+        "neighbor_coverage": 0.05852713178294574,
+        "isolation_score": 0.2684108527131783,
+        "final_score": 0.12717876219573804,
+        "chosen": false
+      },
+      {
+        "contour_index": 28,
+        "area_px": 2117.5,
+        "bbox": [
+          1578,
+          1195,
+          58,
+          76
+        ],
+        "is_large": false,
+        "solidity": 0.7369062119366626,
+        "color_fraction": 0.025617977528089888,
+        "color_score": 0.025617977528089888,
+        "laplacian_var": 70.70287837608102,
+        "intensity_std": 41.29196458960425,
+        "texture_score": 0.11718848649567595,
+        "neighbor_coverage": 0.08308126638435169,
+        "isolation_score": 0.0,
+        "final_score": 0.03368488831037115,
+        "chosen": false
+      },
+      {
+        "contour_index": 152,
+        "area_px": 2321.5,
+        "bbox": [
+          1577,
+          54,
+          61,
+          79
+        ],
+        "is_large": false,
+        "solidity": 0.7811238223418573,
+        "color_fraction": 0.0012355848434925864,
+        "color_score": 0.0012355848434925864,
+        "laplacian_var": 99.50885923577165,
+        "intensity_std": 44.43181399999744,
+        "texture_score": 0.001964563056913393,
+        "neighbor_coverage": 0.12369831941437262,
+        "isolation_score": 0.0,
+        "final_score": 0.0008871465487797133,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\CR.png",
+    "num_candidates": 2,
+    "best_score": 0.8408459440326179,
+    "flakes": [
+      {
+        "contour_index": 84,
+        "area_px": 1888.0,
+        "bbox": [
+          580,
+          987,
+          60,
+          54
+        ],
+        "is_large": false,
+        "solidity": 0.9414111194215906,
+        "color_fraction": 0.7107269954245043,
+        "color_score": 0.7107269954245043,
+        "laplacian_var": 9.422618394135746,
+        "intensity_std": 11.96891980729177,
+        "texture_score": 0.7827757293140805,
+        "neighbor_coverage": 0.0,
+        "isolation_score": 1.0,
+        "final_score": 0.8408459440326179,
+        "chosen": true
+      },
+      {
+        "contour_index": 52,
+        "area_px": 5550.5,
+        "bbox": [
+          295,
+          1222,
+          216,
+          168
+        ],
+        "is_large": false,
+        "solidity": 0.35189881442972165,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 39.384698136993975,
+        "intensity_std": 29.44678391959477,
+        "texture_score": 0.4007594486581026,
+        "neighbor_coverage": 0.007728856103683213,
+        "isolation_score": 0.9033892987039598,
+        "final_score": 0.4415076092132045,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\UT.png",
+    "num_candidates": 7,
+    "best_score": 0.8277519959489718,
+    "flakes": [
+      {
+        "contour_index": 38,
+        "area_px": 2352.0,
+        "bbox": [
+          475,
+          775,
+          61,
+          65
+        ],
+        "is_large": false,
+        "solidity": 0.966707768187423,
+        "color_fraction": 0.7584085315832649,
+        "color_score": 0.7584085315832649,
+        "laplacian_var": 8.125326023761716,
+        "intensity_std": 4.214951165794403,
+        "texture_score": 0.9042744284180371,
+        "neighbor_coverage": 0.011293260473588343,
+        "isolation_score": 0.8588342440801457,
+        "final_score": 0.8277519959489718,
+        "chosen": true
+      },
+      {
+        "contour_index": 23,
+        "area_px": 2721.5,
+        "bbox": [
+          1409,
+          1223,
+          64,
+          77
+        ],
+        "is_large": false,
+        "solidity": 0.7549237170596393,
+        "color_fraction": 0.02564102564102564,
+        "color_score": 0.02564102564102564,
+        "laplacian_var": 64.39116022880198,
+        "intensity_std": 37.79359832659788,
+        "texture_score": 0.17553138418582384,
+        "neighbor_coverage": 0.058937590187590184,
+        "isolation_score": 0.2632801226551227,
+        "final_score": 0.1506747361556241,
+        "chosen": false
+      },
+      {
+        "contour_index": 22,
+        "area_px": 3167.0,
+        "bbox": [
+          267,
+          1224,
+          69,
+          76
+        ],
+        "is_large": false,
+        "solidity": 0.8049307408819418,
+        "color_fraction": 0.0072881870634679624,
+        "color_score": 0.0072881870634679624,
+        "laplacian_var": 60.064495998768855,
+        "intensity_std": 49.595700272256835,
+        "texture_score": 0.1597420160049246,
+        "neighbor_coverage": 0.06464530892448513,
+        "isolation_score": 0.19193363844393596,
+        "final_score": 0.1116371334039465,
+        "chosen": false
+      },
+      {
+        "contour_index": 24,
+        "area_px": 4067.0,
+        "bbox": [
+          1490,
+          1222,
+          74,
+          94
+        ],
+        "is_large": false,
+        "solidity": 0.6738464087482395,
+        "color_fraction": 0.019617001401214387,
+        "color_score": 0.019617001401214387,
+        "laplacian_var": 61.94570493882838,
+        "intensity_std": 45.7265562118713,
+        "texture_score": 0.15221718024468647,
+        "neighbor_coverage": 0.07012331480416586,
+        "isolation_score": 0.12345856494792673,
+        "final_score": 0.08767366258859374,
+        "chosen": false
+      },
+      {
+        "contour_index": 21,
+        "area_px": 2680.0,
+        "bbox": [
+          357,
+          1224,
+          64,
+          79
+        ],
+        "is_large": false,
+        "solidity": 0.8086904043452021,
+        "color_fraction": 0.0035790980672870437,
+        "color_score": 0.0035790980672870437,
+        "laplacian_var": 60.1671410208851,
+        "intensity_std": 51.29175736284773,
+        "texture_score": 0.15933143591645962,
+        "neighbor_coverage": 0.09236550632911393,
+        "isolation_score": 0.0,
+        "final_score": 0.03329792641020674,
+        "chosen": false
+      },
+      {
+        "contour_index": 83,
+        "area_px": 3549.5,
+        "bbox": [
+          1408,
+          82,
+          72,
+          79
+        ],
+        "is_large": false,
+        "solidity": 0.7424179042041414,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 95.87695828672638,
+        "intensity_std": 46.69161695576778,
+        "texture_score": 0.016492166853094493,
+        "neighbor_coverage": 0.0775707141740897,
+        "isolation_score": 0.03036607282387882,
+        "final_score": 0.015444862500170428,
+        "chosen": false
+      },
+      {
+        "contour_index": 82,
+        "area_px": 4024.0,
+        "bbox": [
+          1487,
+          82,
+          79,
+          80
+        ],
+        "is_large": false,
+        "solidity": 0.7850175575497463,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 94.57333431448939,
+        "intensity_std": 50.50285885060881,
+        "texture_score": 0.02170666274204245,
+        "neighbor_coverage": 0.10530942334739803,
+        "isolation_score": 0.0,
+        "final_score": 0.00434133254840849,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\AR1.png",
+    "num_candidates": 1,
+    "best_score": 0.8252817639128655,
+    "flakes": [
+      {
+        "contour_index": 132,
+        "area_px": 1995.0,
+        "bbox": [
+          898,
+          758,
+          53,
+          64
+        ],
+        "is_large": false,
+        "solidity": 0.9457217350082958,
+        "color_fraction": 0.7103746397694525,
+        "color_score": 0.7103746397694525,
+        "laplacian_var": 6.757379488196786,
+        "intensity_std": 2.370432473011061,
+        "texture_score": 0.9374139949520469,
+        "neighbor_coverage": 0.00927017819706499,
+        "isolation_score": 0.8841227725366876,
+        "final_score": 0.8252817639128655,
+        "chosen": true
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\WB.png",
+    "num_candidates": 4,
+    "best_score": 0.8004965234778381,
+    "flakes": [
+      {
+        "contour_index": 58,
+        "area_px": 3806.0,
+        "bbox": [
+          950,
+          857,
+          82,
+          66
+        ],
+        "is_large": false,
+        "solidity": 0.945472612097876,
+        "color_fraction": 0.7666836474783495,
+        "color_score": 0.7666836474783495,
+        "laplacian_var": 6.793405190588632,
+        "intensity_std": 6.617336173202825,
+        "texture_score": 0.873566336639603,
+        "neighbor_coverage": 0.01617804056828447,
+        "isolation_score": 0.7977744928964441,
+        "final_score": 0.8004965234778381,
+        "chosen": true
+      },
+      {
+        "contour_index": 127,
+        "area_px": 3210.0,
+        "bbox": [
+          1464,
+          86,
+          87,
+          80
+        ],
+        "is_large": false,
+        "solidity": 0.6952566601689408,
+        "color_fraction": 0.004480286738351254,
+        "color_score": 0.004480286738351254,
+        "laplacian_var": 98.77478036886542,
+        "intensity_std": 52.436478637150884,
+        "texture_score": 0.00490087852453831,
+        "neighbor_coverage": 0.0070242656449553,
+        "isolation_score": 0.9121966794380587,
+        "final_score": 0.36765096217547166,
+        "chosen": false
+      },
+      {
+        "contour_index": 26,
+        "area_px": 3044.5,
+        "bbox": [
+          1475,
+          1229,
+          62,
+          77
+        ],
+        "is_large": false,
+        "solidity": 0.7277399306800526,
+        "color_fraction": 0.020498265531378113,
+        "color_score": 0.020498265531378113,
+        "laplacian_var": 74.51068255735511,
+        "intensity_std": 43.86218598094279,
+        "texture_score": 0.10195726977057956,
+        "neighbor_coverage": 0.05534608760415212,
+        "isolation_score": 0.3081739049480985,
+        "final_score": 0.15186032214590656,
+        "chosen": false
+      },
+      {
+        "contour_index": 25,
+        "area_px": 3236.5,
+        "bbox": [
+          1559,
+          1229,
+          69,
+          87
+        ],
+        "is_large": false,
+        "solidity": 0.692521664705253,
+        "color_fraction": 0.02178392699440683,
+        "color_score": 0.02178392699440683,
+        "laplacian_var": 76.10536631220477,
+        "intensity_std": 43.04524126927904,
+        "texture_score": 0.09557853475118093,
+        "neighbor_coverage": 0.0824957891424658,
+        "isolation_score": 0.0,
+        "final_score": 0.02782927774799892,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\XV.png",
+    "num_candidates": 4,
+    "best_score": 0.7774348998820471,
+    "flakes": [
+      {
+        "contour_index": 121,
+        "area_px": 4262.0,
+        "bbox": [
+          1259,
+          218,
+          87,
+          89
+        ],
+        "is_large": false,
+        "solidity": 0.9258173129140871,
+        "color_fraction": 0.7480602464628023,
+        "color_score": 0.7480602464628023,
+        "laplacian_var": 8.350471285364224,
+        "intensity_std": 8.4022771155336,
+        "texture_score": 0.8405639581255391,
+        "neighbor_coverage": 0.017980398065636345,
+        "isolation_score": 0.7752450241795457,
+        "final_score": 0.7774348998820471,
+        "chosen": true
+      },
+      {
+        "contour_index": 147,
+        "area_px": 3477.5,
+        "bbox": [
+          1521,
+          45,
+          103,
+          80
+        ],
+        "is_large": false,
+        "solidity": 0.532379056950398,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 90.91626926130748,
+        "intensity_std": 53.940215541124765,
+        "texture_score": 0.03633492295477008,
+        "neighbor_coverage": 0.04358670771173731,
+        "isolation_score": 0.4551661536032836,
+        "final_score": 0.18933344603226746,
+        "chosen": false
+      },
+      {
+        "contour_index": 43,
+        "area_px": 5578.0,
+        "bbox": [
+          1522,
+          1188,
+          97,
+          86
+        ],
+        "is_large": false,
+        "solidity": 0.8154970760233918,
+        "color_fraction": 0.013977566867989646,
+        "color_score": 0.013977566867989646,
+        "laplacian_var": 77.79432835048952,
+        "intensity_std": 53.066687882638284,
+        "texture_score": 0.08882268659804193,
+        "neighbor_coverage": 0.056487919230666775,
+        "isolation_score": 0.2939010096166653,
+        "final_score": 0.14091596791347039,
+        "chosen": false
+      },
+      {
+        "contour_index": 44,
+        "area_px": 2155.0,
+        "bbox": [
+          1448,
+          1188,
+          59,
+          74
+        ],
+        "is_large": false,
+        "solidity": 0.7552128964429647,
+        "color_fraction": 0.022546419098143235,
+        "color_score": 0.022546419098143235,
+        "laplacian_var": 88.29104549453963,
+        "intensity_std": 41.35645085256652,
+        "texture_score": 0.046835818021841474,
+        "neighbor_coverage": 0.0711304524863847,
+        "isolation_score": 0.11086934392019132,
+        "final_score": 0.06273346881170211,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\VA.png",
+    "num_candidates": 4,
+    "best_score": 0.7441050455501748,
+    "flakes": [
+      {
+        "contour_index": 153,
+        "area_px": 4343.5,
+        "bbox": [
+          347,
+          127,
+          107,
+          72
+        ],
+        "is_large": false,
+        "solidity": 0.9154810833596796,
+        "color_fraction": 0.6939095387371249,
+        "color_score": 0.6939095387371249,
+        "laplacian_var": 9.742383824336946,
+        "intensity_std": 10.543339357181553,
+        "texture_score": 0.802880374344929,
+        "neighbor_coverage": 0.018806968962732203,
+        "isolation_score": 0.7649128879658474,
+        "final_score": 0.7441050455501748,
+        "chosen": true
+      },
+      {
+        "contour_index": 117,
+        "area_px": 1602.0,
+        "bbox": [
+          839,
+          333,
+          65,
+          37
+        ],
+        "is_large": false,
+        "solidity": 0.8974789915966387,
+        "color_fraction": 0.6027315914489311,
+        "color_score": 0.6027315914489311,
+        "laplacian_var": 11.374102789649747,
+        "intensity_std": 7.747395140377234,
+        "texture_score": 0.8382926617357425,
+        "neighbor_coverage": 0.024901824901824902,
+        "isolation_score": 0.6887271887271887,
+        "final_score": 0.6842420444175965,
+        "chosen": true
+      },
+      {
+        "contour_index": 35,
+        "area_px": 4684.5,
+        "bbox": [
+          1597,
+          1250,
+          86,
+          78
+        ],
+        "is_large": false,
+        "solidity": 0.8258991537376587,
+        "color_fraction": 0.02436003303055326,
+        "color_score": 0.02436003303055326,
+        "laplacian_var": 63.217866142364926,
+        "intensity_std": 48.246645689480985,
+        "texture_score": 0.14712853543054027,
+        "neighbor_coverage": 0.007768501954548466,
+        "isolation_score": 0.9028937255681442,
+        "final_score": 0.40032721052558706,
+        "chosen": false
+      },
+      {
+        "contour_index": 157,
+        "area_px": 2817.5,
+        "bbox": [
+          1605,
+          110,
+          67,
+          78
+        ],
+        "is_large": false,
+        "solidity": 0.8029353092049016,
+        "color_fraction": 0.015656909462219197,
+        "color_score": 0.015656909462219197,
+        "laplacian_var": 90.20903409997288,
+        "intensity_std": 43.919401288256196,
+        "texture_score": 0.03916386360010846,
+        "neighbor_coverage": 0.018327167580898925,
+        "isolation_score": 0.7709104052387634,
+        "final_score": 0.32245969860041473,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\EH.png",
+    "num_candidates": 3,
+    "best_score": 0.7406733976564961,
+    "flakes": [
+      {
+        "contour_index": 89,
+        "area_px": 1561.5,
+        "bbox": [
+          1782,
+          283,
+          42,
+          68
+        ],
+        "is_large": false,
+        "solidity": 0.9258820041506077,
+        "color_fraction": 0.45764777574649607,
+        "color_score": 0.45764777574649607,
+        "laplacian_var": 8.941344437834621,
+        "intensity_std": 5.130455750188291,
+        "texture_score": 0.8872777859958372,
+        "neighbor_coverage": 0.003968253968253968,
+        "isolation_score": 0.9503968253968254,
+        "final_score": 0.7406733976564961,
+        "chosen": true
+      },
+      {
+        "contour_index": 21,
+        "area_px": 2559.0,
+        "bbox": [
+          1431,
+          1214,
+          51,
+          76
+        ],
+        "is_large": false,
+        "solidity": 0.8687828891529452,
+        "color_fraction": 0.007493443237167478,
+        "color_score": 0.007493443237167478,
+        "laplacian_var": 93.0430468363986,
+        "intensity_std": 50.05537366546703,
+        "texture_score": 0.027827812654405593,
+        "neighbor_coverage": 0.004070634101593854,
+        "isolation_score": 0.9491170737300768,
+        "final_score": 0.3882097693177789,
+        "chosen": false
+      },
+      {
+        "contour_index": 112,
+        "area_px": 3960.0,
+        "bbox": [
+          1430,
+          70,
+          57,
+          81
+        ],
+        "is_large": false,
+        "solidity": 0.9140219272937103,
+        "color_fraction": 0.003911980440097799,
+        "color_score": 0.003911980440097799,
+        "laplacian_var": 61.432910960555354,
+        "intensity_std": 53.9823358108982,
+        "texture_score": 0.1542683561577786,
+        "neighbor_coverage": 0.022963299052228273,
+        "isolation_score": 0.7129587618471466,
+        "final_score": 0.3176019681464535,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\WI.png",
+    "num_candidates": 6,
+    "best_score": 0.701723363828358,
+    "flakes": [
+      {
+        "contour_index": 157,
+        "area_px": 1990.0,
+        "bbox": [
+          696,
+          123,
+          51,
+          76
+        ],
+        "is_large": false,
+        "solidity": 0.805668016194332,
+        "color_fraction": 0.6542145593869731,
+        "color_score": 0.6542145593869731,
+        "laplacian_var": 7.792632952463582,
+        "intensity_std": 8.004241540941733,
+        "texture_score": 0.8487658450760196,
+        "neighbor_coverage": 0.025943125788327026,
+        "isolation_score": 0.6757109276459121,
+        "final_score": 0.701723363828358,
+        "chosen": true
+      },
+      {
+        "contour_index": 207,
+        "area_px": 2178.5,
+        "bbox": [
+          1881,
+          25,
+          76,
+          50
+        ],
+        "is_large": false,
+        "solidity": 0.839175654853621,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 13.738408043665613,
+        "intensity_std": 13.645649193543095,
+        "texture_score": 0.7403616299221911,
+        "neighbor_coverage": 0.012280701754385965,
+        "isolation_score": 0.8464912280701754,
+        "final_score": 0.48666881721250843,
+        "chosen": false
+      },
+      {
+        "contour_index": 21,
+        "area_px": 1599.5,
+        "bbox": [
+          419,
+          1232,
+          26,
+          79
+        ],
+        "is_large": false,
+        "solidity": 0.9546404058490003,
+        "color_fraction": 0.00771055753262159,
+        "color_score": 0.00771055753262159,
+        "laplacian_var": 54.763639080443895,
+        "intensity_std": 42.97443232738254,
+        "texture_score": 0.18094544367822443,
+        "neighbor_coverage": 0.02326084604565617,
+        "isolation_score": 0.7092394244292979,
+        "final_score": 0.3229690815204127,
+        "chosen": false
+      },
+      {
+        "contour_index": 24,
+        "area_px": 2170.0,
+        "bbox": [
+          1544,
+          1231,
+          54,
+          87
+        ],
+        "is_large": false,
+        "solidity": 0.7112422156669944,
+        "color_fraction": 0.032342657342657344,
+        "color_score": 0.032342657342657344,
+        "laplacian_var": 79.55930721778799,
+        "intensity_std": 40.89030892685823,
+        "texture_score": 0.08176277112884806,
+        "neighbor_coverage": 0.060522208031786574,
+        "isolation_score": 0.24347239960266787,
+        "final_score": 0.1266785770038997,
+        "chosen": false
+      },
+      {
+        "contour_index": 168,
+        "area_px": 3554.0,
+        "bbox": [
+          1447,
+          92,
+          83,
+          77
+        ],
+        "is_large": false,
+        "solidity": 0.6759224039558768,
+        "color_fraction": 0.019492656875834447,
+        "color_score": 0.019492656875834447,
+        "laplacian_var": 97.20370837205333,
+        "intensity_std": 43.774554789160256,
+        "texture_score": 0.011185166511786672,
+        "neighbor_coverage": 0.059423842556372675,
+        "isolation_score": 0.25720196804534157,
+        "final_score": 0.11291488327082774,
+        "chosen": false
+      },
+      {
+        "contour_index": 169,
+        "area_px": 2126.0,
+        "bbox": [
+          1543,
+          91,
+          54,
+          77
+        ],
+        "is_large": false,
+        "solidity": 0.7697320782041999,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 95.51306814404433,
+        "intensity_std": 41.694900430930566,
+        "texture_score": 0.017947727423822713,
+        "neighbor_coverage": 0.07364651809096254,
+        "isolation_score": 0.07941852386296833,
+        "final_score": 0.03535695502995187,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\VE.png",
+    "num_candidates": 5,
+    "best_score": 0.6877200920021406,
+    "flakes": [
+      {
+        "contour_index": 85,
+        "area_px": 7950.0,
+        "bbox": [
+          1060,
+          516,
+          154,
+          78
+        ],
+        "is_large": false,
+        "solidity": 0.9387731003129244,
+        "color_fraction": 0.4921884610653217,
+        "color_score": 0.4921884610653217,
+        "laplacian_var": 6.577992875594952,
+        "intensity_std": 3.628018371556383,
+        "texture_score": 0.9192677529242745,
+        "neighbor_coverage": 0.0186017686017686,
+        "isolation_score": 0.7674778924778924,
+        "final_score": 0.6877200920021406,
+        "chosen": true
+      },
+      {
+        "contour_index": 32,
+        "area_px": 1586.0,
+        "bbox": [
+          1246,
+          1261,
+          64,
+          40
+        ],
+        "is_large": false,
+        "solidity": 0.9310243616084531,
+        "color_fraction": 0.6085645355850422,
+        "color_score": 0.6085645355850422,
+        "laplacian_var": 7.283825149050841,
+        "intensity_std": 2.91845916262712,
+        "texture_score": 0.9270878119643899,
+        "neighbor_coverage": 0.04809027777777778,
+        "isolation_score": 0.3988715277777778,
+        "final_score": 0.5883919877380059,
+        "chosen": true
+      },
+      {
+        "contour_index": 48,
+        "area_px": 6036.5,
+        "bbox": [
+          1447,
+          1192,
+          148,
+          80
+        ],
+        "is_large": false,
+        "solidity": 0.5928308372207218,
+        "color_fraction": 0.016997617156473393,
+        "color_score": 0.016997617156473393,
+        "laplacian_var": 64.48601763038549,
+        "intensity_std": 46.9246889016298,
+        "texture_score": 0.14205592947845802,
+        "neighbor_coverage": 0.03113738738738739,
+        "isolation_score": 0.6107826576576576,
+        "final_score": 0.279523295821344,
+        "chosen": false
+      },
+      {
+        "contour_index": 110,
+        "area_px": 2784.5,
+        "bbox": [
+          1541,
+          46,
+          56,
+          83
+        ],
+        "is_large": false,
+        "solidity": 0.8804743083003953,
+        "color_fraction": 0.000691085003455425,
+        "color_score": 0.000691085003455425,
+        "laplacian_var": 64.79679262343842,
+        "intensity_std": 47.97263397965413,
+        "texture_score": 0.1408128295062463,
+        "neighbor_coverage": 0.10804132973944294,
+        "isolation_score": 0.0,
+        "final_score": 0.02843899990263143,
+        "chosen": false
+      },
+      {
+        "contour_index": 108,
+        "area_px": 3044.0,
+        "bbox": [
+          1456,
+          50,
+          67,
+          79
+        ],
+        "is_large": false,
+        "solidity": 0.84862001672707,
+        "color_fraction": 0.005064893953782843,
+        "color_score": 0.005064893953782843,
+        "laplacian_var": 100.81323287907455,
+        "intensity_std": 50.458500171103886,
+        "texture_score": 0.0,
+        "neighbor_coverage": 0.07615767317259854,
+        "isolation_score": 0.04802908534251826,
+        "final_score": 0.021237591718520445,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\UA.png",
+    "num_candidates": 3,
+    "best_score": 0.6831268301248197,
+    "flakes": [
+      {
+        "contour_index": 38,
+        "area_px": 4234.5,
+        "bbox": [
+          196,
+          1206,
+          108,
+          77
+        ],
+        "is_large": false,
+        "solidity": 0.8763451986754967,
+        "color_fraction": 0.641319285387082,
+        "color_score": 0.641319285387082,
+        "laplacian_var": 8.582420936639117,
+        "intensity_std": 11.130447304958059,
+        "texture_score": 0.7987136066790727,
+        "neighbor_coverage": 0.026628721073165516,
+        "isolation_score": 0.667140986585431,
+        "final_score": 0.6831268301248197,
+        "chosen": true
+      },
+      {
+        "contour_index": 11,
+        "area_px": 1543.5,
+        "bbox": [
+          690,
+          1412,
+          64,
+          38
+        ],
+        "is_large": false,
+        "solidity": 0.8772378516624041,
+        "color_fraction": 0.548923076923077,
+        "color_score": 0.548923076923077,
+        "laplacian_var": 9.53497474156462,
+        "intensity_std": 6.391160084086448,
+        "texture_score": 0.8659926997724448,
+        "neighbor_coverage": 0.022249634502923978,
+        "isolation_score": 0.7218795687134503,
+        "final_score": 0.6815195982090999,
+        "chosen": true
+      },
+      {
+        "contour_index": 95,
+        "area_px": 3349.5,
+        "bbox": [
+          1454,
+          50,
+          69,
+          79
+        ],
+        "is_large": false,
+        "solidity": 0.7076906824424255,
+        "color_fraction": 0.005977796754910333,
+        "color_score": 0.005977796754910333,
+        "laplacian_var": 77.10173475566663,
+        "intensity_std": 44.40583021637541,
+        "texture_score": 0.0915930609773335,
+        "neighbor_coverage": 0.009847640282422892,
+        "isolation_score": 0.8769044964697139,
+        "final_score": 0.3714715294853164,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\SO.png",
+    "num_candidates": 3,
+    "best_score": 0.6688963641672543,
+    "flakes": [
+      {
+        "contour_index": 29,
+        "area_px": 3500.0,
+        "bbox": [
+          1147,
+          1159,
+          58,
+          94
+        ],
+        "is_large": false,
+        "solidity": 0.9197214557876757,
+        "color_fraction": 0.554940492665375,
+        "color_score": 0.554940492665375,
+        "laplacian_var": 8.513403702926997,
+        "intensity_std": 5.211357615056907,
+        "texture_score": 0.8877760209624385,
+        "neighbor_coverage": 0.026127007418276678,
+        "isolation_score": 0.6734124072715415,
+        "final_score": 0.6688963641672543,
+        "chosen": true
+      },
+      {
+        "contour_index": 27,
+        "area_px": 2205.0,
+        "bbox": [
+          1378,
+          1199,
+          61,
+          75
+        ],
+        "is_large": false,
+        "solidity": 0.7685604740327641,
+        "color_fraction": 0.009503239740820735,
+        "color_score": 0.009503239740820735,
+        "laplacian_var": 82.98590541103057,
+        "intensity_std": 41.69383798954522,
+        "texture_score": 0.06805637835587773,
+        "neighbor_coverage": 0.01092896174863388,
+        "isolation_score": 0.8633879781420766,
+        "final_score": 0.36276776282433454,
+        "chosen": false
+      },
+      {
+        "contour_index": 93,
+        "area_px": 4104.0,
+        "bbox": [
+          1380,
+          54,
+          63,
+          83
+        ],
+        "is_large": false,
+        "solidity": 0.946058091286307,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 83.53620273652864,
+        "intensity_std": 53.746328278008264,
+        "texture_score": 0.06585518905388543,
+        "neighbor_coverage": 0.012217412217412217,
+        "isolation_score": 0.8472823472823473,
+        "final_score": 0.35208397672371605,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\RG.png",
+    "num_candidates": 3,
+    "best_score": 0.6416588009426327,
+    "flakes": [
+      {
+        "contour_index": 43,
+        "area_px": 5818.0,
+        "bbox": [
+          1000,
+          610,
+          96,
+          106
+        ],
+        "is_large": false,
+        "solidity": 0.8797822470890669,
+        "color_fraction": 0.630256324342436,
+        "color_score": 0.630256324342436,
+        "laplacian_var": 16.94627100689457,
+        "intensity_std": 26.61189957046591,
+        "texture_score": 0.5330364224154331,
+        "neighbor_coverage": 0.023410202655485674,
+        "isolation_score": 0.7073724668064291,
+        "final_score": 0.6416588009426327,
+        "chosen": true
+      },
+      {
+        "contour_index": 26,
+        "area_px": 3208.5,
+        "bbox": [
+          1534,
+          1175,
+          71,
+          76
+        ],
+        "is_large": false,
+        "solidity": 0.6685767868305897,
+        "color_fraction": 0.0397980397980398,
+        "color_score": 0.0397980397980398,
+        "laplacian_var": 72.3193155865144,
+        "intensity_std": 38.68838467290113,
+        "texture_score": 0.1303969675604254,
+        "neighbor_coverage": 0.0176468165719463,
+        "isolation_score": 0.7794147928506713,
+        "final_score": 0.35376452657156954,
+        "chosen": false
+      },
+      {
+        "contour_index": 115,
+        "area_px": 4099.0,
+        "bbox": [
+          1529,
+          32,
+          86,
+          81
+        ],
+        "is_large": false,
+        "solidity": 0.7153577661431064,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 81.92616817755015,
+        "intensity_std": 52.76216110198088,
+        "texture_score": 0.0722953272897994,
+        "neighbor_coverage": 0.06073683369295932,
+        "isolation_score": 0.24078957883800856,
+        "final_score": 0.11077489699316331,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  },
+  {
+    "image_path": "\\\\132.68.73.70\\Data\\Ilay\\TS34001\\Post Exfo\\OD.png",
+    "num_candidates": 3,
+    "best_score": 0.46810016588190173,
+    "flakes": [
+      {
+        "contour_index": 62,
+        "area_px": 2082.0,
+        "bbox": [
+          1035,
+          697,
+          56,
+          69
+        ],
+        "is_large": false,
+        "solidity": 0.8338005606728074,
+        "color_fraction": 0.7249310027598896,
+        "color_score": 0.7249310027598896,
+        "laplacian_var": 9.218858213775762,
+        "intensity_std": 4.832382883677856,
+        "texture_score": 0.8906388238897291,
+        "neighbor_coverage": 0.09216126063952151,
+        "isolation_score": 0.0,
+        "final_score": 0.46810016588190173,
+        "chosen": true
+      },
+      {
+        "contour_index": 30,
+        "area_px": 4242.5,
+        "bbox": [
+          1620,
+          1193,
+          66,
+          96
+        ],
+        "is_large": false,
+        "solidity": 0.7860848619603483,
+        "color_fraction": 0.009474396571170765,
+        "color_score": 0.009474396571170765,
+        "laplacian_var": 95.23834848722976,
+        "intensity_std": 54.967306115721286,
+        "texture_score": 0.019046606051080953,
+        "neighbor_coverage": 0.03160072951739618,
+        "isolation_score": 0.6049908810325477,
+        "final_score": 0.24959543225170358,
+        "chosen": false
+      },
+      {
+        "contour_index": 136,
+        "area_px": 2326.5,
+        "bbox": [
+          1621,
+          47,
+          63,
+          83
+        ],
+        "is_large": false,
+        "solidity": 0.5041716328963052,
+        "color_fraction": 0.0,
+        "color_score": 0.0,
+        "laplacian_var": 58.315730296419595,
+        "intensity_std": 49.371202482127984,
+        "texture_score": 0.16673707881432162,
+        "neighbor_coverage": 0.05211516009638075,
+        "isolation_score": 0.34856049879524065,
+        "final_score": 0.17277161528096058,
+        "chosen": false
+      }
+    ],
+    "dark_spots": []
+  }
+]

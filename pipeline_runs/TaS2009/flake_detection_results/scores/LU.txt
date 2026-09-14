@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2009\Post Exfo\LU.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=846)
+  final_score:       0.5750
+  area_px:           3828
+  bbox:              (1626, 282, 90, 63)
+  solidity:          0.9681
+  color_fraction:    0.4992  (color_score: 0.4992)
+  texture_score:     0.5496  (laplacian_var: 79.79, intensity_std: 8.75)
+  isolation_score:   0.6634  (neighbor_coverage: 0.0269)

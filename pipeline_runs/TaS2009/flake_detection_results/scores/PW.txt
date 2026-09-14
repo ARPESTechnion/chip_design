@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2009\Post Exfo\PW.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=687)
+  final_score:       0.7250
+  area_px:           2926
+  bbox:              (1917, 69, 94, 64)
+  solidity:          0.8483
+  color_fraction:    0.6036  (color_score: 0.6036)
+  texture_score:     0.5959  (laplacian_var: 72.93, intensity_std: 7.49)
+  isolation_score:   0.9109  (neighbor_coverage: 0.0071)

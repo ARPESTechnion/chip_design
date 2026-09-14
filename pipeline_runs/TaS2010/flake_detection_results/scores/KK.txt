@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\KK.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=59)
+  final_score:       0.7832
+  area_px:           7342
+  bbox:              (892, 1052, 116, 132)
+  solidity:          0.8382
+  color_fraction:    0.8643  (color_score: 0.8643)
+  texture_score:     0.8383  (laplacian_var: 7.76, intensity_std: 8.71)
+  isolation_score:   0.6746  (neighbor_coverage: 0.0260)

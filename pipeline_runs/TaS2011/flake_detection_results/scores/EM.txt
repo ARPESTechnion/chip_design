@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\EM.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=140)
+  final_score:       0.5360
+  area_px:           4728
+  bbox:              (592, 677, 105, 89)
+  solidity:          0.9232
+  color_fraction:    0.7984  (color_score: 0.7984)
+  texture_score:     0.0000  (laplacian_var: 16.96, intensity_std: 6.82)
+  isolation_score:   0.8257  (neighbor_coverage: 0.0139)

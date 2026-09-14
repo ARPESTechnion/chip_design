@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\AP1.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=124)
+  final_score:       0.6281
+  area_px:           5419
+  bbox:              (1392, 832, 112, 82)
+  solidity:          0.8902
+  color_fraction:    0.8591  (color_score: 0.8591)
+  texture_score:     0.0690  (laplacian_var: 14.02, intensity_std: 3.87)
+  isolation_score:   0.9731  (neighbor_coverage: 0.0022)

@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\EG.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=101)
+  final_score:       0.5410
+  area_px:           11984
+  bbox:              (1373, 228, 130, 129)
+  solidity:          0.9695
+  color_fraction:    0.8409  (color_score: 0.8409)
+  texture_score:     0.0534  (laplacian_var: 13.86, intensity_std: 5.49)
+  isolation_score:   0.7435  (neighbor_coverage: 0.0205)
+
+Flake 2 (contour_index=28)
+  final_score:       0.5133
+  area_px:           1886
+  bbox:              (1648, 1125, 66, 42)
+  solidity:          0.9238
+  color_fraction:    0.6508  (color_score: 0.6508)
+  texture_score:     0.0591  (laplacian_var: 13.64, intensity_std: 5.39)
+  isolation_score:   0.8437  (neighbor_coverage: 0.0125)

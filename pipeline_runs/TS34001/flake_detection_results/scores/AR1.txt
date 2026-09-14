@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TS34001\Post Exfo\AR1.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=132)
+  final_score:       0.8253
+  area_px:           1995
+  bbox:              (898, 758, 53, 64)
+  solidity:          0.9457
+  color_fraction:    0.7104  (color_score: 0.7104)
+  texture_score:     0.9374  (laplacian_var: 6.76, intensity_std: 2.37)
+  isolation_score:   0.8841  (neighbor_coverage: 0.0093)

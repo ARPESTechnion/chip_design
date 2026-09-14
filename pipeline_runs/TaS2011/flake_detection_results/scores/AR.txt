@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\AR.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=536)
+  final_score:       0.5877
+  area_px:           2259
+  bbox:              (1583, 56, 68, 50)
+  solidity:          0.9670
+  color_fraction:    0.7408  (color_score: 0.7408)
+  texture_score:     0.0679  (laplacian_var: 13.28, intensity_std: 4.52)
+  isolation_score:   0.9702  (neighbor_coverage: 0.0024)
+
+Flake 2 (contour_index=395)
+  final_score:       0.5160
+  area_px:           2190
+  bbox:              (392, 338, 61, 64)
+  solidity:          0.9018
+  color_fraction:    0.7000  (color_score: 0.7000)
+  texture_score:     0.0000  (laplacian_var: 17.78, intensity_std: 13.74)
+  isolation_score:   0.8637  (neighbor_coverage: 0.0109)

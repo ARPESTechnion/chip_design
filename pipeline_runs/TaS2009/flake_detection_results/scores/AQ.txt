@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2009\Post Exfo\AQ.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=439)
+  final_score:       0.5300
+  area_px:           3510
+  bbox:              (720, 191, 76, 73)
+  solidity:          0.9552
+  color_fraction:    0.4870  (color_score: 0.4870)
+  texture_score:     0.6032  (laplacian_var: 67.31, intensity_std: 8.51)
+  isolation_score:   0.5364  (neighbor_coverage: 0.0371)

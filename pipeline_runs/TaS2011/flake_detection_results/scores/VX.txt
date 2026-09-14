@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\VX.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=227)
+  final_score:       0.5010
+  area_px:           9108
+  bbox:              (1846, 646, 97, 170)
+  solidity:          0.9118
+  color_fraction:    0.6196  (color_score: 0.6196)
+  texture_score:     0.0000  (laplacian_var: 16.93, intensity_std: 24.30)
+  isolation_score:   0.8986  (neighbor_coverage: 0.0081)

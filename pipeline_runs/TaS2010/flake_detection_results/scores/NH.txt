@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\NH.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=83)
+  final_score:       0.7154
+  area_px:           9088
+  bbox:              (1720, 1333, 114, 137)
+  solidity:          0.8435
+  color_fraction:    0.6156  (color_score: 0.6156)
+  texture_score:     0.8651  (laplacian_var: 8.38, intensity_std: 6.76)
+  isolation_score:   0.7403  (neighbor_coverage: 0.0208)

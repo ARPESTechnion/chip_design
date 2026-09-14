@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TS34001\Post Exfo\CR.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=84)
+  final_score:       0.8408
+  area_px:           1888
+  bbox:              (580, 987, 60, 54)
+  solidity:          0.9414
+  color_fraction:    0.7107  (color_score: 0.7107)
+  texture_score:     0.7828  (laplacian_var: 9.42, intensity_std: 11.97)
+  isolation_score:   1.0000  (neighbor_coverage: 0.0000)

@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\IP.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=72)
+  final_score:       0.6431
+  area_px:           10070
+  bbox:              (966, 837, 130, 127)
+  solidity:          0.9469
+  color_fraction:    0.8872  (color_score: 0.8872)
+  texture_score:     0.1928  (laplacian_var: 13.47, intensity_std: 3.14)
+  isolation_score:   0.8630  (neighbor_coverage: 0.0110)

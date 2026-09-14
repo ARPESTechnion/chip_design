@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\QR.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=361)
+  final_score:       0.7254
+  area_px:           4371
+  bbox:              (702, 381, 50, 293)
+  solidity:          0.5427
+  color_fraction:    0.6014  (color_score: 0.6014)
+  texture_score:     0.9292  (laplacian_var: 6.92, intensity_std: 2.88)
+  isolation_score:   0.7475  (neighbor_coverage: 0.0202)

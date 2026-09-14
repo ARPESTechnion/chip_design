@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\RE.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=427)
+  final_score:       0.7568
+  area_px:           4112
+  bbox:              (977, 59, 79, 82)
+  solidity:          0.9255
+  color_fraction:    0.8531  (color_score: 0.8531)
+  texture_score:     0.9161  (laplacian_var: 7.18, intensity_std: 3.68)
+  isolation_score:   0.5809  (neighbor_coverage: 0.0335)
+
+Flake 2 (contour_index=64)
+  final_score:       0.4666
+  area_px:           4456
+  bbox:              (154, 1390, 103, 87)
+  solidity:          0.7458
+  color_fraction:    0.7397  (color_score: 0.7397)
+  texture_score:     0.8537  (laplacian_var: 8.58, intensity_std: 7.46)
+  isolation_score:   0.0000  (neighbor_coverage: 0.1291)

@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\BO.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=403)
+  final_score:       0.6562
+  area_px:           3580
+  bbox:              (841, 72, 60, 136)
+  solidity:          0.7087
+  color_fraction:    0.4969  (color_score: 0.4969)
+  texture_score:     0.7256  (laplacian_var: 9.79, intensity_std: 15.68)
+  isolation_score:   0.7808  (neighbor_coverage: 0.0175)

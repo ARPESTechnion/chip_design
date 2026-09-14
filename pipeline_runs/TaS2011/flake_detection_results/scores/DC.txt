@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\DC.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=128)
+  final_score:       0.5971
+  area_px:           2256
+  bbox:              (1267, 362, 94, 43)
+  solidity:          0.9100
+  color_fraction:    0.6997  (color_score: 0.6997)
+  texture_score:     0.1577  (laplacian_var: 12.18, intensity_std: 3.59)
+  isolation_score:   0.9471  (neighbor_coverage: 0.0042)

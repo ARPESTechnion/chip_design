@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\GU.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=378)
+  final_score:       0.7832
+  area_px:           3622
+  bbox:              (1748, 7, 74, 123)
+  solidity:          0.9440
+  color_fraction:    0.5379  (color_score: 0.5379)
+  texture_score:     0.8743  (laplacian_var: 6.30, intensity_std: 6.70)
+  isolation_score:   0.9829  (neighbor_coverage: 0.0014)
+
+Flake 2 (contour_index=319)
+  final_score:       0.7773
+  area_px:           3009
+  bbox:              (1231, 153, 65, 104)
+  solidity:          0.8066
+  color_fraction:    0.8152  (color_score: 0.8152)
+  texture_score:     0.9245  (laplacian_var: 7.80, intensity_std: 2.96)
+  isolation_score:   0.6657  (neighbor_coverage: 0.0267)

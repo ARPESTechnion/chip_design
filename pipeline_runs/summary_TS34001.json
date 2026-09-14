@@ -1,0 +1,17 @@
+{
+  "output_folder": "pipeline_runs\\TS34001",
+  "images_total_in_input_folder": 47,
+  "images_with_any_candidate": 18,
+  "flakes_detected_chosen": 21,
+  "flakes_candidates_total": 69,
+  "images_with_flakes": 18,
+  "images_staged_for_grid_prep": 18,
+  "images_ok_grid_prep": 17,
+  "images_placed": 17,
+  "flakes_exported_to_grid_prep": 20,
+  "flakes_considered_for_contacts": 20,
+  "flakes_with_contacts": 13,
+  "flakes_with_hall": 2,
+  "flakes_with_ring": 11,
+  "dataset": "TS34001"
+}

@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2009\Post Exfo\GG.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=261)
+  final_score:       0.4678
+  area_px:           4084
+  bbox:              (745, 1446, 70, 91)
+  solidity:          0.9348
+  color_fraction:    0.6599  (color_score: 0.6599)
+  texture_score:     0.5607  (laplacian_var: 76.12, intensity_std: 8.99)
+  isolation_score:   0.2292  (neighbor_coverage: 0.0617)
+
+Flake 2 (contour_index=300)
+  final_score:       0.4251
+  area_px:           2944
+  bbox:              (1077, 1383, 62, 64)
+  solidity:          0.9602
+  color_fraction:    0.3831  (color_score: 0.3831)
+  texture_score:     0.6380  (laplacian_var: 62.04, intensity_std: 7.59)
+  isolation_score:   0.3605  (neighbor_coverage: 0.0512)

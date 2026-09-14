@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\HV.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=38)
+  final_score:       0.5247
+  area_px:           5240
+  bbox:              (654, 1298, 122, 67)
+  solidity:          0.8459
+  color_fraction:    0.7142  (color_score: 0.7142)
+  texture_score:     0.0213  (laplacian_var: 15.15, intensity_std: 7.75)
+  isolation_score:   0.8539  (neighbor_coverage: 0.0117)
+
+Flake 2 (contour_index=376)
+  final_score:       0.5069
+  area_px:           1803
+  bbox:              (1316, 12, 70, 42)
+  solidity:          0.8937
+  color_fraction:    0.6924  (color_score: 0.6924)
+  texture_score:     0.0000  (laplacian_var: 18.38, intensity_std: 8.44)
+  isolation_score:   0.8438  (neighbor_coverage: 0.0125)

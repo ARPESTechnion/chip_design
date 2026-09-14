@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\TC.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=368)
+  final_score:       0.7580
+  area_px:           3632
+  bbox:              (824, 581, 100, 56)
+  solidity:          0.9648
+  color_fraction:    0.9087  (color_score: 0.9087)
+  texture_score:     0.8561  (laplacian_var: 7.69, intensity_std: 7.54)
+  isolation_score:   0.5583  (neighbor_coverage: 0.0353)

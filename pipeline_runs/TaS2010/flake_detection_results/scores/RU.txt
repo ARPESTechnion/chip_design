@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\RU.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=238)
+  final_score:       0.7445
+  area_px:           7088
+  bbox:              (503, 637, 101, 106)
+  solidity:          0.9432
+  color_fraction:    0.6680  (color_score: 0.6680)
+  texture_score:     0.7817  (laplacian_var: 11.05, intensity_std: 11.61)
+  isolation_score:   0.8024  (neighbor_coverage: 0.0158)

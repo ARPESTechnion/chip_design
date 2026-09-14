@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\TV.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=276)
+  final_score:       0.7712
+  area_px:           3022
+  bbox:              (909, 765, 60, 90)
+  solidity:          0.8906
+  color_fraction:    0.7055  (color_score: 0.7055)
+  texture_score:     0.9229  (laplacian_var: 7.31, intensity_std: 3.19)
+  isolation_score:   0.7611  (neighbor_coverage: 0.0191)
+
+Flake 2 (contour_index=359)
+  final_score:       0.7338
+  area_px:           6544
+  bbox:              (1611, 505, 106, 103)
+  solidity:          0.8546
+  color_fraction:    0.7239  (color_score: 0.7239)
+  texture_score:     0.8162  (laplacian_var: 9.49, intensity_std: 9.72)
+  isolation_score:   0.7026  (neighbor_coverage: 0.0238)

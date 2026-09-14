@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\GX.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=44)
+  final_score:       0.5527
+  area_px:           1688
+  bbox:              (899, 1112, 61, 49)
+  solidity:          0.9682
+  color_fraction:    0.7565  (color_score: 0.7565)
+  texture_score:     0.0279  (laplacian_var: 14.88, intensity_std: 5.08)
+  isolation_score:   0.8894  (neighbor_coverage: 0.0088)

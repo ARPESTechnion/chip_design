@@ -1,0 +1,122 @@
+[
+  {
+    "image": "BB",
+    "flake_index": 0,
+    "final_score": 0.9179598698498512,
+    "mode": "ring"
+  },
+  {
+    "image": "LI",
+    "flake_index": 0,
+    "final_score": 0.8732921472414868,
+    "mode": "ring"
+  },
+  {
+    "image": "UR",
+    "flake_index": 0,
+    "final_score": 0.8692952276889079,
+    "mode": "hall"
+  },
+  {
+    "image": "SL",
+    "flake_index": 0,
+    "final_score": 0.8627991318867376,
+    "mode": "hall"
+  },
+  {
+    "image": "SX",
+    "flake_index": 0,
+    "final_score": 0.8495443281732603,
+    "mode": "ring"
+  },
+  {
+    "image": "CR",
+    "flake_index": 0,
+    "final_score": 0.8408459440326179,
+    "mode": "ring"
+  },
+  {
+    "image": "UT",
+    "flake_index": 0,
+    "final_score": 0.8277519959489718,
+    "mode": null
+  },
+  {
+    "image": "WB",
+    "flake_index": 0,
+    "final_score": 0.8004965234778381,
+    "mode": "ring"
+  },
+  {
+    "image": "XV",
+    "flake_index": 0,
+    "final_score": 0.7774348998820471,
+    "mode": "ring"
+  },
+  {
+    "image": "VA",
+    "flake_index": 0,
+    "final_score": 0.7441050455501748,
+    "mode": null
+  },
+  {
+    "image": "EH",
+    "flake_index": 0,
+    "final_score": 0.7406733976564961,
+    "mode": "ring"
+  },
+  {
+    "image": "WI",
+    "flake_index": 0,
+    "final_score": 0.701723363828358,
+    "mode": "ring"
+  },
+  {
+    "image": "VE",
+    "flake_index": 0,
+    "final_score": 0.6877200920021406,
+    "mode": "ring"
+  },
+  {
+    "image": "VA",
+    "flake_index": 1,
+    "final_score": 0.6842420444175965,
+    "mode": null
+  },
+  {
+    "image": "UA",
+    "flake_index": 0,
+    "final_score": 0.6831268301248197,
+    "mode": null
+  },
+  {
+    "image": "UA",
+    "flake_index": 1,
+    "final_score": 0.6815195982090999,
+    "mode": null
+  },
+  {
+    "image": "SO",
+    "flake_index": 0,
+    "final_score": 0.6688963641672543,
+    "mode": null
+  },
+  {
+    "image": "RG",
+    "flake_index": 0,
+    "final_score": 0.6416588009426327,
+    "mode": "ring"
+  },
+  {
+    "image": "VE",
+    "flake_index": 1,
+    "final_score": 0.5883919877380059,
+    "mode": null
+  },
+  {
+    "image": "OD",
+    "flake_index": 0,
+    "final_score": 0.46810016588190173,
+    "mode": "ring"
+  }
+]

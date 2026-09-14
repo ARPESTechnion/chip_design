@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\UB.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=276)
+  final_score:       0.7724
+  area_px:           3244
+  bbox:              (1136, 373, 129, 89)
+  solidity:          0.8221
+  color_fraction:    0.5454  (color_score: 0.5454)
+  texture_score:     0.9317  (laplacian_var: 7.43, intensity_std: 2.57)
+  isolation_score:   0.9198  (neighbor_coverage: 0.0064)
+
+Flake 2 (contour_index=181)
+  final_score:       0.6944
+  area_px:           4472
+  bbox:              (1263, 616, 123, 72)
+  solidity:          0.8979
+  color_fraction:    0.6906  (color_score: 0.6906)
+  texture_score:     0.7717  (laplacian_var: 8.15, intensity_std: 13.05)
+  isolation_score:   0.6597  (neighbor_coverage: 0.0272)

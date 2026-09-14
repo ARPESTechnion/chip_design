@@ -1,0 +1,17 @@
+{
+  "output_folder": "pipeline_runs\\TaS2011",
+  "images_total_in_input_folder": 139,
+  "images_with_any_candidate": 79,
+  "flakes_detected_chosen": 82,
+  "flakes_candidates_total": 209,
+  "images_with_flakes": 67,
+  "images_staged_for_grid_prep": 67,
+  "images_ok_grid_prep": 60,
+  "images_placed": 60,
+  "flakes_exported_to_grid_prep": 73,
+  "flakes_considered_for_contacts": 73,
+  "flakes_with_contacts": 25,
+  "flakes_with_hall": 0,
+  "flakes_with_ring": 25,
+  "dataset": "TaS2011"
+}

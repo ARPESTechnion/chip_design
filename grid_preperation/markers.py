@@ -61,9 +61,19 @@ from flake_detection.config import DetectionConfig
 
 from .config import CifExportConfig
 
-_TEMPLATE_PATH = Path(__file__).resolve().parent / "crosshair_template.png"
-_template_cache: np.ndarray | None = None
-_template_core_offset_cache: tuple[float, float] | None = None
+_TEMPLATE_DIR = Path(__file__).resolve().parent
+_DEFAULT_TEMPLATE_FILENAME = "crosshair_template.png"
+# Keyed by resolved template path (not a single value) so more than one
+# marker template can be used within the same process -- e.g. the
+# interactive UI or a batch run processing datasets with different
+# config.marker_template_path values back to back.
+_template_cache: dict[Path, np.ndarray] = {}
+_template_core_offset_cache: dict[Path, tuple[float, float]] = {}
+
+
+def _resolve_template_path(config: CifExportConfig) -> Path:
+    filename = getattr(config, "marker_template_path", None) or _DEFAULT_TEMPLATE_FILENAME
+    return _TEMPLATE_DIR / filename
 
 
 @dataclass
@@ -165,17 +175,17 @@ def write_marker_override(
     path.write_text(json.dumps(data, indent=2))
 
 
-def _load_template() -> np.ndarray:
-    global _template_cache
-    if _template_cache is None:
-        template = cv2.imread(str(_TEMPLATE_PATH), cv2.IMREAD_GRAYSCALE)
+def _load_template(config: CifExportConfig) -> np.ndarray:
+    template_path = _resolve_template_path(config)
+    if template_path not in _template_cache:
+        template = cv2.imread(str(template_path), cv2.IMREAD_GRAYSCALE)
         if template is None:
-            raise FileNotFoundError(f"crosshair template not found at {_TEMPLATE_PATH}")
-        _template_cache = template.astype(np.float32)
-    return _template_cache
+            raise FileNotFoundError(f"marker template not found at {template_path}")
+        _template_cache[template_path] = template.astype(np.float32)
+    return _template_cache[template_path]
 
 
-def _template_core_offset() -> tuple[float, float]:
+def _template_core_offset(config: CifExportConfig) -> tuple[float, float]:
     """
     (x, y) offset, within the template image, of the crosshair's actual
     solid core -- close to but not exactly the template's geometric center
@@ -191,10 +201,27 @@ def _template_core_offset() -> tuple[float, float]:
     output visibly worse, not better). Fix: erode more aggressively (fully
     removes both the arms and the letter fragment's thin parts, but the
     core -- being a solid blob -- survives) and take connected components,
-    keeping the one nearest the geometric center. Stable across erosion
-    kernel size 9-13px (~96, ~111 throughout) -- converges on ~(+11, -4)
-    from geometric center, matching the small "few micron" drift originally
-    reported, not a large one.
+    keeping the most SQUARE one (lowest bounding-box aspect ratio) among
+    those clearing a minimum area -- not simply the one nearest the
+    template's own geometric center, which was the original criterion and
+    happened to agree with squareness for crosshair_template.png (both pick
+    its real core, bbox 47x52, aspect 1.1) purely because that template
+    crop is roughly symmetric around the core. It does NOT generalize:
+    confirmed as a real bug on TaS2005_marker_template.png (an asymmetric
+    template -- core near the top, a long tail extending well below it) --
+    nearest-to-center there picks a stub of the LONG TAIL (aspect ~9.2,
+    dist-from-center 31px) over the true core (aspect 1.4, dist 64px),
+    because the tail's own erosion-surviving fragment happens to sit closer
+    to the crop's geometric center than the real core does. Squareness
+    picks the correct core in both templates (verified directly against
+    both), since arms/ticks/tails are elongated (aspect ratios 1.7-14
+    measured across both templates' non-core survivors) while a real
+    core -- being a solid blob, not a thin line -- stays close to square
+    regardless of where a generous crop happens to center it. Stable across
+    erosion kernel size 9-13px on crosshair_template.png (~96, ~111
+    throughout) -- converges on ~(+11, -4) from geometric center there,
+    matching the small "few micron" drift originally reported, not a large
+    one.
 
     Deliberately NOT scaled per-image to the real image's own apparent
     crosshair size (a scale-adaptive version of this offset, using
@@ -204,9 +231,9 @@ def _template_core_offset() -> tuple[float, float]:
     this fixed offset, made some images measurably worse, and the small
     average improvement wasn't worth the added noise/complexity).
     """
-    global _template_core_offset_cache
-    if _template_core_offset_cache is None:
-        template = _load_template().astype(np.uint8)
+    template_path = _resolve_template_path(config)
+    if template_path not in _template_core_offset_cache:
+        template = _load_template(config).astype(np.uint8)
         th, tw = template.shape
         erode_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
         eroded = cv2.erode(template, erode_kernel)
@@ -215,23 +242,52 @@ def _template_core_offset() -> tuple[float, float]:
         for i in range(1, n_labels):
             if stats[i, cv2.CC_STAT_AREA] < 50:
                 continue
+            w, h = stats[i, cv2.CC_STAT_WIDTH], stats[i, cv2.CC_STAT_HEIGHT]
+            aspect = max(w, h) / max(1, min(w, h))
             cx, cy = centroids[i]
-            dist = (cx - tw / 2) ** 2 + (cy - th / 2) ** 2
-            if best is None or dist < best[0]:
-                best = (dist, cx, cy)
+            if best is None or aspect < best[0]:
+                best = (aspect, cx, cy)
         if best is None:
-            raise RuntimeError("crosshair_template.png: no plausible core component found")
-        _template_core_offset_cache = (float(best[1]), float(best[2]))
-    return _template_core_offset_cache
+            raise RuntimeError(f"{template_path.name}: no plausible core component found")
+        _template_core_offset_cache[template_path] = (float(best[1]), float(best[2]))
+    return _template_core_offset_cache[template_path]
 
 
-def _non_substrate_mask(image_bgr: np.ndarray, detection: DetectionConfig) -> np.ndarray:
+def _non_substrate_mask(
+    image_bgr: np.ndarray,
+    detection: DetectionConfig,
+    open_kernel_px: int = 0,
+) -> np.ndarray:
     """Pixels outside the substrate HSV range — everything that isn't bare
-    substrate (markers, labels, flakes, debris)."""
+    substrate (markers, labels, flakes, debris).
+
+    open_kernel_px (default 0, i.e. off -- identical mask to before this
+    parameter existed): optional light morphological opening to remove
+    speckle noise before this mask is used for whole-template correlation.
+    Deliberately NOT applied by default / applied to every dataset: this
+    module's own docstring documents the ORIGINAL crosshair's 4 arms as
+    the least color-stable, thinnest (1-2px) part of a real image -- an
+    opening aggressive enough to matter would risk eroding those away
+    outright on the validated datasets (Ta2009/TS34001/flakes/all/TaS2011),
+    a regression never actually tested for. Added for TaS2005's own new,
+    larger, thicker-stroke marker (see config.marker_template_path):
+    confirmed directly (TaS2005/Post Exfo/QK.png) that this dataset's own
+    substrate has real background speckle texture outside a first-draft
+    substrate_hsv_range that drags whole-template correlation for a
+    same-shape marker down from 0.94 to 0.45 (below
+    crosshair_whole_match_threshold's default 0.5) purely from that noise,
+    not from any real shape difference -- a light open (kernel=3) raised it
+    back to 0.52-0.98 with zero cost to the marker's own thick strokes,
+    which comfortably survive a 3px kernel unlike a 1-2px original arm
+    would. Opt in per-dataset via config.non_substrate_mask_open_px."""
     image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
     lower, upper = detection.substrate_hsv_range.to_opencv_bounds()
     substrate_mask = cv2.inRange(image_hsv, lower, upper)
-    return cv2.bitwise_not(substrate_mask)
+    mask = cv2.bitwise_not(substrate_mask)
+    if open_kernel_px > 0:
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (open_kernel_px, open_kernel_px))
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    return mask
 
 
 def _otsu_v_mask(image_bgr: np.ndarray) -> np.ndarray:
@@ -605,9 +661,9 @@ def _find_whole_template_candidates(
     is the common case -- the two-stage core+arm design exists
     specifically for the LESS common case where one arm has broken from
     color variance, see this module's own docstring)."""
-    template = _load_template()
+    template = _load_template(config)
     result = cv2.matchTemplate(search_mask.astype(np.float32), template, cv2.TM_CCOEFF_NORMED)
-    core_dx, core_dy = _template_core_offset()
+    core_dx, core_dy = _template_core_offset(config)
 
     ys, xs = np.where(result >= config.crosshair_whole_match_threshold)
     points = sorted(zip(xs, ys, result[ys, xs]), key=lambda p: -p[2])
@@ -891,7 +947,7 @@ def find_top_markers(
     when otsu_mask_dir is None (e.g. standalone/test callers that don't
     want any file output)."""
     img_h = image_bgr.shape[0]
-    search_h = max(_load_template().shape[0], int(img_h * config.marker_search_top_fraction))
+    search_h = max(_load_template(config).shape[0], int(img_h * config.marker_search_top_fraction))
 
     otsu_mask = _otsu_v_mask(image_bgr[:search_h])
     if otsu_mask_dir is not None:
@@ -901,7 +957,10 @@ def find_top_markers(
 
     mask_sources: list[np.ndarray] = []
     if config.crosshair_use_substrate_mask:
-        mask_sources.append(_non_substrate_mask(image_bgr[:search_h], detection))
+        mask_sources.append(_non_substrate_mask(
+            image_bgr[:search_h], detection,
+            open_kernel_px=getattr(config, "non_substrate_mask_open_px", 0),
+        ))
     if config.crosshair_use_otsu_mask:
         mask_sources.append(otsu_mask)
     if not mask_sources:

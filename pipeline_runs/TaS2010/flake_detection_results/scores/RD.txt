@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\RD.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=386)
+  final_score:       0.7475
+  area_px:           4641
+  bbox:              (483, 648, 65, 137)
+  solidity:          0.8112
+  color_fraction:    0.7531  (color_score: 0.7531)
+  texture_score:     0.8659  (laplacian_var: 9.67, intensity_std: 6.36)
+  isolation_score:   0.6828  (neighbor_coverage: 0.0254)
+
+Flake 2 (contour_index=69)
+  final_score:       0.4938
+  area_px:           4289
+  bbox:              (1232, 1427, 102, 85)
+  solidity:          0.7404
+  color_fraction:    0.7909  (color_score: 0.7909)
+  texture_score:     0.8873  (laplacian_var: 8.25, intensity_std: 5.31)
+  isolation_score:   0.0000  (neighbor_coverage: 0.1037)

@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2009\Post Exfo\UT.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=414)
+  final_score:       0.4204
+  area_px:           6864
+  bbox:              (1651, 818, 118, 142)
+  solidity:          0.8857
+  color_fraction:    0.4220  (color_score: 0.4220)
+  texture_score:     0.5683  (laplacian_var: 73.26, intensity_std: 9.25)
+  isolation_score:   0.3448  (neighbor_coverage: 0.0524)

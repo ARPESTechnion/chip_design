@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\MR.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=62)
+  final_score:       0.5734
+  area_px:           1688
+  bbox:              (469, 695, 80, 48)
+  solidity:          0.7554
+  color_fraction:    0.8465  (color_score: 0.8465)
+  texture_score:     0.1640  (laplacian_var: 14.69, intensity_std: 3.12)
+  isolation_score:   0.7222  (neighbor_coverage: 0.0222)

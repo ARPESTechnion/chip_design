@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\CE.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=84)
+  final_score:       0.5355
+  area_px:           11293
+  bbox:              (437, 848, 218, 146)
+  solidity:          0.6661
+  color_fraction:    0.8286  (color_score: 0.8286)
+  texture_score:     0.0000  (laplacian_var: 16.85, intensity_std: 7.41)
+  isolation_score:   0.7941  (neighbor_coverage: 0.0165)

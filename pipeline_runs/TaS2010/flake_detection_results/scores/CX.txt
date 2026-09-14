@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\CX.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=393)
+  final_score:       0.8373
+  area_px:           3533
+  bbox:              (870, 421, 99, 62)
+  solidity:          0.9347
+  color_fraction:    0.8392  (color_score: 0.8392)
+  texture_score:     0.8132  (laplacian_var: 7.91, intensity_std: 10.35)
+  isolation_score:   0.8475  (neighbor_coverage: 0.0122)

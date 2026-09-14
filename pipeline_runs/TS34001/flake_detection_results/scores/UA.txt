@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TS34001\Post Exfo\UA.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=38)
+  final_score:       0.6831
+  area_px:           4234
+  bbox:              (196, 1206, 108, 77)
+  solidity:          0.8763
+  color_fraction:    0.6413  (color_score: 0.6413)
+  texture_score:     0.7987  (laplacian_var: 8.58, intensity_std: 11.13)
+  isolation_score:   0.6671  (neighbor_coverage: 0.0266)
+
+Flake 2 (contour_index=11)
+  final_score:       0.6815
+  area_px:           1544
+  bbox:              (690, 1412, 64, 38)
+  solidity:          0.8772
+  color_fraction:    0.5489  (color_score: 0.5489)
+  texture_score:     0.8660  (laplacian_var: 9.53, intensity_std: 6.39)
+  isolation_score:   0.7219  (neighbor_coverage: 0.0222)

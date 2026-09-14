@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\UQ.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=76)
+  final_score:       0.6513
+  area_px:           2369
+  bbox:              (1359, 454, 66, 64)
+  solidity:          0.9603
+  color_fraction:    0.8438  (color_score: 0.8438)
+  texture_score:     0.1525  (laplacian_var: 14.19, intensity_std: 3.29)
+  isolation_score:   0.9727  (neighbor_coverage: 0.0022)

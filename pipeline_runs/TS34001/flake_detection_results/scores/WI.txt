@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TS34001\Post Exfo\WI.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=157)
+  final_score:       0.7017
+  area_px:           1990
+  bbox:              (696, 123, 51, 76)
+  solidity:          0.8057
+  color_fraction:    0.6542  (color_score: 0.6542)
+  texture_score:     0.8488  (laplacian_var: 7.79, intensity_std: 8.00)
+  isolation_score:   0.6757  (neighbor_coverage: 0.0259)

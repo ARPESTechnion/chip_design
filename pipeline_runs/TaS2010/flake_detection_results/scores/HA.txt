@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\HA.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=393)
+  final_score:       0.6784
+  area_px:           4342
+  bbox:              (1600, 189, 88, 80)
+  solidity:          0.9231
+  color_fraction:    0.6629  (color_score: 0.6629)
+  texture_score:     0.8408  (laplacian_var: 7.96, intensity_std: 8.49)
+  isolation_score:   0.6127  (neighbor_coverage: 0.0310)

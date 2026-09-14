@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\AJ.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=143)
+  final_score:       0.5848
+  area_px:           2676
+  bbox:              (735, 702, 54, 76)
+  solidity:          0.9669
+  color_fraction:    0.8194  (color_score: 0.8194)
+  texture_score:     0.0000  (laplacian_var: 16.67, intensity_std: 9.29)
+  isolation_score:   0.9526  (neighbor_coverage: 0.0038)

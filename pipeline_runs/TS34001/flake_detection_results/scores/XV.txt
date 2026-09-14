@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TS34001\Post Exfo\XV.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=121)
+  final_score:       0.7774
+  area_px:           4262
+  bbox:              (1259, 218, 87, 89)
+  solidity:          0.9258
+  color_fraction:    0.7481  (color_score: 0.7481)
+  texture_score:     0.8406  (laplacian_var: 8.35, intensity_std: 8.40)
+  isolation_score:   0.7752  (neighbor_coverage: 0.0180)

@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\GE.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=402)
+  final_score:       0.6859
+  area_px:           4863
+  bbox:              (630, 69, 79, 123)
+  solidity:          0.8633
+  color_fraction:    0.4947  (color_score: 0.4947)
+  texture_score:     0.8866  (laplacian_var: 7.60, intensity_std: 5.53)
+  isolation_score:   0.7766  (neighbor_coverage: 0.0179)

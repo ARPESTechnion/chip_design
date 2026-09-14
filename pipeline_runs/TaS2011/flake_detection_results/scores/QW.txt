@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\QW.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=115)
+  final_score:       0.5239
+  area_px:           7646
+  bbox:              (1199, 931, 149, 150)
+  solidity:          0.6971
+  color_fraction:    0.7852  (color_score: 0.7852)
+  texture_score:     0.0000  (laplacian_var: 17.75, intensity_std: 6.66)
+  isolation_score:   0.8023  (neighbor_coverage: 0.0158)

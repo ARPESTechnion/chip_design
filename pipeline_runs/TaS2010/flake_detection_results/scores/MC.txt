@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\MC.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=188)
+  final_score:       0.7240
+  area_px:           3152
+  bbox:              (1516, 965, 85, 56)
+  solidity:          0.9500
+  color_fraction:    0.4607  (color_score: 0.4607)
+  texture_score:     0.8265  (laplacian_var: 8.53, intensity_std: 9.29)
+  isolation_score:   0.9361  (neighbor_coverage: 0.0051)
+
+Flake 2 (contour_index=263)
+  final_score:       0.6902
+  area_px:           3506
+  bbox:              (1373, 772, 83, 61)
+  solidity:          0.9142
+  color_fraction:    0.7653  (color_score: 0.7653)
+  texture_score:     0.7817  (laplacian_var: 7.85, intensity_std: 12.46)
+  isolation_score:   0.5693  (neighbor_coverage: 0.0345)

@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\GH.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=155)
+  final_score:       0.6838
+  area_px:           3122
+  bbox:              (772, 780, 83, 99)
+  solidity:          0.7810
+  color_fraction:    0.6902  (color_score: 0.6902)
+  texture_score:     0.9265  (laplacian_var: 7.53, intensity_std: 2.89)
+  isolation_score:   0.5560  (neighbor_coverage: 0.0355)

@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2009\Post Exfo\KS.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=308)
+  final_score:       0.6218
+  area_px:           2532
+  bbox:              (2221, 1399, 70, 62)
+  solidity:          0.9688
+  color_fraction:    0.5208  (color_score: 0.5208)
+  texture_score:     0.5239  (laplacian_var: 72.56, intensity_std: 12.39)
+  isolation_score:   0.7718  (neighbor_coverage: 0.0183)
+
+Flake 2 (contour_index=146)
+  final_score:       0.5306
+  area_px:           7070
+  bbox:              (1785, 1689, 101, 138)
+  solidity:          0.9820
+  color_fraction:    0.4883  (color_score: 0.4883)
+  texture_score:     0.5324  (laplacian_var: 79.80, intensity_std: 9.89)
+  isolation_score:   0.5719  (neighbor_coverage: 0.0342)

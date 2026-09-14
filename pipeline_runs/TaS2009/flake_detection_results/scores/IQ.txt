@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2009\Post Exfo\IQ.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=333)
+  final_score:       0.4628
+  area_px:           2958
+  bbox:              (574, 1325, 72, 59)
+  solidity:          0.9684
+  color_fraction:    0.4552  (color_score: 0.4552)
+  texture_score:     0.5714  (laplacian_var: 68.32, intensity_std: 10.35)
+  isolation_score:   0.4161  (neighbor_coverage: 0.0467)

@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\SD.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=384)
+  final_score:       0.5320
+  area_px:           3796
+  bbox:              (1201, 387, 62, 95)
+  solidity:          0.8915
+  color_fraction:    0.8857  (color_score: 0.8857)
+  texture_score:     0.8886  (laplacian_var: 8.53, intensity_std: 5.15)
+  isolation_score:   0.0000  (neighbor_coverage: 0.1699)
+
+Flake 2 (contour_index=436)
+  final_score:       0.5005
+  area_px:           4428
+  bbox:              (1197, 296, 102, 85)
+  solidity:          0.7636
+  color_fraction:    0.8142  (color_score: 0.8142)
+  texture_score:     0.8743  (laplacian_var: 8.84, intensity_std: 6.02)
+  isolation_score:   0.0000  (neighbor_coverage: 0.1370)

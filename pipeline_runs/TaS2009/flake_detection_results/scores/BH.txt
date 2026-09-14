@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2009\Post Exfo\BH.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=392)
+  final_score:       0.5330
+  area_px:           7826
+  bbox:              (2383, 1198, 132, 98)
+  solidity:          0.9186
+  color_fraction:    0.5388  (color_score: 0.5388)
+  texture_score:     0.4715  (laplacian_var: 70.11, intensity_std: 16.54)
+  isolation_score:   0.5579  (neighbor_coverage: 0.0354)
+
+Flake 2 (contour_index=217)
+  final_score:       0.3932
+  area_px:           4061
+  bbox:              (1003, 1457, 90, 81)
+  solidity:          0.8129
+  color_fraction:    0.5066  (color_score: 0.5066)
+  texture_score:     0.4976  (laplacian_var: 71.92, intensity_std: 14.31)
+  isolation_score:   0.2276  (neighbor_coverage: 0.0618)

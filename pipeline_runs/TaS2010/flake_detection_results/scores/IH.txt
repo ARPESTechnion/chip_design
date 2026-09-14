@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\IH.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=196)
+  final_score:       0.7498
+  area_px:           8420
+  bbox:              (1216, 559, 95, 404)
+  solidity:          0.5773
+  color_fraction:    0.5796  (color_score: 0.5796)
+  texture_score:     0.9102  (laplacian_var: 7.36, intensity_std: 4.02)
+  isolation_score:   0.8397  (neighbor_coverage: 0.0128)

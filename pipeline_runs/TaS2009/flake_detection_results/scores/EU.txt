@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2009\Post Exfo\EU.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=449)
+  final_score:       0.6229
+  area_px:           18793
+  bbox:              (1777, 171, 282, 139)
+  solidity:          0.9523
+  color_fraction:    0.3612  (color_score: 0.3612)
+  texture_score:     0.4935  (laplacian_var: 71.40, intensity_std: 14.73)
+  isolation_score:   0.9493  (neighbor_coverage: 0.0041)

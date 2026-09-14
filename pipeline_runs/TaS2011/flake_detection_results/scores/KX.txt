@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\KX.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=102)
+  final_score:       0.5764
+  area_px:           2101
+  bbox:              (1736, 443, 77, 65)
+  solidity:          0.9640
+  color_fraction:    0.7642  (color_score: 0.7642)
+  texture_score:     0.0000  (laplacian_var: 16.88, intensity_std: 4.48)
+  isolation_score:   0.9825  (neighbor_coverage: 0.0014)
+
+Flake 2 (contour_index=114)
+  final_score:       0.5647
+  area_px:           10023
+  bbox:              (884, 289, 146, 143)
+  solidity:          0.8741
+  color_fraction:    0.7556  (color_score: 0.7556)
+  texture_score:     0.0000  (laplacian_var: 16.84, intensity_std: 13.36)
+  isolation_score:   0.9558  (neighbor_coverage: 0.0035)

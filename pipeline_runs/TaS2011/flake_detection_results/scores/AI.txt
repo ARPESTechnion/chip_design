@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\AI.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=251)
+  final_score:       0.5010
+  area_px:           2592
+  bbox:              (1942, 705, 54, 75)
+  solidity:          0.9575
+  color_fraction:    0.6895  (color_score: 0.6895)
+  texture_score:     0.0469  (laplacian_var: 14.12, intensity_std: 5.27)
+  isolation_score:   0.7802  (neighbor_coverage: 0.0176)

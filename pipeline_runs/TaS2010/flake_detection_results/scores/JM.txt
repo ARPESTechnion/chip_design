@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\JM.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=267)
+  final_score:       0.7679
+  area_px:           3385
+  bbox:              (1229, 505, 92, 90)
+  solidity:          0.7269
+  color_fraction:    0.5559  (color_score: 0.5559)
+  texture_score:     0.8575  (laplacian_var: 9.82, intensity_std: 6.88)
+  isolation_score:   0.9351  (neighbor_coverage: 0.0052)

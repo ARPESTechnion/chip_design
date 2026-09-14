@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\GV.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=322)
+  final_score:       0.7881
+  area_px:           3808
+  bbox:              (702, 44, 65, 127)
+  solidity:          0.9518
+  color_fraction:    0.6015  (color_score: 0.6015)
+  texture_score:     0.8374  (laplacian_var: 7.43, intensity_std: 8.86)
+  isolation_score:   0.9501  (neighbor_coverage: 0.0040)
+
+Flake 2 (contour_index=268)
+  final_score:       0.7020
+  area_px:           4342
+  bbox:              (184, 194, 103, 104)
+  solidity:          0.6275
+  color_fraction:    0.5828  (color_score: 0.5828)
+  texture_score:     0.8924  (laplacian_var: 9.21, intensity_std: 4.71)
+  isolation_score:   0.7259  (neighbor_coverage: 0.0219)

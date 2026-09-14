@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\HW.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=123)
+  final_score:       0.5333
+  area_px:           1791
+  bbox:              (994, 631, 58, 60)
+  solidity:          0.8810
+  color_fraction:    0.6713  (color_score: 0.6713)
+  texture_score:     0.0068  (laplacian_var: 15.73, intensity_std: 15.43)
+  isolation_score:   0.9377  (neighbor_coverage: 0.0050)

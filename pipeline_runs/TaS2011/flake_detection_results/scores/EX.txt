@@ -1,0 +1,28 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\EX.png  (3 chosen flake(s))
+
+Flake 1 (contour_index=94)
+  final_score:       0.6124
+  area_px:           12061
+  bbox:              (989, 633, 188, 100)
+  solidity:          0.8962
+  color_fraction:    0.8487  (color_score: 0.8487)
+  texture_score:     0.0401  (laplacian_var: 14.39, intensity_std: 4.27)
+  isolation_score:   0.9659  (neighbor_coverage: 0.0027)
+
+Flake 2 (contour_index=52)
+  final_score:       0.5421
+  area_px:           2070
+  bbox:              (1888, 974, 85, 46)
+  solidity:          0.7845
+  color_fraction:    0.5880  (color_score: 0.5880)
+  texture_score:     0.0737  (laplacian_var: 13.05, intensity_std: 4.92)
+  isolation_score:   0.9789  (neighbor_coverage: 0.0017)
+
+Flake 3 (contour_index=34)
+  final_score:       0.5172
+  area_px:           3676
+  bbox:              (1862, 1129, 54, 107)
+  solidity:          0.9341
+  color_fraction:    0.5913  (color_score: 0.5913)
+  texture_score:     0.0134  (laplacian_var: 15.46, intensity_std: 9.88)
+  isolation_score:   0.9623  (neighbor_coverage: 0.0030)

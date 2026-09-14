@@ -1,0 +1,100 @@
+{
+  "_readme": [
+    "FIRST-DRAFT config for TaS2005, built to support grid_preperation marker",
+    "detection with the new TaS2005 corner marker (see grid_preperation/config/TaS2005.json).",
+    "",
+    "ONLY substrate_hsv_range is measured from real data (sampled directly from",
+    "\\\\132.68.73.70\\Data\\Ilay\\TaS2005\\Post Exfo\\QK.png, mode-centered hue band,",
+    "1st-99th percentile S/V -- same method flake_detection's own derive scripts use).",
+    "Every other field below (flake hsv_range/rgb_range, area/solidity/score",
+    "thresholds) is COPIED AS-IS from TS34001.json as a structural placeholder --",
+    "NOT derived from any real TaS2005 flake sample. Do not trust this for actual",
+    "flake detection/scoring until re-derived from real flake images on this chip.",
+    "",
+    "marker_removal_enabled is false: no separate pink-dot location marker was",
+    "observed in the sample image -- the winged-cross itself IS the location",
+    "marker here (handled by grid_preperation.markers, not this module's own",
+    "marker_rgb_range removal step)."
+  ],
+
+  "marker_removal_enabled": false,
+  "marker_rgb_range": {
+    "r_min": 220, "r_max": 255,
+    "g_min": 160, "g_max": 220,
+    "b_min": 220, "b_max": 255
+  },
+  "marker_bright_threshold": 200,
+  "marker_dilation_px": 25,
+
+  "substrate_hsv_range": {
+    "_comment": [
+      "MEASURED from real TaS2005/Post Exfo/QK.png (mode-centered hue band,",
+      "1st-99th percentile S/V, ~840000 substrate px sampled from a clean",
+      "mid-image region). The purple/violet substrate here sits at a",
+      "noticeably different, wider hue band than TS34001's (210-290) -- do",
+      "not reuse another dataset's substrate range for TaS2005."
+    ],
+    "h_min": 256,
+    "h_max": 354,
+    "s_min": 45,
+    "s_max": 75,
+    "v_min": 30,
+    "v_max": 50
+  },
+
+  "color_mode": "hsv",
+
+  "rgb_range": {
+    "_comment": "PLACEHOLDER, copied from TS34001.json -- not derived from real TaS2005 flakes.",
+    "r_min": 135, "r_max": 200,
+    "g_min": 90, "g_max": 150,
+    "b_min": 95, "b_max": 140
+  },
+
+  "hsv_range": {
+    "_comment": "PLACEHOLDER, copied from TS34001.json -- not derived from real TaS2005 flakes.",
+    "h_min": 340,
+    "h_max": 360,
+    "s_min": 45,
+    "s_max": 65,
+    "v_min": 70,
+    "v_max": 85
+  },
+
+  "min_color_fraction": 0.35,
+
+  "blur_kernel_size": 5,
+  "closing_kernel_size": 0,
+
+  "min_flake_area": 1500,
+  "max_flake_area": 25000,
+  "large_flake_alert_area": 25000,
+  "min_solidity": 0.4,
+  "min_solidity_strict": 0.72,
+  "solidity_relief_area_lo": 1500.0,
+  "solidity_relief_area_hi": 6500.0,
+  "reject_border_touching": true,
+
+  "contour_erosion_px": 3,
+  "max_laplacian_var": 100.0,
+  "max_intensity_std": 40.0,
+  "laplacian_weight": 0.4,
+  "std_weight": 0.6,
+
+  "neighborhood_factor": 3.0,
+  "max_neighbor_coverage": 0.08,
+
+  "dark_spot_enabled": true,
+  "dark_spot_brightness_max": 40,
+  "dark_spot_min_area": 200,
+  "dark_spot_max_area": 15000,
+
+  "color_fraction_weight": 0.4,
+  "texture_score_weight": 0.2,
+  "isolation_score_weight": 0.4,
+
+  "min_final_score": 0.35,
+  "top_n": null,
+
+  "interactive_review": false
+}

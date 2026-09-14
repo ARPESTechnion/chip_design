@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2009\Post Exfo\SM.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=144)
+  final_score:       0.3956
+  area_px:           2503
+  bbox:              (1139, 1582, 57, 75)
+  solidity:          0.9599
+  color_fraction:    0.5239  (color_score: 0.5239)
+  texture_score:     0.5325  (laplacian_var: 70.48, intensity_std: 12.37)
+  isolation_score:   0.1988  (neighbor_coverage: 0.0641)

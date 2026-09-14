@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2011\Post Exfo\HB.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=101)
+  final_score:       0.5799
+  area_px:           2054
+  bbox:              (951, 1079, 71, 35)
+  solidity:          0.9742
+  color_fraction:    0.7632  (color_score: 0.7632)
+  texture_score:     0.0187  (laplacian_var: 15.25, intensity_std: 4.53)
+  isolation_score:   0.9748  (neighbor_coverage: 0.0020)

@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\UO.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=295)
+  final_score:       0.6721
+  area_px:           6042
+  bbox:              (538, 719, 114, 80)
+  solidity:          0.9321
+  color_fraction:    0.7449  (color_score: 0.7449)
+  texture_score:     0.8418  (laplacian_var: 10.01, intensity_std: 7.88)
+  isolation_score:   0.5145  (neighbor_coverage: 0.0388)

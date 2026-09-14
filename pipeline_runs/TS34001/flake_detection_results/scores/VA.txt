@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TS34001\Post Exfo\VA.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=153)
+  final_score:       0.7441
+  area_px:           4344
+  bbox:              (347, 127, 107, 72)
+  solidity:          0.9155
+  color_fraction:    0.6939  (color_score: 0.6939)
+  texture_score:     0.8029  (laplacian_var: 9.74, intensity_std: 10.54)
+  isolation_score:   0.7649  (neighbor_coverage: 0.0188)
+
+Flake 2 (contour_index=117)
+  final_score:       0.6842
+  area_px:           1602
+  bbox:              (839, 333, 65, 37)
+  solidity:          0.8975
+  color_fraction:    0.6027  (color_score: 0.6027)
+  texture_score:     0.8383  (laplacian_var: 11.37, intensity_std: 7.75)
+  isolation_score:   0.6887  (neighbor_coverage: 0.0249)

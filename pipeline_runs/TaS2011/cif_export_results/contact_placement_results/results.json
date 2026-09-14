@@ -1,0 +1,440 @@
+[
+  {
+    "image": "JV",
+    "flake_index": 0,
+    "final_score": 0.6583083859798817,
+    "mode": "ring"
+  },
+  {
+    "image": "UQ",
+    "flake_index": 0,
+    "final_score": 0.6513082613382115,
+    "mode": "ring"
+  },
+  {
+    "image": "IR",
+    "flake_index": 0,
+    "final_score": 0.6436844488393502,
+    "mode": null
+  },
+  {
+    "image": "IP",
+    "flake_index": 0,
+    "final_score": 0.6431258443462751,
+    "mode": "ring"
+  },
+  {
+    "image": "LD",
+    "flake_index": 0,
+    "final_score": 0.62974284591309,
+    "mode": "ring"
+  },
+  {
+    "image": "UD",
+    "flake_index": 0,
+    "final_score": 0.6218577625440307,
+    "mode": "ring"
+  },
+  {
+    "image": "EX",
+    "flake_index": 0,
+    "final_score": 0.6124451786940588,
+    "mode": "ring"
+  },
+  {
+    "image": "RR",
+    "flake_index": 0,
+    "final_score": 0.6107409667942567,
+    "mode": "ring"
+  },
+  {
+    "image": "AG",
+    "flake_index": 0,
+    "final_score": 0.6033734692821116,
+    "mode": "ring"
+  },
+  {
+    "image": "DC",
+    "flake_index": 0,
+    "final_score": 0.5970623326874467,
+    "mode": "ring"
+  },
+  {
+    "image": "AJ",
+    "flake_index": 0,
+    "final_score": 0.5847765482785251,
+    "mode": null
+  },
+  {
+    "image": "CM",
+    "flake_index": 0,
+    "final_score": 0.5832510578307211,
+    "mode": "ring"
+  },
+  {
+    "image": "MN",
+    "flake_index": 0,
+    "final_score": 0.5801985020639471,
+    "mode": "ring"
+  },
+  {
+    "image": "HB",
+    "flake_index": 0,
+    "final_score": 0.5799148341029601,
+    "mode": null
+  },
+  {
+    "image": "OM",
+    "flake_index": 0,
+    "final_score": 0.5790541835471724,
+    "mode": null
+  },
+  {
+    "image": "KX",
+    "flake_index": 0,
+    "final_score": 0.5764148351648353,
+    "mode": "ring"
+  },
+  {
+    "image": "IA",
+    "flake_index": 0,
+    "final_score": 0.5743180656450694,
+    "mode": "ring"
+  },
+  {
+    "image": "IT",
+    "flake_index": 0,
+    "final_score": 0.573565780005326,
+    "mode": null
+  },
+  {
+    "image": "MR",
+    "flake_index": 0,
+    "final_score": 0.5734422691881726,
+    "mode": "ring"
+  },
+  {
+    "image": "VK",
+    "flake_index": 0,
+    "final_score": 0.5725716267332892,
+    "mode": "ring"
+  },
+  {
+    "image": "AS",
+    "flake_index": 0,
+    "final_score": 0.5725436935718325,
+    "mode": "ring"
+  },
+  {
+    "image": "RB",
+    "flake_index": 0,
+    "final_score": 0.572013430776267,
+    "mode": "ring"
+  },
+  {
+    "image": "CS",
+    "flake_index": 0,
+    "final_score": 0.5695985048020503,
+    "mode": "ring"
+  },
+  {
+    "image": "QP",
+    "flake_index": 0,
+    "final_score": 0.5692741935483872,
+    "mode": "ring"
+  },
+  {
+    "image": "BC",
+    "flake_index": 0,
+    "final_score": 0.5686826852152638,
+    "mode": "ring"
+  },
+  {
+    "image": "SF",
+    "flake_index": 0,
+    "final_score": 0.5657965759907397,
+    "mode": "ring"
+  },
+  {
+    "image": "KX",
+    "flake_index": 1,
+    "final_score": 0.5647489768752421,
+    "mode": null
+  },
+  {
+    "image": "TJ",
+    "flake_index": 0,
+    "final_score": 0.5620524691358024,
+    "mode": "ring"
+  },
+  {
+    "image": "GV",
+    "flake_index": 0,
+    "final_score": 0.5614454945149622,
+    "mode": "ring"
+  },
+  {
+    "image": "WJ",
+    "flake_index": 0,
+    "final_score": 0.5603120892145558,
+    "mode": "ring"
+  },
+  {
+    "image": "VT",
+    "flake_index": 0,
+    "final_score": 0.559993485019358,
+    "mode": null
+  },
+  {
+    "image": "TP",
+    "flake_index": 0,
+    "final_score": 0.5580794169958873,
+    "mode": null
+  },
+  {
+    "image": "CS",
+    "flake_index": 1,
+    "final_score": 0.5573362680879375,
+    "mode": null
+  },
+  {
+    "image": "FB",
+    "flake_index": 0,
+    "final_score": 0.5572801575937534,
+    "mode": null
+  },
+  {
+    "image": "TR",
+    "flake_index": 0,
+    "final_score": 0.5564001741191015,
+    "mode": null
+  },
+  {
+    "image": "GX",
+    "flake_index": 0,
+    "final_score": 0.5526613330778314,
+    "mode": null
+  },
+  {
+    "image": "JB",
+    "flake_index": 0,
+    "final_score": 0.5494461117780446,
+    "mode": null
+  },
+  {
+    "image": "EX",
+    "flake_index": 1,
+    "final_score": 0.5421402557010571,
+    "mode": null
+  },
+  {
+    "image": "EG",
+    "flake_index": 0,
+    "final_score": 0.5410147701912782,
+    "mode": "ring"
+  },
+  {
+    "image": "PB",
+    "flake_index": 0,
+    "final_score": 0.5403406800557493,
+    "mode": null
+  },
+  {
+    "image": "OB",
+    "flake_index": 0,
+    "final_score": 0.5400881021670803,
+    "mode": null
+  },
+  {
+    "image": "HJ",
+    "flake_index": 0,
+    "final_score": 0.5368284418534517,
+    "mode": null
+  },
+  {
+    "image": "EM",
+    "flake_index": 0,
+    "final_score": 0.5359539277142236,
+    "mode": null
+  },
+  {
+    "image": "CE",
+    "flake_index": 0,
+    "final_score": 0.535489500279971,
+    "mode": null
+  },
+  {
+    "image": "CS",
+    "flake_index": 2,
+    "final_score": 0.5354691358024692,
+    "mode": null
+  },
+  {
+    "image": "KA",
+    "flake_index": 0,
+    "final_score": 0.5342754768963246,
+    "mode": null
+  },
+  {
+    "image": "HW",
+    "flake_index": 0,
+    "final_score": 0.5332743354677771,
+    "mode": null
+  },
+  {
+    "image": "BN",
+    "flake_index": 0,
+    "final_score": 0.5321322278639491,
+    "mode": null
+  },
+  {
+    "image": "LM",
+    "flake_index": 0,
+    "final_score": 0.5316296670030273,
+    "mode": null
+  },
+  {
+    "image": "AH",
+    "flake_index": 0,
+    "final_score": 0.5295088907705334,
+    "mode": null
+  },
+  {
+    "image": "TF",
+    "flake_index": 0,
+    "final_score": 0.5258632291602241,
+    "mode": null
+  },
+  {
+    "image": "AG",
+    "flake_index": 1,
+    "final_score": 0.5254684388207553,
+    "mode": null
+  },
+  {
+    "image": "HV",
+    "flake_index": 0,
+    "final_score": 0.5247042945899296,
+    "mode": null
+  },
+  {
+    "image": "QW",
+    "flake_index": 0,
+    "final_score": 0.5238706010508124,
+    "mode": null
+  },
+  {
+    "image": "NT",
+    "flake_index": 0,
+    "final_score": 0.5237673326455384,
+    "mode": null
+  },
+  {
+    "image": "RL",
+    "flake_index": 0,
+    "final_score": 0.5233262832524985,
+    "mode": null
+  },
+  {
+    "image": "YF",
+    "flake_index": 0,
+    "final_score": 0.521199015731349,
+    "mode": null
+  },
+  {
+    "image": "LB",
+    "flake_index": 0,
+    "final_score": 0.518642977702891,
+    "mode": null
+  },
+  {
+    "image": "NH",
+    "flake_index": 0,
+    "final_score": 0.5174090454317037,
+    "mode": null
+  },
+  {
+    "image": "EX",
+    "flake_index": 2,
+    "final_score": 0.5172423715291948,
+    "mode": null
+  },
+  {
+    "image": "ET",
+    "flake_index": 0,
+    "final_score": 0.5172132150122939,
+    "mode": null
+  },
+  {
+    "image": "EG",
+    "flake_index": 1,
+    "final_score": 0.5132570360251466,
+    "mode": null
+  },
+  {
+    "image": "GV",
+    "flake_index": 1,
+    "final_score": 0.5081185597136542,
+    "mode": null
+  },
+  {
+    "image": "FG",
+    "flake_index": 0,
+    "final_score": 0.507558516828879,
+    "mode": null
+  },
+  {
+    "image": "IR",
+    "flake_index": 1,
+    "final_score": 0.5074771657847597,
+    "mode": null
+  },
+  {
+    "image": "HV",
+    "flake_index": 1,
+    "final_score": 0.5069393528321864,
+    "mode": null
+  },
+  {
+    "image": "IA",
+    "flake_index": 1,
+    "final_score": 0.5057415585423601,
+    "mode": null
+  },
+  {
+    "image": "FH",
+    "flake_index": 0,
+    "final_score": 0.5034679488291759,
+    "mode": null
+  },
+  {
+    "image": "LB",
+    "flake_index": 1,
+    "final_score": 0.5015192740607919,
+    "mode": null
+  },
+  {
+    "image": "TA",
+    "flake_index": 0,
+    "final_score": 0.5014734918873123,
+    "mode": null
+  },
+  {
+    "image": "AG",
+    "flake_index": 2,
+    "final_score": 0.5012191717077711,
+    "mode": null
+  },
+  {
+    "image": "VX",
+    "flake_index": 0,
+    "final_score": 0.5009994830761147,
+    "mode": null
+  },
+  {
+    "image": "AI",
+    "flake_index": 0,
+    "final_score": 0.5009632067590827,
+    "mode": null
+  }
+]

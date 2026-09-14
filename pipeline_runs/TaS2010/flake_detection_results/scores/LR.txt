@@ -1,0 +1,19 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\LR.png  (2 chosen flake(s))
+
+Flake 1 (contour_index=145)
+  final_score:       0.7229
+  area_px:           6611
+  bbox:              (972, 1044, 115, 131)
+  solidity:          0.8097
+  color_fraction:    0.8255  (color_score: 0.8255)
+  texture_score:     0.9273  (laplacian_var: 7.32, intensity_std: 2.90)
+  isolation_score:   0.5181  (neighbor_coverage: 0.0386)
+
+Flake 2 (contour_index=114)
+  final_score:       0.4795
+  area_px:           3095
+  bbox:              (1058, 1140, 56, 84)
+  solidity:          0.9130
+  color_fraction:    0.7324  (color_score: 0.7324)
+  texture_score:     0.9327  (laplacian_var: 7.33, intensity_std: 2.53)
+  isolation_score:   0.0000  (neighbor_coverage: 0.1379)

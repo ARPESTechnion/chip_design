@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TaS2010\Post Exfo\AU.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=216)
+  final_score:       0.8291
+  area_px:           3354
+  bbox:              (1043, 790, 66, 85)
+  solidity:          0.9746
+  color_fraction:    0.6071  (color_score: 0.6071)
+  texture_score:     0.9491  (laplacian_var: 6.86, intensity_std: 1.56)
+  isolation_score:   0.9911  (neighbor_coverage: 0.0007)

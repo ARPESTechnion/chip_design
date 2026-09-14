@@ -1,0 +1,10 @@
+\\132.68.73.70\Data\Ilay\TS34001\Post Exfo\EH.png  (1 chosen flake(s))
+
+Flake 1 (contour_index=89)
+  final_score:       0.7407
+  area_px:           1562
+  bbox:              (1782, 283, 42, 68)
+  solidity:          0.9259
+  color_fraction:    0.4576  (color_score: 0.4576)
+  texture_score:     0.8873  (laplacian_var: 8.94, intensity_std: 5.13)
+  isolation_score:   0.9504  (neighbor_coverage: 0.0040)
