@@ -45,7 +45,7 @@
   "color_mode": "rgb",
 
   "rgb_range": {
-    "r_min": 135, "r_max": 200,
+    "r_min": 130, "r_max": 200,
     "g_min": 90, "g_max": 150,
     "b_min": 95, "b_max": 140
   },
@@ -73,7 +73,7 @@
   "blur_kernel_size": 5,
   "closing_kernel_size": 0,
 
-  "min_flake_area": 1500,
+  "min_flake_area": 1000,
   "max_flake_area": 25000,
   "large_flake_alert_area": 25000,
   "min_solidity": 0.4,

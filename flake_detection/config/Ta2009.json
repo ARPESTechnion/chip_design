@@ -59,12 +59,12 @@
       "S 11.8-51.0 targets moderately saturated orange; excludes pale pink grid markers.",
       "V 51.0-86.3 avoids the dark substrate and blown-out reflections."
     ],
-    "h_min": 320,
+    "h_min": 10,
     "h_max": 360,
-    "s_min": 38,
-    "s_max": 62,
-    "v_min": 80.0,
-    "v_max": 95.3
+    "s_min": 20,
+    "s_max": 100,
+    "v_min": 90,
+    "v_max": 100
   },
 
   "min_color_fraction": 0.35,
@@ -73,7 +73,7 @@
   "closing_kernel_size": 0,
 
   "min_flake_area": 2500,
-  "max_flake_area": 25000,
+  "max_flake_area": 35000,
   "large_flake_alert_area": 25000,
   "min_solidity": 0.4,
   "min_solidity_strict": 0.72,

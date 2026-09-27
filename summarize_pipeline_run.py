@@ -98,6 +98,19 @@ def summarize(output_folder: Path, input_folder: Path | None = None) -> dict:
         summary["flakes_with_hall"] = None
         summary["flakes_with_ring"] = None
 
+    # --- Timing (all_code.py now writes this itself -- see _finish_timing --
+    # no more need for the caller to time the run externally and pass
+    # --runtime_seconds by hand). Falls back to that flag if timing.json
+    # doesn't exist (e.g. a run from before this was added).
+    timing_path = output_folder / "timing.json"
+    if timing_path.exists():
+        timing = json.loads(timing_path.read_text())
+        summary["runtime_seconds_total"] = timing.get("total_seconds")
+        summary["runtime_seconds_per_image"] = timing.get("seconds_per_input_image")
+        summary["runtime_flake_detection_seconds"] = timing.get("flake_detection_seconds")
+        summary["runtime_grid_preperation_seconds"] = timing.get("grid_preperation_seconds")
+        summary["runtime_contact_placement_seconds"] = timing.get("contact_placement_seconds")
+
     return summary
 
 
@@ -106,10 +119,20 @@ def main() -> None:
     ap.add_argument("output_folder", type=Path)
     ap.add_argument("--input_folder", type=Path, default=None)
     ap.add_argument("--name", default=None)
+    ap.add_argument("--runtime_seconds", type=float, default=None,
+                     help="Manual override for total wall-clock seconds. Usually unnecessary now -- "
+                          "all_code.py writes its own timing.json (see _finish_timing there), which "
+                          "this script reads automatically. Only needed for a run from before that "
+                          "existed, or to override with an externally-measured time.")
     args = ap.parse_args()
 
     summary = summarize(args.output_folder, args.input_folder)
     summary["dataset"] = args.name or args.output_folder.name
+    if args.runtime_seconds is not None:
+        summary["runtime_seconds_total"] = round(args.runtime_seconds, 1)
+        n_imgs = summary.get("images_total_in_input_folder")
+        if n_imgs:
+            summary["runtime_seconds_per_image"] = round(args.runtime_seconds / n_imgs, 2)
     print(json.dumps(summary, indent=2))
 
 

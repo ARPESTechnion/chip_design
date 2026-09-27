@@ -24,7 +24,7 @@
   "num_halls_to_try": 0,
   "min_flake_length_for_hall": 9.0,
   "min_flake_width_for_hall": 4.0,
-  "num_rings_to_try": 40,
+  "num_rings_to_try": 9999,
 
   "hall": {
     "inner_rect_width_margin": 1.5,
@@ -47,8 +47,8 @@
   },
 
   "ring": {
-    "voltage_min_distance_from_mask": 1.4,
-    "current_min_distance_from_voltage": 1.4,
+    "voltage_min_distance_from_mask": 1.2,
+    "current_min_distance_from_voltage": 1.2,
     "current_min_length_in_blocking_rect": 1.5,
     "voltage_min_width_in_blocking_rect": 0.7,
     "current_grow_cap": 3.0,
