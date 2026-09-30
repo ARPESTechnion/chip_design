@@ -20,6 +20,7 @@ returns new geometry or None on failure -- never mutates `occupied` itself.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 from shapely.geometry import GeometryCollection, Polygon as ShapelyPolygon
@@ -29,7 +30,7 @@ from shapely.ops import unary_union
 from .config import HallConfig
 from .contacts import ContactConnection, PlacedContact, place_external_contacts
 from .geometry import (
-    ChipBounds, Point, RotatedRect, collides, largest_inscribed_rectangle, within_bounds,
+    ChipBounds, Point, RotatedRect, collides, largest_inscribed_rectangle, mitered_strip, within_bounds,
 )
 
 
@@ -51,6 +52,7 @@ def place_hall(
     config: HallConfig,
     occupied: BaseGeometry,
     chip_bounds: ChipBounds | None = None,
+    other_pads: BaseGeometry | None = None,
 ) -> HallResult | None:
     """Attempt a Hall placement for one flake. Returns None (drop the flake
     for Hall -- never partial geometry) if any spec constraint or collision
@@ -107,8 +109,9 @@ def place_hall(
         ))
 
     # --- Voltage contacts: 6, 3 per long side, evenly spaced along length,
-    # flush against the inner rectangle -- plain rectangles, constant width
-    # = config.voltage_width (no more separate side/center taper widths). ---
+    # flush against the inner rectangle -- voltage_width wide inside the
+    # new-flake rectangle, then tapered (and, for the outer 4, bent) outside
+    # it; see the per-tap construction below. ---
     # 3 points spread across the inner rectangle's length at the 1/4, 2/4,
     # 3/4 marks (i.e. -L/4, 0, +L/4) -- evenly spaced without sitting right
     # on the inner rectangle's own corners; equidistant from each other AND
@@ -149,22 +152,50 @@ def place_hall(
         # between the contact area and the inner rectangle... + 10 (outside
         # of the contact area)".
         x1 = sign * (contacts_area.width / 2 + config.contact_end_setback)
+        # Every tap is voltage_width wide up to the new-flake rectangle's own
+        # edge (x_edge), then widens linearly to voltage_width *
+        # voltage_taper_factor at its far end. The two outer taps (y != 0)
+        # also bend there, voltage_side_bend_angle_deg off the perpendicular,
+        # away from the centre tap (toward their nearest current end); the
+        # centre tap stays straight. The far end keeps the same x reach
+        # (x1) either way.
+        x_edge = sign * max(abs(x0_contact), new_flake.width / 2)
+        far_width = config.voltage_width * config.voltage_taper_factor
         half_v = config.voltage_width / 2
         for y in taps_y:
-            rect = _local_rect(min(x0_contact, x1), max(x0_contact, x1), y - half_v, y + half_v)
-            internal_local.append(rect)
-            voltage_rects_local[sign].append(_local_rect(min(x0_hole, x1), max(x0_hole, x1), y - half_v, y + half_v))
+            bend = math.radians(config.voltage_side_bend_angle_deg) * (1 if y > 0 else -1 if y < 0 else 0)
+            out_dir = (sign * math.cos(bend), math.sin(bend))
+            reach = abs(x1 - x_edge) / math.cos(bend)
+            far = (x_edge + out_dir[0] * reach, y + out_dir[1] * reach)
+            strip = mitered_strip(
+                [(x0_contact, y), (x_edge, y), far],
+                [config.voltage_width, config.voltage_width, far_width],
+            )
+            internal_local.append(list(strip.exterior.coords)[:-1])
+            # Mask hole = the contact itself plus the mask_voltage_gap sliver
+            # toward the flake (see x0_hole above).
+            hole = strip.union(ShapelyPolygon(_local_rect(min(x0_hole, x0_contact), max(x0_hole, x0_contact), y - half_v, y + half_v)))
+            voltage_rects_local[sign].append(list(hole.exterior.coords)[:-1])
             connections.append(ContactConnection(
-                position=new_flake.to_absolute(x1, y),
-                direction=new_flake.direction_to_absolute(sign, 0.0),
-                width=config.voltage_width,
+                position=new_flake.to_absolute(*far),
+                direction=new_flake.direction_to_absolute(*out_dir),
+                width=far_width,
                 kind='voltage',
+                group_direction=new_flake.direction_to_absolute(sign, 0.0),
             ))
 
     def _abs(pts: list[Point]) -> ShapelyPolygon:
         return ShapelyPolygon([new_flake.to_absolute(x, y) for x, y in pts])
 
     internal_abs = [_abs(pts) for pts in internal_local]
+
+    # The widened/bent taps must still keep min_voltage_distance from their
+    # neighbours on the same side (the pre-check above only covers the
+    # voltage_width-wide near ends).
+    voltage_abs = internal_abs[2:]
+    for side in (voltage_abs[:3], voltage_abs[3:]):
+        if any(a.distance(b) < config.min_voltage_distance - 1e-9 for a, b in zip(side, side[1:])):
+            return None
 
     # --- Cut mask: NOT one frame-shaped region -- a collection of separate,
     # non-touching rectangles (user: "the cut mask is not a single polygon,
@@ -237,10 +268,6 @@ def place_hall(
         min_parallel_voltage_pad_spacing=config.min_parallel_voltage_pad_spacing,
         occupied=unary_union([occupied] + internal_abs),
         chip_bounds=chip_bounds,
-        # Same as Ring: no right angles in the routed arms -- user: "the
-        # contact paths should like the rings be straight and with no right
-        # angles." See contacts.py's own avoid_right_angles docstring.
-        avoid_right_angles=True,
         # Current's own native direction (length axis, top/bottom) is
         # perpendicular to voltage's (width axis, left/right) -- rotate
         # current's own pads to voltage's direction instead so all 8 pads
@@ -258,6 +285,7 @@ def place_hall(
         # within a single group).
         minimize_radial_distance=True,
         current_voltage_min_gap=config.min_pad_spacing,
+        other_pads=other_pads,
     )
     if external is None:
         return None

@@ -24,7 +24,6 @@ import cv2
 import numpy as np
 from shapely.geometry import Polygon as ShapelyPolygon
 from shapely.geometry.base import BaseGeometry
-from shapely.ops import unary_union
 
 Point = tuple[float, float]
 
@@ -295,132 +294,38 @@ def _edge_normal(direction: Point) -> Point:
     return -dy, dx
 
 
-def chamfer_right_angles(
-    waypoints: list[Point], widths: list[float], chamfer_fraction: float = 0.3,
-) -> tuple[list[Point], list[float]]:
+def mitered_strip(waypoints: list[Point], widths: list[float]) -> ShapelyPolygon:
     """
-    Replace every ~90-degree interior corner in `waypoints` with a short
-    diagonal cut (two points straddling the original corner instead of one
-    sharp point), so the resulting tapered_path has no literal right angle
-    anywhere -- Ring's own updated spec: "Arms should not contain right
-    angles" (an earlier reading of the doc's previous wording, "straight
-    angle", was that the arm must bend at LEAST once -- already true of
-    place_external_contacts's escape/shift/approach routing, which is BUILT
-    from axis-aligned segments and so turns in exact 90-degree corners at
-    every bend; the updated wording flags those exact corners as the actual
-    problem). Endpoints (waypoints[0]/[-1]) are never touched -- those are
-    fixed connection points (an inner contact's own edge, a pad's own
-    edge), not routing choices.
-
-    Only touches corners near-perpendicular (within ~3 degrees); a corner
-    that's already some other angle (e.g. a straight-through waypoint from
-    upstream dedup) is left alone. `chamfer_fraction` of the SHORTER
-    adjacent segment is consumed on each side of the cut, so it can never
-    eat into (or reverse) either neighboring segment.
+    A single polygon following the polyline `waypoints`, widths[i] wide
+    (perpendicular to the path) at waypoints[i], tapering linearly along
+    each segment. Interior corners use a miter join (both side edges meet
+    at one point on the corner's bisector), so a bent contact comes out as
+    one clean outline -- no notch on the outer side of the bend, unlike a
+    union of per-segment quads. End caps are perpendicular to the first/last
+    segment. Used for Hall's bent, tapered voltage contacts (see hall.py).
     """
-    if len(waypoints) < 3:
-        return waypoints, widths
-    new_path = [waypoints[0]]
-    new_widths = [widths[0]]
-    for i in range(1, len(waypoints) - 1):
-        prev, cur, nxt = waypoints[i - 1], waypoints[i], waypoints[i + 1]
-        v1 = (cur[0] - prev[0], cur[1] - prev[1])
-        v2 = (nxt[0] - cur[0], nxt[1] - cur[1])
-        len1, len2 = math.hypot(*v1), math.hypot(*v2)
-        if len1 < 1e-9 or len2 < 1e-9:
-            new_path.append(cur)
-            new_widths.append(widths[i])
-            continue
-        u1, u2 = (v1[0] / len1, v1[1] / len1), (v2[0] / len2, v2[1] / len2)
-        cos_angle = u1[0] * u2[0] + u1[1] * u2[1]
-        if abs(cos_angle) > math.cos(math.radians(87.0)):  # not (close to) perpendicular
-            new_path.append(cur)
-            new_widths.append(widths[i])
-            continue
-        c = chamfer_fraction * min(len1, len2)
-        new_path.append((cur[0] - u1[0] * c, cur[1] - u1[1] * c))
-        new_widths.append(widths[i])
-        new_path.append((cur[0] + u2[0] * c, cur[1] + u2[1] * c))
-        new_widths.append(widths[i])
-    new_path.append(waypoints[-1])
-    new_widths.append(widths[-1])
-    return new_path, new_widths
+    if len(waypoints) < 2 or len(widths) != len(waypoints):
+        raise ValueError("mitered_strip: need >= 2 waypoints and one width per waypoint")
+    normals = []
+    for p, q in zip(waypoints, waypoints[1:]):
+        dx, dy = q[0] - p[0], q[1] - p[1]
+        length = math.hypot(dx, dy)
+        if length == 0:
+            raise ValueError("mitered_strip: zero-length segment")
+        normals.append((-dy / length, dx / length))
 
-
-def tapered_path(
-    waypoints: list[Point], width_start: float, width_end: float,
-    taper_last_segment_only: bool = False, widths: list[float] | None = None,
-) -> ShapelyPolygon:
-    """
-    A tapered polygon along a multi-segment path (>= 2 waypoints).
-
-    `widths`, if given, is an explicit width per waypoint (same length as
-    waypoints, before duplicate-dropping) -- each segment tapers linearly
-    between its two endpoints' given widths. This is the general form; use
-    it when a path needs MORE than one taper zone (e.g. narrow down right
-    after leaving a wide inner contact, stay narrow through the risky
-    escape/shift/lane run, then widen again right before the pad -- see
-    contacts.py, which needs exactly this whenever a contact's own width
-    exceeds the pad-end arm_start_width).
-
-    Without `widths`: by default width is interpolated linearly by
-    cumulative arc-length from width_start (at waypoints[0]) to width_end
-    (at waypoints[-1]). taper_last_segment_only=True instead holds
-    width_start constant across every segment except the last, which alone
-    tapers to width_end -- keeps the arm thin through the risky early
-    segments (escaping the flake, shifting tangentially to line up with a
-    pad) and only grows to full pad-connecting width in the final, confined
-    approach segment (confirmed empirically: linear tapering let an arm's
-    early, still-growing width bulge into a neighboring arm's own lane even
-    though their centerlines never crossed).
-
-    Multiple straight tapered_quad segments are unioned via shapely so a
-    bent path (mandatory per the spec: "Arms should not contain straight
-    angle") comes out as one clean polygon rather than several overlapping/
-    misaligned pieces.
-    """
-    if len(waypoints) < 2:
-        raise ValueError("tapered_path: need at least 2 waypoints")
-    if widths is not None and len(widths) != len(waypoints):
-        raise ValueError("tapered_path: widths must match waypoints length")
-
-    # Drop consecutive near-duplicate waypoints -- callers legitimately pass
-    # paths where a bend collapses to zero length in some cases (e.g. a
-    # tangential-shift leg with offset=0 for a centered contact), and a
-    # zero-length leg would otherwise blow up tapered_quad. Keep `widths` in
-    # sync with whatever waypoints survive.
-    deduped = [waypoints[0]]
-    deduped_widths = [widths[0]] if widths is not None else None
-    for i, p in enumerate(waypoints[1:], start=1):
-        if math.hypot(p[0] - deduped[-1][0], p[1] - deduped[-1][1]) > 1e-9:
-            deduped.append(p)
-            if widths is not None:
-                deduped_widths.append(widths[i])
-    waypoints = deduped
-    if len(waypoints) < 2:
-        raise ValueError("tapered_path: all waypoints coincide")
-
-    if widths is not None:
-        point_widths = deduped_widths
-    elif taper_last_segment_only:
-        point_widths = [width_start] * len(waypoints)
-        point_widths[-1] = width_end
-    else:
-        seg_lengths = [
-            math.hypot(waypoints[i + 1][0] - waypoints[i][0], waypoints[i + 1][1] - waypoints[i][1])
-            for i in range(len(waypoints) - 1)
-        ]
-        total = sum(seg_lengths)
-        if total == 0:
-            raise ValueError("tapered_path: zero-length path")
-        point_widths = [width_start]
-        cumulative = 0.0
-        for seg_len in seg_lengths:
-            cumulative += seg_len
-            point_widths.append(width_start + (width_end - width_start) * (cumulative / total))
-
-    quads = [
-        ShapelyPolygon(tapered_quad(waypoints[i], waypoints[i + 1], point_widths[i], point_widths[i + 1]))
-        for i in range(len(waypoints) - 1)
-    ]
-    return unary_union(quads)
+    left: list[Point] = []
+    right: list[Point] = []
+    for i, (p, w) in enumerate(zip(waypoints, widths)):
+        if i == 0 or i == len(waypoints) - 1:
+            n = normals[0] if i == 0 else normals[-1]
+            scale = w / 2
+        else:
+            n0, n1 = normals[i - 1], normals[i]
+            mx, my = n0[0] + n1[0], n0[1] + n1[1]
+            m_len = math.hypot(mx, my)
+            n = (mx / m_len, my / m_len)
+            scale = (w / 2) / (n[0] * n0[0] + n[1] * n0[1])
+        left.append((p[0] + n[0] * scale, p[1] + n[1] * scale))
+        right.append((p[0] - n[0] * scale, p[1] - n[1] * scale))
+    return ShapelyPolygon(left + right[::-1])

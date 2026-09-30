@@ -80,6 +80,18 @@ class HallConfig:
     contacts have no equivalent field -- their constant width is always
     new_flake.width directly, see hall.py."""
 
+    voltage_taper_factor: float = 1.5
+    """Each voltage contact is voltage_width wide inside the new-flake
+    rectangle, then widens linearly (a trapezoid) to voltage_width *
+    voltage_taper_factor at its far end, where the external arm connects.
+    1.0 = plain constant-width contact."""
+
+    voltage_side_bend_angle_deg: float = 30.0
+    """The 4 outer voltage taps (not the 2 centre ones) run straight out to
+    the new-flake rectangle's edge, then bend this many degrees off the
+    perpendicular, away from the centre tap (toward their nearest current
+    end). 0 = no bend."""
+
     mask_voltage_gap: float = 0.1
     """Gap, on the flake-facing (near/inner-rectangle) side only, between a
     voltage contact's own edge and the cut mask's own edge there -- user:
@@ -231,6 +243,14 @@ class RingConfig:
     redistributed to v_dist/c_dist instead (same "grow up to a cap, then
     redistribute the rest" pattern as current_grow_cap) -- see
     _grow_contacts."""
+
+    voltage_taper_factor: float = 1.5
+    """On the connecting side, each voltage contact widens linearly (a
+    trapezoid) from its grown width (v_len) once it clears the current
+    contact's edge, just past the blocking rectangle, to v_len *
+    voltage_taper_factor at its far end. Widens only away from the cut
+    mask, so voltage_min_distance_from_mask is kept. 1.0 = plain
+    rectangle."""
 
     voltage_stackout: float = 2.0
     voltage_stackout_connecting_side: float = 5.0
