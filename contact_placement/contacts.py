@@ -57,6 +57,8 @@ class PlacedContact:
     kind: Literal['current', 'voltage']
     pad: ShapelyPolygon
     arm: ShapelyPolygon
+    radial_dist: float | None = None                    # pad-centre distance used for its group
+    radial_bounds: tuple[float, float] | None = None    # (closest, farthest) distance allowed for that group
 
 
 class _Obstacles:
@@ -69,23 +71,25 @@ class _Obstacles:
 
     def __init__(
         self, base: BaseGeometry, local: tuple[BaseGeometry, ...] = (),
-        pad_keepout: BaseGeometry | None = None,
+        other_pads: BaseGeometry | None = None, pad_spacing: float = 0.0,
     ):
         self.base = base
         self.local = local
-        self.pad_keepout = pad_keepout
+        self.other_pads = other_pads
+        self.pad_spacing = pad_spacing
 
     def hit(self, geom: BaseGeometry) -> bool:
         return collides(geom, self.base) or any(collides(geom, g) for g in self.local)
 
     def hit_pad(self, pad: BaseGeometry) -> bool:
-        """Like hit(), plus: a pad must not come within min_pad_spacing of
-        another flake's pad (pad_keepout = those pads grown by that
-        spacing)."""
-        return self.hit(pad) or (self.pad_keepout is not None and collides(pad, self.pad_keepout))
+        """Like hit(), plus: a pad must stay at least pad_spacing (edge to
+        edge, exact distance) from every other flake's pad."""
+        if self.hit(pad):
+            return True
+        return self.other_pads is not None and pad.distance(self.other_pads) < self.pad_spacing - 1e-9
 
     def plus(self, *geoms: BaseGeometry) -> _Obstacles:
-        return _Obstacles(self.base, self.local + geoms, self.pad_keepout)
+        return _Obstacles(self.base, self.local + geoms, self.other_pads, self.pad_spacing)
 
 
 def _unit(v: Point) -> Point:
@@ -250,6 +254,7 @@ def _find_radial_dist(
     current_voltage_min_gap: float | None = None,
     min_pad_spacing: float = 0.0, min_parallel_voltage_pad_spacing: float = 0.0,
     descending: bool = False,
+    radial_level: tuple[int, int] | None = None,
 ) -> float | None:
     """First radial_dist (pad-center distance from `center`, along `d`)
     at which this whole group's pads AND straight arms are all placeable at
@@ -278,14 +283,29 @@ def _find_radial_dist(
     candidate r is only accepted once _remaining_groups_placeable also
     confirms every one of them still has SOME valid radial_dist against the
     occupied region this group's own placement at r would leave behind (see
-    that function's own docstring for the real failure mode this closes)."""
-    max_radial = work_area / 2 - pad_length / 2
+    that function's own docstring for the real failure mode this closes).
+
+    `radial_level=(k, n)`, if given, replaces the search with ONE fixed
+    distance: level k of n evenly spaced levels from the farthest (k=0,
+    max_radial) to the closest (k=n-1, min_radial) -- used by the
+    contact-placement search (search.py), where each distance level is its
+    own option. None if the layout doesn't fit at exactly that distance."""
     step = 1.0
-    min_radial = max(max(pad_length, pad_width) / 2, escape_radius + pad_length / 2 + step)
+    min_radial, max_radial = _radial_bounds(work_area, pad_length, pad_width, escape_radius)
     n_steps = int((max_radial - min_radial) // step)
     radii = [min_radial + k * step for k in range(n_steps + 1)]
     if descending:
         radii.reverse()
+    if radial_level is not None:
+        if max_radial < min_radial:
+            return None
+        k, n = radial_level
+        hi = _level_radius(k, n, min_radial, max_radial)
+        if k >= n - 1:
+            radii = [hi]
+        else:  # band k: from its own level inward, up to (not including) the next level
+            lo = _level_radius(k + 1, n, min_radial, max_radial)
+            radii = [hi - j * step for j in range(int((hi - lo) / step) + 1) if hi - j * step > lo + 1e-9]
     for r in radii:
         result = _group_pads_at(
             group, offsets, d, t, center, r, work_area, pad_length, pad_width,
@@ -304,6 +324,31 @@ def _find_radial_dist(
             ):
                 return r
     return None
+
+
+def _radial_bounds(work_area: float, pad_length: float, pad_width: float, escape_radius: float) -> tuple[float, float]:
+    """(closest, farthest) pad-centre distance a group's pads may use: the
+    farthest keeps the pad inside the work area; the closest keeps its near
+    edge past escape_radius (outside the inner contacts)."""
+    max_radial = work_area / 2 - pad_length / 2
+    min_radial = max(max(pad_length, pad_width) / 2, escape_radius + pad_length / 2 + 1.0)
+    return min_radial, max_radial
+
+
+def _level_radius(k: int, n: int, min_radial: float, max_radial: float) -> float:
+    """Distance of level k of n, evenly spaced from farthest (0) to closest (n-1)."""
+    return max_radial - (max_radial - min_radial) * k / (n - 1) if n > 1 else max_radial
+
+
+def distance_level(radial_dist: float, radial_bounds: tuple[float, float], n: int) -> int:
+    """Which of n distance bands a pad distance falls in (band k = from
+    level k inward to level k+1) -- maps a freely chosen distance (greedy)
+    onto the search's distance levels."""
+    lo, hi = radial_bounds
+    if n <= 1 or hi <= lo:
+        return 0
+    t = (hi - radial_dist) / (hi - lo) * (n - 1)
+    return min(n - 1, max(0, int(t + 1e-9)))
 
 
 def _pad_polygon(center: Point, direction: Point, pad_length: float, pad_width: float) -> ShapelyPolygon:
@@ -340,6 +385,7 @@ def place_external_contacts(
     minimize_radial_distance: bool = False,
     current_voltage_min_gap: float | None = None,
     other_pads: BaseGeometry | None = None,
+    radial_level: tuple[int, int] | None = None,
 ) -> list[PlacedContact] | None:
     """
     Place one external pad + one straight arm per connection, within a
@@ -399,16 +445,22 @@ def place_external_contacts(
     `other_pads`, if given, is every pad already placed for OTHER flakes;
     each new pad must keep at least min_pad_spacing (edge-to-edge) from
     all of them, not just avoid overlapping them.
+
+    `radial_level=(k, n)`, if given, puts every group's pads at that one
+    fixed distance level instead of searching (see _find_radial_dist).
     """
     placed: list[PlacedContact] = []
-    # Every pad and arm stays inside the work-area square, so only the part
-    # of `occupied` there can ever collide -- clip once up front.
-    half = work_area / 2 + 1.0
+    # Only the part of `occupied` a pad or arm can reach can ever collide --
+    # clip once up front. A pad's CENTRE stays inside the work-area square,
+    # but the pad itself reaches up to its half-diagonal beyond it, and the
+    # 50um spacing to other pads one step further.
+    half = work_area / 2 + math.hypot(pad_length, pad_width) / 2 + min_pad_spacing + 1.0
     work_box = box(center[0] - half, center[1] - half, center[0] + half, center[1] + half)
-    pad_keepout = None
+    near_pads = None
     if other_pads is not None and not other_pads.is_empty:
-        pad_keepout = other_pads.buffer(min_pad_spacing).intersection(work_box)
-    blocked = _Obstacles(occupied.intersection(work_box), pad_keepout=pad_keepout)
+        near_pads = other_pads.intersection(work_box)
+        near_pads = None if near_pads.is_empty else near_pads
+    blocked = _Obstacles(occupied.intersection(work_box), other_pads=near_pads, pad_spacing=min_pad_spacing)
 
     # Pads never sit inside this radius (just past the farthest-reaching
     # connection point) -- see _find_radial_dist.
@@ -454,7 +506,7 @@ def place_external_contacts(
             current_arm_start_width, voltage_arm_start_width,
             remaining_groups=remaining_groups, current_voltage_min_gap=current_voltage_min_gap,
             min_pad_spacing=min_pad_spacing, min_parallel_voltage_pad_spacing=min_parallel_voltage_pad_spacing,
-            descending=not minimize_radial_distance,
+            descending=not minimize_radial_distance, radial_level=radial_level,
         )
         if radial_dist is None:
             return None  # no pad distance gives every arm in this group a clear straight line
@@ -466,6 +518,9 @@ def place_external_contacts(
         if result is None:
             return None
         group_placed, blocked = result
+        bounds = _radial_bounds(work_area, pad_length, pad_width, escape_radius)
+        for p in group_placed:
+            p.radial_dist, p.radial_bounds = radial_dist, bounds
         placed += group_placed
 
     return placed

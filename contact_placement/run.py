@@ -90,6 +90,8 @@ def run(config: ContactPlacementConfig) -> list[dict]:
         {
             'image': r.candidate.image, 'flake_index': r.candidate.flake_index,
             'final_score': r.candidate.final_score, 'mode': r.mode,
+            'exit_side': r.exit_side, 'distance_level': r.distance_level,
+            'objective_value': r.value, 'weighted_value': r.weighted_value,
         }
         for r in results
     ]

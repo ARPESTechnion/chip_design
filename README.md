@@ -5,7 +5,7 @@ exporting their geometry as CIF polygons, placed into a master chip template
 for fabrication (electron-beam lithography). Built to replace the manual
 steps of the legacy MATLAB tool `GDS_Code.m`.
 
-The pipeline has three parts, each independently runnable:
+The pipeline has four parts, each independently runnable:
 
 1. **`flake_detection`** — scans a folder of raw chip images and scores/flags
    the ones with candidate flakes worth reviewing.
@@ -13,7 +13,12 @@ The pipeline has three parts, each independently runnable:
    image (via `channels_model`, see below), finds the two calibration
    crosshair markers, calibrates pixel↔micron, extracts polygons, and
    writes/places CIF files.
-3. **`channels_model`** — a small trained model, used internally by
+3. **`contact_placement`** — for the placed flakes: designs electrical
+   contacts (Hall bar or Ring), their cutting mask, and the external bond
+   pads with straight connecting arms, then splices them into the same chip
+   CIF. Which flakes get contacts is chosen by a search that maximises the
+   number of contacted flakes (configurable — see below).
+4. **`channels_model`** — a small trained model, used internally by
    `grid_preperation`, that imitates the manual "which color layers are real
    content" decision `GDS_Code.m`'s operator used to make by hand. You don't
    normally interact with it directly — see the bottom of this README.
@@ -88,10 +93,15 @@ images — it doesn't itself contain any detection/export tuning:
 {
   "flake_detection_config_path": "flake_detection/config/orange_flakes_tuned.json",
   "grid_preperation_config_path": "grid_preperation/config/example_config.json",
+  "contact_placement_config_path": "contact_placement/config/example_config.json",
   "input_folder": "flakes/all",
   "interactive": false
 }
 ```
+
+Each dataset has its own pipeline config in `config/` (e.g.
+`config/TaS2011.json`) pointing at that dataset's own stage configs and
+input folder — run it with `python all_code.py -c config/<dataset>.json`.
 
 **`interactive`** — master switch for every stage's own interactive UI
 (`flake_detection`'s review window, `grid_preperation`'s alignment review
@@ -192,12 +202,68 @@ After changing any of these, check `<output>/cif_export_results.json` — every
 image is reported `ok` or `alert` with a concrete reason, so you can see
 exactly what a parameter change affected.
 
+### `contact_placement`'s config (e.g. `contact_placement/config/example_config.json`)
+
+One file per dataset (`contact_placement/config/<dataset>.json`). Every
+field has a `"_comment_<field>"` entry right above it describing it and its
+allowed values (JSON has no `#` comments; keys starting with `_` are
+ignored when loading).
+
+**Which flakes get contacts — the `"search"` block.** What is maximised and
+what steers the search are separate settings:
+
+| Field | Options (default first) | Meaning |
+|---|---|---|
+| `strategy` | `"search"`, `"greedy"` | `search`: depth-first branch-and-bound over every flake's Hall/Ring options. `greedy`: the original one pass in score order (all Hall attempts, then Ring). |
+| `objective` | `"count"`, `"score"`, `"weighted"` | What is maximised: number of contacted flakes; sum of their scores; or `count_weight + score_weight·score − distance penalty` per flake. |
+| `flake_order` | `"score"`, `"loaded"` | Heuristic: order flakes are decided in (highest score first, or file order). |
+| `option_order` | `"distance"`, `"score"`, `"weighted"` | Heuristic: order a flake's options are tried in (farthest pad distance first, by score, or by weighted value). |
+| `tie_break_by_score` | `true`, `false` | Among layouts with the same objective value, prefer the higher total flake score. |
+| `hall_weight` | `1.5` | A Hall's objective value is multiplied by this, so Hall is preferred over Ring (`1.0` = no preference). Above 1 the search may place fewer flakes overall to get more Halls — with 1.5, 2 Halls beat 3 Rings. |
+| `count_weight`, `score_weight`, `distance_penalty_max` | `1.0`, `0.8`, `0.7` | Weights for `"weighted"` only. The distance penalty is 0 at the farthest Ring pad distance and `distance_penalty_max` at the closest; Hall has none. |
+| `ring_distance_levels` | `10` | Pad distances tried per Ring exit side, farthest to closest — 2 sides × 10 = 20 Ring options per flake. |
+| `max_steps` | `20000` | Search budget (one step = trying one option of one flake in one search state). When reached, the best layout found so far is used. |
+
+The heuristic settings only change the order things are tried in, never what
+is maximised; they matter when a group of interacting flakes is too large to
+search completely within `max_steps`. The run prints a line like
+`Search: 132 candidates, 74 fit alone, 1 clusters (0 searched to completion), ...`
+— "fit alone" is the most that could ever get contacts, and "searched to
+completion" tells you whether more steps could still help.
+
+**Other fields you may need:**
+
+- **`num_halls_to_try`** / **`num_rings_to_try`** — with `"search"`: the most
+  Hall / Ring placements allowed (`0` turns that mode off); with `"greedy"`:
+  the number of placement attempts per mode.
+- **`min_flake_score`** — flakes below this `flake_detection` score are never
+  considered (this includes flakes you rescued by hand in the review UI —
+  they keep their original score).
+- **`min_flake_length_for_hall`** / **`min_flake_width_for_hall`** — size gate
+  for trying a Hall bar on a flake.
+- **`chip_border_margin_um`** — no contact geometry within this distance of
+  the chip edge.
+- **`hall.voltage_taper_factor`** / **`ring.voltage_taper_factor`** — voltage
+  contacts widen into a trapezoid toward the arm (`1.5` = 1.5× wider at the
+  far end; `1.0` = constant width).
+- **`hall.voltage_side_bend_angle_deg`** — the 4 outer Hall voltage taps bend
+  this many degrees away from the centre tap once outside the flake
+  rectangle (`0` = straight).
+- **`min_pad_spacing`** (in `hall` and `ring`) — minimum edge-to-edge gap
+  between two bond pads, both within one flake's contacts and between
+  different flakes' pads.
+
+External arms are always one straight piece from the inner contact to its
+pad; a layout that can't be connected with straight arms isn't used.
+
 ## Running the full pipeline
 
 ```
 python all_code.py                                   # input_folder from config/pipeline_config.json
 python all_code.py --input_folder flakes/all -o out   # explicit input + output folder
-python all_code.py --input_folder flakes/all --no-placement   # export CIFs, skip template placement
+python all_code.py -c config/TaS2011.json                    # one dataset, via its own pipeline config
+python all_code.py --input_folder flakes/all --no-placement   # export CIFs, skip template placement (and contacts)
+python all_code.py --input_folder flakes/all --no-contacts    # place flakes, skip contact_placement
 python all_code.py --input_folder flakes/all --template my_master.cif
 python all_code.py --input_folder flakes/all --interactive --detection_interactive   # pop flake_detection's review window
 python all_code.py --input_folder flakes/all --interactive --grid_interactive        # pop grid_preperation's alignment window
@@ -212,14 +278,21 @@ never turn one *off* if a config file already has it `true`.
 also being on — the master switch always has the final say.
 
 This runs `flake_detection` on every image, stages the ones with at least
-one qualifying flake into `<output>/selected_for_grid_preperation/`, then
-runs `grid_preperation` on that staged set. Outputs land under:
+one qualifying flake into `<output>/selected_for_grid_preperation/`, runs
+`grid_preperation` on that staged set, then `contact_placement` on the
+placed flakes. Outputs land under:
 
 ```
 <output>/flake_detection_results/     # annotated images + results.json
 <output>/selected_for_grid_preperation/
 <output>/cif_export_results/          # per-image CIFs + working template copy + cif_export_results.json
+<output>/cif_export_results/contact_placement_results/   # contacts.cif + results.json
+<output>/timing.json                  # how long each stage took
 ```
+
+A share path (`\\server\share\...`) passed on the command line must go
+through PowerShell, not bash — bash collapses the leading `\\`. Putting it in
+the pipeline config's `input_folder` works from either shell.
 
 ## Running `flake_detection` alone
 
@@ -269,7 +342,10 @@ python -m flake_detection.run --input_folder flakes/all --config flake_detection
 # (with interactive_review: true in that config file)
 ```
 
-A maximized window opens, one image at a time. Every contour that cleared
+A maximized window opens, one image at a time, in alphabetical order of
+image name. A panel on the right shows how many flakes are currently chosen
+(green) — across all images and in the current image — updating with every
+click, reset, and image change. Every contour that cleared
 the **size filter** is outlined — green if currently chosen, red if
 rejected — regardless of which later stage (border, shape, color, or final
 score) actually rejected it, so you can both reject a false positive the
@@ -331,7 +407,7 @@ python -m grid_preperation.run --input_folder flakes/all --config grid_preperati
 # (with interactive_alignment: true in that config file)
 ```
 
-A maximized window opens, one image at a time, showing its reconstructed
+A maximized window opens, one image at a time (alphabetical order), showing its reconstructed
 image with the two calibration crosshairs drawn — red for the left/filename
 marker, green for the right (one grid column over), same colors as the
 `draw_marker_centers` debug output. An image where automatic detection
@@ -365,6 +441,27 @@ happen *after* you Save — a saved override or drop decision persists across
 every later run of `grid_preperation.run`, headless or not, until its
 `marker_overrides/<stem>.json` file is deleted by hand.
 
+## Running `contact_placement` alone
+
+Expects a `grid_preperation` output folder (its `flakes/` subfolder and the
+working template copy):
+
+```
+python -m contact_placement.run -c contact_placement/config/TaS2011.json --grid_preperation_output_dir out/cif_export_results
+python -m contact_placement.ui      # interactive parameter form + preview before exporting
+```
+
+Writes `contact_placement_results/contacts.cif` and `results.json` (one
+entry per candidate flake: `mode` = `hall` / `ring` / `null` for no
+contacts, plus the Ring exit side, pad-distance level, and objective value),
+and splices the contacts into the working template. Re-running on the same
+folder splices a second copy on top — re-run on a fresh `grid_preperation`
+output (`all_code.py` resets the template for you unless `--keep-template`).
+
+Image file names must be the 2-letter grid cell of the image's top-left
+marker (e.g. `AR.png`); any other name (e.g. `AR1.png`) fails calibration in
+`grid_preperation` and its flakes never get contacts.
+
 ## `channels_model`
 
 You normally don't run this directly — `grid_preperation` calls the
@@ -390,6 +487,7 @@ overwrite hand-tuned values.
 setup.ps1                      creates venv + installs requirements.txt
 all_code.py                    full-pipeline CLI
 config/pipeline_config.json    paths to each stage's own config + input_folder
+config/<dataset>.json          the same, per dataset (TaS2005, Ta2009, TaS2010, TaS2011, TS34001)
 flake_detection/                image -> candidate-flake scoring
   run.py  config.py  detector.py  ui.py  config/*.json
 grid_preperation/                image -> CIF polygons -> placed in master template
@@ -397,6 +495,8 @@ grid_preperation/                image -> CIF polygons -> placed in master templ
   BaseGrid.cif  (gitignored -- supply your own, see Setup)
   crosshair_template.png
   data/channels_cache/           (gitignored -- disk cache, rebuilt on demand)
+contact_placement/              placed flakes -> Hall/Ring contacts, cut masks, bond pads
+  run.py  config.py  layout.py  search.py  hall.py  ring.py  contacts.py  geometry.py  cif_export.py  ui.py  config/*.json
 channels_model/                  color-cluster "which channels are real content" model
   train.py  model.py  dataset.py  matlab_clustering.py  export.py  config.py
   outputs/  (gitignored -- download from Drive, see Setup)

@@ -51,6 +51,10 @@ class PlacementResult:
     candidate: FlakeCandidate
     mode: Literal['hall', 'ring'] | None
     result: HallResult | RingResult | None
+    exit_side: float | None = None       # search strategy only: Ring exit side
+    distance_level: int | None = None    # search strategy only: Ring pad distance level (0 = farthest)
+    value: float | None = None           # search strategy only: objective value this placement added
+    weighted_value: float | None = None  # search strategy only: its 'weighted' value (count/score/distance), for comparison
 
 
 def _load_candidates(grid_preperation_output_dir: Path, min_flake_score: float) -> list[FlakeCandidate]:
@@ -86,6 +90,10 @@ def _committed_geometry(mode: Literal['hall', 'ring'], result: HallResult | Ring
 
 def place_all(config: ContactPlacementConfig) -> list[PlacementResult]:
     """
+    With config.search.strategy == 'search' (the default), delegates to
+    search.place_all_search, which chooses each flake's Hall/Ring option
+    (or none) to maximise config.search.objective. With 'greedy':
+
     Run Hall (up to config.num_halls_to_try attempts, in descending-score
     order, skipping flakes below config.min_flake_length_for_hall /
     min_flake_width_for_hall) then Ring
@@ -121,6 +129,20 @@ def place_all(config: ContactPlacementConfig) -> list[PlacementResult]:
             chip_bounds = (minx + m, miny + m, maxx - m, maxy - m)
 
     candidates = _load_candidates(grid_dir, config.min_flake_score)
+
+    if config.search.strategy == 'search':
+        from .search import place_all_search
+        return place_all_search(config, candidates, chip_bounds)
+    if config.search.strategy != 'greedy':
+        raise ValueError(f"search.strategy must be 'search' or 'greedy', got {config.search.strategy!r}")
+    return _place_greedy(config, candidates, chip_bounds)
+
+
+def _place_greedy(config: ContactPlacementConfig, candidates: list[FlakeCandidate],
+                  chip_bounds: ChipBounds | None) -> list[PlacementResult]:
+    """The original one-pass placement: Hall attempts in score order (up to
+    num_halls_to_try, size-gated), then Ring attempts over the rest (up to
+    num_rings_to_try). Also the search's starting layout (search.py)."""
     results = {id(c): PlacementResult(candidate=c, mode=None, result=None) for c in candidates}
 
     # Every chosen flake's own body, kept separate from `occupied_contacts`

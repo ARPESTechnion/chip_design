@@ -77,6 +77,7 @@ class RingResult:
     internal_contacts: list[ShapelyPolygon]  # L042 -- 2 voltage + 2 current
     external: list[PlacedContact]      # L040 -- 4 pads + arms
     arrows: list[ShapelyPolygon]        # L040 -- 2 triangle decorations
+    exit_sign: float | None = None     # which side of the blocking rectangle the pads are on
 
 
 def _rect_polygon(rect: RotatedRect) -> ShapelyPolygon:
@@ -237,6 +238,8 @@ def _try_ring(
     occupied: BaseGeometry,
     chip_bounds: ChipBounds | None,
     other_pads: BaseGeometry | None = None,
+    radial_level: tuple[int, int] | None = None,
+    report_external_failure: bool = False,
 ) -> RingResult | None:
     inner_square = _square(blocking, inner_ring)
     if not flake_polygon.contains(_rect_polygon(inner_square)):
@@ -355,13 +358,23 @@ def _try_ring(
         # were before."
         shared_direction=blocking.direction_to_absolute(exit_sign, 0.0),
         other_pads=other_pads,
+        radial_level=radial_level,
     )
     if external is None:
-        return None
+        return _EXTERNAL_FAILED if report_external_failure else None
 
     arrows = _build_arrows(external, config)
+    # Arrows are real L040 metal too: same overlap / chip-edge rules as pads and arms.
+    if any(collides(a, occupied) or not within_bounds(a, chip_bounds) for a in arrows):
+        return _EXTERNAL_FAILED if report_external_failure else None
 
-    return RingResult(cut_mask=cut_mask, internal_contacts=internal_abs, external=external, arrows=arrows)
+    return RingResult(cut_mask=cut_mask, internal_contacts=internal_abs, external=external, arrows=arrows,
+                      exit_sign=exit_sign)
+
+
+_EXTERNAL_FAILED = object()
+"""_try_ring's 'the ring fits but its pads/arms don't' result (see
+place_ring's stop_at_first_inner_fit)."""
 
 
 def _build_arrows(external: list[PlacedContact], config: RingConfig) -> list[ShapelyPolygon]:
@@ -398,11 +411,19 @@ def place_ring(
     occupied: BaseGeometry,
     chip_bounds: ChipBounds | None = None,
     other_pads: BaseGeometry | None = None,
+    exit_sides: tuple[float, ...] = (1.0, -1.0),
+    radial_level: tuple[int, int] | None = None,
+    stop_at_first_inner_fit: bool = False,
 ) -> RingResult | None:
     """Attempt a Ring placement for one flake, searching inner_ring x
     outer_ring x exit_side candidates (smallest first, per config.frange())
     until one succeeds. Returns None (drop the flake for Ring) if no
-    candidate works."""
+    candidate works.
+
+    stop_at_first_inner_fit: give up as soon as one ring size fits the flake
+    but its external pads/arms don't -- every other ring size puts the pads
+    at (almost exactly) the same place, so they'd fail the same way. Used by
+    the search (search.py), which tries this many times per flake."""
     from .config import frange
 
     flake_polygon = ShapelyPolygon(flake_vertices_um)
@@ -413,10 +434,13 @@ def place_ring(
 
     for inner_ring in frange(config.inner_ring_min, config.inner_ring_max, config.inner_ring_step):
         for outer_ring in frange(config.outer_ring_min, config.outer_ring_max, config.outer_ring_step):
-            for exit_sign in (1.0, -1.0):
+            for exit_sign in exit_sides:
                 result = _try_ring(
                     flake_polygon, blocking, config, inner_ring, outer_ring, exit_sign, occupied, chip_bounds, other_pads,
+                    radial_level, report_external_failure=stop_at_first_inner_fit,
                 )
+                if result is _EXTERNAL_FAILED:
+                    return None
                 if result is not None:
                     return result
     return None

@@ -316,6 +316,67 @@ class RingConfig:
 
 
 @dataclass
+class SearchConfig:
+    """How layout.place_all chooses which flakes get contacts (see search.py)."""
+
+    strategy: str = 'search'
+    """'search' = DFS branch-and-bound over every flake's Hall/Ring options
+    (search.py) -- maximises the objective below. 'greedy' = the original
+    one-pass placement in score order (all Hall attempts, then Ring)."""
+
+    objective: str = 'count'
+    """What the search MAXIMISES, summed over placed flakes:
+    'count' = number of placed flakes; 'score' = sum of the placed flakes'
+    scores; 'weighted' = count_weight + score_weight * flake_score - distance
+    penalty (see distance_penalty_max). The bound that cuts branches is
+    computed in these same units, so it's valid whatever the heuristic below
+    is set to."""
+
+    flake_order: str = 'score'
+    """Heuristic -- order flakes are decided in: 'score' (highest first) or
+    'loaded' (file order: image name, then flake number). Changes only how
+    fast good layouts are found, not what is maximised."""
+
+    option_order: str = 'distance'
+    """Heuristic -- order a flake's options are tried in: 'distance' (farthest
+    pad distance first; Hall counts as farthest), 'score' (the flake's score
+    -- the same for all of one flake's options, so this falls back to
+    distance), or 'weighted' (the weighted value above, best first)."""
+
+    tie_break_by_score: bool = True
+    """Among layouts with the same objective value, prefer the one with the
+    higher total flake score."""
+
+    hall_weight: float = 1.5
+    """A Hall placement's objective value is multiplied by this (count: a Hall
+    counts as hall_weight flakes, a Ring as 1; score / weighted: the Hall's
+    value x hall_weight), so Hall is preferred over Ring. 1.0 = no preference.
+    Above 1 the search may place fewer flakes in total if that buys more Halls
+    (e.g. with 1.5, 2 Halls beat 3 Rings)."""
+
+    count_weight: float = 1.0
+    """'weighted' objective: value every placed flake adds on its own."""
+
+    score_weight: float = 0.8
+    """'weighted' objective: multiplier on the flake's score."""
+
+    distance_penalty_max: float = 0.7
+    """'weighted' objective: subtracted for a Ring placed at the CLOSEST
+    pad distance level; 0 at the farthest, linear in between (farther is
+    better). Hall placements get no distance penalty."""
+
+    ring_distance_levels: int = 10
+    """Number of pad-distance options per Ring exit side, evenly spaced
+    from the farthest to the closest allowed distance -- 2 sides x this
+    many = Ring options per flake."""
+
+    max_steps: int = 20000
+    """Search budget: number of option evaluations (one step = trying one
+    Hall/Ring option for one flake in one search state). When it runs out,
+    the best complete layout found so far is used."""
+
+
+@dataclass
 class ContactPlacementConfig:
     """
     Full configuration for placing electrical contacts + cutting masks onto
@@ -384,8 +445,10 @@ class ContactPlacementConfig:
     # ------------------------------------------------------------------ #
 
     num_halls_to_try: int = 10
-    """"Number of halls to try to rich" -- cap on how many flakes get a Hall
-    placement attempt (in score order) before the rest fall through to Ring."""
+    """"Number of halls to try to rich". With search.strategy 'search': the
+    most Hall placements allowed in the final layout (0 = Hall off). With
+    'greedy': cap on how many flakes get a Hall placement ATTEMPT (in score
+    order, failed attempts count) before the rest fall through to Ring."""
 
     min_flake_length_for_hall: float = 9.0
     """Minimum LONG-side length (um) of the new-flake inscribed rectangle
@@ -402,8 +465,10 @@ class ContactPlacementConfig:
     min_flake_length_for_hall."""
 
     num_rings_to_try: int = 10
-    """"Number of rings to try to rich" -- cap on how many remaining
-    (non-Hall) flakes get a Ring placement attempt."""
+    """"Number of rings to try to rich". With search.strategy 'search': the
+    most Ring placements allowed in the final layout (0 = Ring off). With
+    'greedy': cap on how many remaining (non-Hall) flakes get a Ring
+    placement ATTEMPT (failed attempts count)."""
 
     # ------------------------------------------------------------------ #
     # Mode-specific geometry                                              #
@@ -411,6 +476,7 @@ class ContactPlacementConfig:
 
     hall: HallConfig = field(default_factory=HallConfig)
     ring: RingConfig = field(default_factory=RingConfig)
+    search: SearchConfig = field(default_factory=SearchConfig)
 
     # ------------------------------------------------------------------ #
     # I/O                                                                  #
@@ -445,4 +511,6 @@ class ContactPlacementConfig:
             data['hall'] = HallConfig(**{k: v for k, v in data['hall'].items() if not k.startswith('_')})
         if 'ring' in data:
             data['ring'] = RingConfig(**{k: v for k, v in data['ring'].items() if not k.startswith('_')})
+        if 'search' in data:
+            data['search'] = SearchConfig(**{k: v for k, v in data['search'].items() if not k.startswith('_')})
         return cls(**data)
