@@ -12,6 +12,24 @@ arXiv:2611.29509 (2026) — https://arxiv.org/abs/2611.29509
 the pipeline):
 https://drive.google.com/drive/folders/1PFAKjvdyGy75H3g4cxbodw90LaiyOWCD?usp=drive_link
 
+## What it produces
+
+From optical images of a chip, the pipeline finds usable flakes, fits a device
+to each one and routes its contacts to bond pads, writing a lithography-ready
+layout. The images below are exported layouts, viewed in mask layout software.
+Blue: etch mask; red: contacts (fine e-beam exposure); green: traces and bond
+pads (coarse exposure); the flake shows through underneath.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/hall_bar.png" height="300"><br><b>Hall bar</b>: two current and six voltage contacts, fitted to the flake</td>
+    <td align="center"><img src="docs/images/lp_ring.png" height="300"><br><b>Little-Parks ring</b>: two current and two voltage contacts</td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="docs/images/chip_layout.png" width="800"><br><b>Chip scale</b>: devices on different flakes, each routed to its own bond pads without collisions</td>
+  </tr>
+</table>
+
 The pipeline has three parts, each independently runnable:
 
 1. **`flake_detection`** — scans a folder of raw chip images and scores/flags
