@@ -43,14 +43,16 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import time
 from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
 from contact_placement.config import ContactPlacementConfig
 from contact_placement.run import run as run_contact_placement
 from flake_detection.config import DetectionConfig
-from flake_detection.detector import detect_flakes
+from flake_detection.detector import SUPPORTED_EXTENSIONS, detect_flakes
 from flake_detection.ui import maybe_review
 from grid_preperation.config import CifExportConfig
 from grid_preperation.run import run as run_grid_preperation
@@ -155,6 +157,44 @@ def _build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _finish_timing(output_folder: Path, timings: dict, pipeline_start: float, n_images_input: int) -> None:
+    """Stamps `timings` with the total elapsed since `pipeline_start`,
+    prints a one-line-per-stage summary, and writes timing.json to
+    output_folder -- called right before EVERY return point in
+    run_pipeline (there are 3: no qualifying flakes, no_placement/
+    no_contacts, and normal completion), so a timing.json always exists
+    reflecting exactly how far the run actually got, never only on full
+    completion. Also stamps started_at/finished_at (wall-clock timestamps,
+    not just elapsed duration) -- useful for correlating a run against
+    other timestamped things afterward (e.g. cache file mtimes) without
+    having to remember to note the time yourself before kicking it off.
+    Seconds are wall-clock (time.perf_counter), same convention
+    already used by flake_coco_eval.Timer/evaluator.py elsewhere in this
+    repo for reporting inference runtime -- deliberately NOT a fixed
+    warmup-discard average like those (this measures one real end-to-end
+    run of the actual CLI entry point, not a benchmark loop)."""
+    finished_at = datetime.now()
+    timings['total_seconds'] = round(time.perf_counter() - pipeline_start, 2)
+    timings['n_images_input'] = n_images_input
+    if n_images_input:
+        timings['seconds_per_input_image'] = round(timings['total_seconds'] / n_images_input, 3)
+    timings['started_at'] = (finished_at - timedelta(seconds=timings['total_seconds'])).isoformat(timespec='seconds')
+    timings['finished_at'] = finished_at.isoformat(timespec='seconds')
+
+    print("\n=== Timing ===")
+    for key in ('flake_detection_seconds', 'grid_preperation_seconds', 'contact_placement_seconds'):
+        if key in timings:
+            print(f"  {key.replace('_seconds', '')}: {timings[key]:.1f}s")
+    print(f"  total: {timings['total_seconds']:.1f}s"
+          + (f" ({timings['seconds_per_input_image']:.2f}s / input image, {n_images_input} images)" if n_images_input else ""))
+    print(f"  finished at: {timings['finished_at']}")
+
+    output_folder.mkdir(parents=True, exist_ok=True)
+    with open(output_folder / 'timing.json', 'w') as f:
+        json.dump(timings, f, indent=2)
+    print(f"  -> {output_folder / 'timing.json'}")
+
+
 def run_pipeline(
     input_folder: Path,
     pipeline_config: PipelineConfig,
@@ -177,8 +217,11 @@ def run_pipeline(
     --grid_interactive): each forces the corresponding config flag ON for
     this run only, never OFF -- a config file that already has it on is
     left alone."""
+    pipeline_start = time.perf_counter()
+    timings: dict = {}
     input_folder = Path(input_folder)
     output_folder = Path(output_folder) if output_folder is not None else input_folder / 'pipeline_results'
+    n_images_input = sum(1 for p in input_folder.iterdir() if p.suffix.lower() in SUPPORTED_EXTENSIONS)
 
     if interactive:
         pipeline_config.interactive = True
@@ -192,9 +235,14 @@ def run_pipeline(
         detection_config.interactive_review = False
     print(f"=== Stage 1/3: flake_detection (config: {pipeline_config.flake_detection_config_path}) ===")
     detection_folder = output_folder / 'flake_detection_results'
+    stage_start = time.perf_counter()
     detection_results = detect_flakes(input_folder, detection_config, detection_folder)
 
     maybe_review(detection_results, detection_folder, detection_config)
+    # Timed through the end of the (optional) review window, not just
+    # detect_flakes itself -- interactive_review time is real wall-clock
+    # this run spent in Stage 1, whether or not a human sat through it.
+    timings['flake_detection_seconds'] = round(time.perf_counter() - stage_start, 2)
 
     # any(f.chosen ...), not just `r.flakes` truthy -- a review pass can
     # reject every flake in an image without emptying its flakes list (see
@@ -203,6 +251,7 @@ def run_pipeline(
     selected = [r for r in detection_results if any(f.chosen for f in r.flakes)]
     if not selected:
         print("\nNo images with qualifying flakes -- nothing to pass to grid_preperation.")
+        _finish_timing(output_folder, timings, pipeline_start, n_images_input)
         return detection_results, [], []
 
     staging_dir = output_folder / 'selected_for_grid_preperation'
@@ -272,11 +321,14 @@ def run_pipeline(
                   f"pass --keep-template to accumulate onto it instead).")
 
     print(f"\n=== Stage 2/3: grid_preperation (config: {pipeline_config.grid_preperation_config_path}) ===")
+    stage_start = time.perf_counter()
     export_results = run_grid_preperation(staging_dir, export_config, cif_export_dir)
+    timings['grid_preperation_seconds'] = round(time.perf_counter() - stage_start, 2)
 
     if no_placement or no_contacts:
         reason = "--no-placement (no working template to splice contacts into)" if no_placement else "--no-contacts"
         print(f"\nSkipping contact_placement ({reason}).")
+        _finish_timing(output_folder, timings, pipeline_start, n_images_input)
         return detection_results, export_results, []
 
     contact_config = ContactPlacementConfig.load(pipeline_config.contact_placement_config_path)
@@ -284,8 +336,11 @@ def run_pipeline(
     contact_config.output_dir = None  # default: <cif_export_dir>/contact_placement_results/
 
     print(f"\n=== Stage 3/3: contact_placement (config: {pipeline_config.contact_placement_config_path}) ===")
+    stage_start = time.perf_counter()
     contact_results = run_contact_placement(contact_config)
+    timings['contact_placement_seconds'] = round(time.perf_counter() - stage_start, 2)
 
+    _finish_timing(output_folder, timings, pipeline_start, n_images_input)
     return detection_results, export_results, contact_results
 
 

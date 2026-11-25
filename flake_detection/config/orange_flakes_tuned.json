@@ -68,12 +68,12 @@
     "v_max": 86.3
   },
 
-  "min_color_fraction": 0.35,
+  "min_color_fraction": 0.5,
 
   "blur_kernel_size": 5,
   "closing_kernel_size": 0,
 
-  "min_flake_area": 3000,
+  "min_flake_area": 1200,
   "max_flake_area": 25000,
   "large_flake_alert_area": 25000,
   "min_solidity": 0.4,
@@ -83,8 +83,8 @@
   "reject_border_touching": true,
 
   "contour_erosion_px": 3,
-  "max_laplacian_var": 100.0,
-  "max_intensity_std": 40.0,
+  "max_laplacian_var": 16.0,
+  "max_intensity_std": 4.0,
   "laplacian_weight": 0.4,
   "std_weight": 0.6,
 

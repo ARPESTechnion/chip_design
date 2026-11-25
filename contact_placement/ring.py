@@ -236,6 +236,7 @@ def _try_ring(
     exit_sign: float,
     occupied: BaseGeometry,
     chip_bounds: ChipBounds | None,
+    other_pads: BaseGeometry | None = None,
 ) -> RingResult | None:
     inner_square = _square(blocking, inner_ring)
     if not flake_polygon.contains(_rect_polygon(inner_square)):
@@ -276,12 +277,22 @@ def _try_ring(
         v_x_far = exit_sign * (blocking.width / 2 + config.voltage_stackout_connecting_side)
         v_x_near = -exit_sign * (blocking.width / 2 + config.voltage_stackout)
 
-        v_ylo, v_yhi = sorted((v_y0, v_y1))
-        internal_local.append([(v_x_near, v_ylo), (v_x_far, v_ylo), (v_x_far, v_yhi), (v_x_near, v_yhi)])
+        # Trapezoid on the connecting side: v_len wide until it clears the
+        # current contact's own width edge (current_width/2, just past the
+        # blocking rectangle's edge), then widening linearly to v_len *
+        # voltage_taper_factor at v_x_far. Widens only on the side AWAY from
+        # the cut mask (outward, toward the current's side), so the
+        # voltage_min_distance_from_mask gap to the mask's protruding arms
+        # is untouched; past current_width/2 there's no current contact
+        # alongside, so current_min_distance_from_voltage is untouched too.
+        current_width = blocking.width + 1.0  # see the current contact below
+        x_taper = exit_sign * current_width / 2
+        v_y1_far = v_y1 + sign * v_len * (config.voltage_taper_factor - 1.0)
+        internal_local.append([(v_x_near, v_y0), (v_x_far, v_y0), (v_x_far, v_y1_far), (x_taper, v_y1), (v_x_near, v_y1)])
         connections.append(ContactConnection(
-            position=blocking.to_absolute(v_x_far, (v_y0 + v_y1) / 2),
+            position=blocking.to_absolute(v_x_far, (v_y0 + v_y1_far) / 2),
             direction=blocking.direction_to_absolute(exit_sign, 0.0),
-            width=abs(v_y1 - v_y0),
+            width=abs(v_y1_far - v_y0),
             kind='voltage',
         ))
 
@@ -298,7 +309,6 @@ def _try_ring(
         # 1 larger then the blocking rectangle" (was c_len, then plain
         # blocking.width, both flagged as too small).
         c_y1 = sign * (half_l + config.current_min_stackout)
-        current_width = blocking.width + 1.0
         c_half_width = current_width / 2
 
         c_ylo, c_yhi = sorted((c_y0, c_y1))
@@ -344,11 +354,7 @@ def _try_ring(
         # contacts blocks should be all parallel to each other like there
         # were before."
         shared_direction=blocking.direction_to_absolute(exit_sign, 0.0),
-        # Ring's updated spec explicitly forbids right angles (not just
-        # "must bend at least once", already true of the underlying
-        # escape/shift/approach routing): "Arms should not contain right
-        # angles... the main issue is the right angles (90 degree angles)."
-        avoid_right_angles=True,
+        other_pads=other_pads,
     )
     if external is None:
         return None
@@ -391,6 +397,7 @@ def place_ring(
     config: RingConfig,
     occupied: BaseGeometry,
     chip_bounds: ChipBounds | None = None,
+    other_pads: BaseGeometry | None = None,
 ) -> RingResult | None:
     """Attempt a Ring placement for one flake, searching inner_ring x
     outer_ring x exit_side candidates (smallest first, per config.frange())
@@ -408,7 +415,7 @@ def place_ring(
         for outer_ring in frange(config.outer_ring_min, config.outer_ring_max, config.outer_ring_step):
             for exit_sign in (1.0, -1.0):
                 result = _try_ring(
-                    flake_polygon, blocking, config, inner_ring, outer_ring, exit_sign, occupied, chip_bounds,
+                    flake_polygon, blocking, config, inner_ring, outer_ring, exit_sign, occupied, chip_bounds, other_pads,
                 )
                 if result is not None:
                     return result

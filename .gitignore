@@ -7,6 +7,9 @@
 
 PaperMaterials
 paper
+pipeline_runs
+pipeline_runs_v2
+pipeline_runs_v3
 venv
 .venv
 .claude

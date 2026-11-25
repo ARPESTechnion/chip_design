@@ -134,6 +134,9 @@ def place_all(config: ContactPlacementConfig) -> list[PlacementResult]:
     # not-yet-processed flake's body, without self-colliding.
     bodies: dict[int, BaseGeometry] = {id(c): ShapelyPolygon(c.vertices_um) for c in candidates}
     occupied_contacts: BaseGeometry = GeometryCollection()
+    # Pads placed so far, kept separately too: a new pad must keep
+    # min_pad_spacing from these, not merely avoid overlapping them.
+    placed_pads: BaseGeometry = GeometryCollection()
 
     def occupied_for(candidate: FlakeCandidate) -> BaseGeometry:
         other_bodies = [b for cid, b in bodies.items() if cid != id(candidate)]
@@ -152,10 +155,11 @@ def place_all(config: ContactPlacementConfig) -> list[PlacementResult]:
             continue  # below size gate -- not a real Hall attempt, doesn't consume the budget
 
         hall_attempts += 1
-        hall_result = place_hall(candidate.vertices_um, config.hall, occupied_for(candidate), chip_bounds)
+        hall_result = place_hall(candidate.vertices_um, config.hall, occupied_for(candidate), chip_bounds, placed_pads)
         if hall_result is not None:
             results[id(candidate)] = PlacementResult(candidate=candidate, mode='hall', result=hall_result)
             occupied_contacts = unary_union([occupied_contacts, _committed_geometry('hall', hall_result)])
+            placed_pads = unary_union([placed_pads, *[p.pad for p in hall_result.external]])
 
     ring_attempts = 0
     for candidate in candidates:
@@ -164,9 +168,10 @@ def place_all(config: ContactPlacementConfig) -> list[PlacementResult]:
         if ring_attempts >= config.num_rings_to_try:
             break
         ring_attempts += 1
-        ring_result = place_ring(candidate.vertices_um, config.ring, occupied_for(candidate), chip_bounds)
+        ring_result = place_ring(candidate.vertices_um, config.ring, occupied_for(candidate), chip_bounds, placed_pads)
         if ring_result is not None:
             results[id(candidate)] = PlacementResult(candidate=candidate, mode='ring', result=ring_result)
             occupied_contacts = unary_union([occupied_contacts, _committed_geometry('ring', ring_result)])
+            placed_pads = unary_union([placed_pads, *[p.pad for p in ring_result.external]])
 
     return [results[id(c)] for c in candidates]

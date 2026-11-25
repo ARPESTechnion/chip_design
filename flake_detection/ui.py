@@ -107,6 +107,28 @@ class FlakeReviewUI:
         ttk.Button(
             middle, text="▶", style='Arrow.TButton', command=self._next,
         ).pack(side='right', fill='y', padx=4, pady=4)
+
+        # Live chosen-flake counter, refreshed by every _render() (i.e. after
+        # each click toggle, reset, or image change). Counts the in-memory
+        # selections, saved or not.
+        counter = ttk.Frame(middle, padding=(12, 8))
+        counter.pack(side='right', fill='y')
+        ttk.Label(counter, text="Chosen flakes", font=('TkDefaultFont', 12, 'bold')).pack(side='top')
+        self.total_count_label = ttk.Label(
+            counter, text="0", font=('TkDefaultFont', 36, 'bold'), foreground='#008c00',
+        )
+        self.total_count_label.pack(side='top', pady=(4, 0))
+        self.total_of_label = ttk.Label(counter, text="", font=('TkDefaultFont', 10))
+        self.total_of_label.pack(side='top')
+        ttk.Separator(counter, orient='horizontal').pack(side='top', fill='x', pady=12)
+        ttk.Label(counter, text="This image", font=('TkDefaultFont', 11, 'bold')).pack(side='top')
+        self.image_count_label = ttk.Label(
+            counter, text="0", font=('TkDefaultFont', 24, 'bold'), foreground='#008c00',
+        )
+        self.image_count_label.pack(side='top', pady=(4, 0))
+        self.image_of_label = ttk.Label(counter, text="", font=('TkDefaultFont', 10))
+        self.image_of_label.pack(side='top')
+
         self.canvas = tk.Canvas(middle, bg='black', highlightthickness=0)
         self.canvas.pack(side='left', fill='both', expand=True, padx=4, pady=4)
         self.canvas.bind('<Button-1>', self._on_click)
@@ -204,6 +226,13 @@ class FlakeReviewUI:
         )
         self.dirty_label.config(text="unsaved changes" if self._is_dirty(self.idx) else "")
 
+        total_chosen = sum(1 for r in self.images for f in r.flakes if f.chosen)
+        total_flakes = sum(len(r.flakes) for r in self.images)
+        self.total_count_label.config(text=str(total_chosen))
+        self.total_of_label.config(text=f"of {total_flakes} candidates\nin {len(self.images)} images", justify='center')
+        self.image_count_label.config(text=str(n_chosen))
+        self.image_of_label.config(text=f"of {len(result.flakes)} candidates")
+
     # -- click handling -----------------------------------------------------
 
     def _on_click(self, event: tk.Event) -> None:
@@ -296,7 +325,7 @@ def review_results(results: list[ImageResult], output_folder: str | Path) -> Non
     their on-disk files rewritten (see FlakeReviewUI). Blocks until the
     window is closed (Skip All, or the window's own close button).
     """
-    reviewable = [r for r in results if r.flakes]
+    reviewable = sorted((r for r in results if r.flakes), key=lambda r: Path(r.image_path).name.lower())
     if not reviewable:
         print("No flakes to review — skipping interactive review.")
         return

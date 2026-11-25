@@ -518,7 +518,7 @@ def review_alignment(stages: list[MarkerStageResult], overrides_dir: str | Path,
     readout's implied-scale figure -- calibration.calibrate computes the
     real thing later from whatever's actually saved.
     """
-    reviewable = [s for s in stages if s.chan_sel is not None]
+    reviewable = sorted((s for s in stages if s.chan_sel is not None), key=lambda s: s.img_path.name.lower())
     if not reviewable:
         print("No images available to review — skipping interactive alignment review.")
         return
