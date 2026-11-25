@@ -2,8 +2,7 @@
 
 Automates finding candidate 2D-material flakes in chip microscope images and
 exporting their geometry as CIF polygons, placed into a master chip template
-for fabrication (electron-beam lithography). Built to replace the manual
-steps of the legacy MATLAB tool `GDS_Code.m`.
+for fabrication (electron-beam lithography).
 
 **Paper**: O. Berman and I. Mangel, *FlakeForge: automated lithography-ready
 device layout from optical images of exfoliated van der Waals flakes*,
