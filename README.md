@@ -22,7 +22,7 @@ The pipeline has three parts, each independently runnable:
    writes/places CIF files.
 3. **`channels_model`** — a small trained model, used internally by
    `grid_preperation`, that imitates the manual "which color layers are real
-   content" decision `GDS_Code.m`'s operator used to make by hand. You don't
+   content" decision an expert used to make by hand. You don't
    normally interact with it directly — see the bottom of this README.
 
 `all_code.py` runs all of this end to end. Each stage can also be run on its
