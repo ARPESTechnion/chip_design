@@ -5,6 +5,14 @@ exporting their geometry as CIF polygons, placed into a master chip template
 for fabrication (electron-beam lithography). Built to replace the manual
 steps of the legacy MATLAB tool `GDS_Code.m`.
 
+**Paper**: O. Berman and I. Mangel, *FlakeForge: automated lithography-ready
+device layout from optical images of exfoliated van der Waals flakes*,
+arXiv:2611.29509 (2026) — https://arxiv.org/abs/2611.29509
+
+**Materials** (trained model and a toy dataset of optical images for trying
+the pipeline):
+https://drive.google.com/drive/folders/1PFAKjvdyGy75H3g4cxbodw90LaiyOWCD?usp=drive_link
+
 The pipeline has three parts, each independently runnable:
 
 1. **`flake_detection`** — scans a folder of raw chip images and scores/flags
@@ -62,8 +70,8 @@ MATLAB, or the version it installs doesn't match, install it by hand:
 `venv\Scripts\python.exe -m pip install matlabengine==<version>` — release
 `R20YYa` → `YY.1`, `R20YYb` → `YY.2` (e.g. `R2026a` → `26.1`).
 
-**Trained model**: download it from
-**https://drive.google.com/drive/folders/1UgtzAjijtjCXCGo_lJOhxZYN9KE9eSsn?usp=drive_link**
+**Trained model**: download it from the materials folder
+**https://drive.google.com/drive/folders/1PFAKjvdyGy75H3g4cxbodw90LaiyOWCD?usp=drive_link**
 and place the files at `channels_model/outputs/` (you should end up with
 `channels_model/outputs/channels_model.onnx`). It's not in git — see
 `.gitignore`.
